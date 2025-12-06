@@ -8,7 +8,7 @@ import { MapPin, Phone, MessageCircle } from 'lucide-react'
 export default async function CorretorPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   
-  const corretor = await prisma.corretorProfile.findUnique({
+  const corretorRaw = await prisma.corretorProfile.findUnique({
     where: { slug },
     include: {
       user: {
@@ -28,8 +28,17 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
     }
   })
 
-  if (!corretor) {
+  if (!corretorRaw) {
     notFound()
+  }
+
+  // Converter Decimal para número nos imóveis
+  const corretor = {
+    ...corretorRaw,
+    imoveis: corretorRaw.imoveis.map(imovel => ({
+      ...imovel,
+      valor: Number(imovel.valor)
+    }))
   }
 
   return (

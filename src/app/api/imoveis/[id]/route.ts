@@ -41,7 +41,13 @@ export async function GET(
       }
     })
 
-    return NextResponse.json(imovel)
+    // Converter Decimal para número
+    const imovelSerializado = {
+      ...imovel,
+      valor: Number(imovel.valor)
+    }
+
+    return NextResponse.json(imovelSerializado)
   } catch (error) {
     console.error('Error fetching imovel:', error)
     return NextResponse.json(

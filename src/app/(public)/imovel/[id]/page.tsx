@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -48,7 +48,7 @@ export default function ImovelPage({ params }: { params: Promise<{ id: string }>
   const [submitting, setSubmitting] = useState(false)
 
   // Carregar imóvel
-  useState(() => {
+  useEffect(() => {
     async function loadImovel() {
       try {
         const resolvedParams = await params
@@ -65,7 +65,7 @@ export default function ImovelPage({ params }: { params: Promise<{ id: string }>
       }
     }
     loadImovel()
-  })
+  }, [params])
 
   const handleSubmitLead = async (e: React.FormEvent) => {
     e.preventDefault()

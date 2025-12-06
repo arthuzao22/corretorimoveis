@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const imoveis = await prisma.imovel.findMany({
+  const imoveisRaw = await prisma.imovel.findMany({
     where: {
       status: 'ATIVO'
     },
@@ -25,6 +25,12 @@ export default async function Home() {
     },
     take: 6
   })
+
+  // Converter Decimal para número
+  const imoveis = imoveisRaw.map(imovel => ({
+    ...imovel,
+    valor: Number(imovel.valor)
+  }))
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -67,7 +67,13 @@ export async function updateImovel(id: string, data: Partial<z.infer<typeof imov
       data
     })
 
-    return { success: true, imovel: updatedImovel }
+    // Converter Decimal para número
+    const imovelSerializado = {
+      ...updatedImovel,
+      valor: Number(updatedImovel.valor)
+    }
+
+    return { success: true, imovel: imovelSerializado }
   } catch (error) {
     console.error('Update imovel error:', error)
     return { success: false, error: 'Erro ao atualizar imóvel' }
@@ -119,9 +125,44 @@ export async function getMyImoveis() {
       }
     })
 
-    return { success: true, imoveis }
+    // Converter Decimal para número
+    const imoveisSerializados = imoveis.map(imovel => ({
+      ...imovel,
+      valor: Number(imovel.valor)
+    }))
+
+    return { success: true, imoveis: imoveisSerializados }
   } catch (error) {
     console.error('Get imoveis error:', error)
     return { success: false, error: 'Erro ao buscar imóveis' }
+  }
+}
+
+export async function getImovelById(id: string) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const imovel = await prisma.imovel.findUnique({
+      where: { id }
+    })
+
+    if (!imovel || imovel.corretorId !== session.user.corretorId) {
+      return { success: false, error: 'Imóvel não encontrado' }
+    }
+
+    // Converter Decimal para número
+    const imovelSerializado = {
+      ...imovel,
+      valor: Number(imovel.valor)
+    }
+
+    return { success: true, imovel: imovelSerializado }
+  } catch (error) {
+    console.error('Get imovel error:', error)
+    return { success: false, error: 'Erro ao buscar imóvel' }
   }
 }

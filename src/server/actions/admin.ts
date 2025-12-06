@@ -98,7 +98,7 @@ export async function getAllImoveisAdmin() {
       return { success: false, error: 'Não autorizado' }
     }
 
-    const imoveis = await prisma.imovel.findMany({
+    const imoveisRaw = await prisma.imovel.findMany({
       include: {
         corretor: {
           include: {
@@ -115,6 +115,12 @@ export async function getAllImoveisAdmin() {
         createdAt: 'desc'
       }
     })
+
+    // Converter Decimal para número
+    const imoveis = imoveisRaw.map(imovel => ({
+      ...imovel,
+      valor: Number(imovel.valor)
+    }))
 
     return { success: true, imoveis }
   } catch (error) {
