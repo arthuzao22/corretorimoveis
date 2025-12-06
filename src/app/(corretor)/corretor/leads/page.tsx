@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/Card'
+import { LeadTable } from '@/components/ui/LeadTable'
 import { getMyLeads } from '@/server/actions/leads'
+import { Users } from 'lucide-react'
 
 type Lead = {
   id: string
   name: string
   email: string
   phone: string
-  message?: string
+  message?: string | null
   createdAt: Date
   imovel: {
     id: string
@@ -39,55 +41,34 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Meus Leads</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Meus Leads</h1>
+          <p className="text-gray-600 mt-1">
+            {leads.length} {leads.length === 1 ? 'lead recebido' : 'leads recebidos'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg">
+          <Users className="w-5 h-5" />
+          <span className="font-semibold">{leads.length}</span>
+        </div>
+      </div>
 
       {leads.length === 0 ? (
         <Card>
-          <p className="text-center text-gray-500 py-8">
-            Você ainda não recebeu nenhum lead.
-          </p>
+          <div className="text-center py-12">
+            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Você ainda não recebeu nenhum lead.</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Os leads aparecem quando alguém demonstra interesse em seus imóveis.
+            </p>
+          </div>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {leads.map((lead) => (
-            <Card key={lead.id}>
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {lead.name}
-                  </h3>
-                  <div className="mt-2 space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Email:</span> {lead.email}
-                    </p>
-                    <p>
-                      <span className="font-medium">Telefone:</span> {lead.phone}
-                    </p>
-                    <p>
-                      <span className="font-medium">Imóvel de interesse:</span>{' '}
-                      {lead.imovel.titulo}
-                    </p>
-                    {lead.message && (
-                      <p>
-                        <span className="font-medium">Mensagem:</span> {lead.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(lead.createdAt).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <LeadTable leads={leads} />
+        </Card>
       )}
     </div>
   )
