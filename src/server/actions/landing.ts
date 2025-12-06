@@ -123,10 +123,10 @@ export async function updateLandingPage(
     })
 
     return { success: true, corretor: updatedCorretor }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update landing page error:', error)
-    if (error?.issues) {
-      return { success: false, error: error.issues[0].message }
+    if (error && typeof error === 'object' && 'issues' in error) {
+      return { success: false, error: (error as { issues: Array<{ message: string }> }).issues[0].message }
     }
     return { success: false, error: 'Erro ao atualizar landing page' }
   }

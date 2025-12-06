@@ -29,21 +29,21 @@ export default function MinhaLandingPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    loadLanding()
-  }, [])
-
-  const loadLanding = async () => {
-    setLoading(true)
-    const result = await getMyLandingPage()
-    
-    if (result.success && result.corretor) {
-      setLanding(result.corretor)
-    } else {
-      alert(result.error || 'Erro ao carregar landing page')
+    const fetchLanding = async () => {
+      setLoading(true)
+      const result = await getMyLandingPage()
+      
+      if (result.success && result.corretor) {
+        setLanding(result.corretor)
+      } else {
+        alert(result.error || 'Erro ao carregar landing page')
+      }
+      
+      setLoading(false)
     }
     
-    setLoading(false)
-  }
+    fetchLanding()
+  }, [])
 
   const handleCopyLink = () => {
     if (!landing) return
@@ -117,7 +117,7 @@ export default function MinhaLandingPage() {
 
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleCopyLink}
               disabled={!landing.landingAtiva}
             >
@@ -162,7 +162,7 @@ export default function MinhaLandingPage() {
             readOnly
             className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm"
           />
-          <Button variant="outline" onClick={handleCopyLink}>
+          <Button variant="secondary" onClick={handleCopyLink}>
             <Copy className="w-4 h-4" />
           </Button>
         </div>

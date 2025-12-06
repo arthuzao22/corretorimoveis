@@ -130,22 +130,21 @@ export default function AdminLandingPage() {
 
               <div className="flex gap-2">
                 <Link href={`/lp/${corretor.slug}`} target="_blank">
-                  <Button variant="outline" size="sm">
+                  <Button variant="secondary">
                     <Eye className="w-4 h-4 mr-1" />
                     Preview
                   </Button>
                 </Link>
 
                 <Link href={`/admin/landing/${corretor.id}`}>
-                  <Button variant="primary" size="sm">
+                  <Button variant="primary">
                     <Edit className="w-4 h-4 mr-1" />
                     Editar
                   </Button>
                 </Link>
 
                 <Button
-                  variant={corretor.landingAtiva ? 'outline' : 'primary'}
-                  size="sm"
+                  variant={corretor.landingAtiva ? 'secondary' : 'primary'}
                   onClick={() => handleToggleActive(corretor.id)}
                 >
                   <Power className="w-4 h-4 mr-1" />

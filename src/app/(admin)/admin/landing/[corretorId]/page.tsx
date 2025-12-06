@@ -45,10 +45,6 @@ export default function EditLandingPage() {
     textoCTA: 'Ver Imóveis Disponíveis'
   })
 
-  useEffect(() => {
-    loadData()
-  }, [corretorId])
-
   const loadData = async () => {
     setLoading(true)
     const result = await getLandingPageByCorretorId(corretorId)
@@ -71,6 +67,10 @@ export default function EditLandingPage() {
     
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadData()
+  }, [corretorId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -104,7 +104,7 @@ export default function EditLandingPage() {
     <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-8">
         <Link href="/admin/landing">
-          <Button variant="outline" size="sm" className="mb-4">
+          <Button variant="secondary" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
@@ -274,7 +274,7 @@ export default function EditLandingPage() {
                 </Button>
 
                 <Link href={`/lp/${corretor.slug}`} target="_blank">
-                  <Button type="button" variant="outline">
+                  <Button type="button" variant="secondary">
                     <Eye className="w-4 h-4 mr-2" />
                     Preview
                   </Button>

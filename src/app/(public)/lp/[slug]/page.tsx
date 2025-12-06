@@ -182,7 +182,7 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {corretor.imoveis.map((imovel: any) => (
+              {corretor.imoveis.map((imovel) => (
                 <ImovelCard
                   key={imovel.id}
                   id={imovel.id}
