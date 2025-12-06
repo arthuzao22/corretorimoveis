@@ -14,7 +14,7 @@ const imovelSchema = z.object({
   cidade: z.string().min(2),
   estado: z.string().length(2),
   cep: z.string().optional(),
-  fotos: z.array(z.string()).default([])
+  images: z.array(z.string().url()).min(1, 'Pelo menos uma imagem é obrigatória').default([])
 })
 
 export async function createImovel(data: z.infer<typeof imovelSchema>) {

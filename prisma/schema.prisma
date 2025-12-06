@@ -51,6 +51,8 @@ model CorretorProfile {
   bio         String?  @db.Text
   phone       String?
   photo       String?
+  whatsapp    String?
+  cidade      String?
   approved    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -87,7 +89,7 @@ model Imovel {
   cidade      String
   estado      String
   cep         String?
-  fotos       String[]      @default([])
+  images      String[]      @default([])
   views       Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
