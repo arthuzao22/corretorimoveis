@@ -28,10 +28,6 @@ export default function LeadsAdminPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadLeads()
-  }, [])
-
   const loadLeads = async () => {
     const result = await getAllLeads()
     if (result.success && result.leads) {
@@ -39,6 +35,10 @@ export default function LeadsAdminPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadLeads()
+  }, [])
 
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>

@@ -24,10 +24,6 @@ export default function ImoveisAdminPage() {
   const [imoveis, setImoveis] = useState<Imovel[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadImoveis()
-  }, [])
-
   const loadImoveis = async () => {
     const result = await getAllImoveisAdmin()
     if (result.success && result.imoveis) {
@@ -35,6 +31,10 @@ export default function ImoveisAdminPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadImoveis()
+  }, [])
 
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>

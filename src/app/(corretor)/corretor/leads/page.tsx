@@ -22,10 +22,6 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadLeads()
-  }, [])
-
   const loadLeads = async () => {
     const result = await getMyLeads()
     if (result.success && result.leads) {
@@ -33,6 +29,10 @@ export default function LeadsPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadLeads()
+  }, [])
 
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>

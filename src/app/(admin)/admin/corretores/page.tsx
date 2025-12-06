@@ -26,10 +26,6 @@ export default function CorretoresPage() {
   const [corretores, setCorretores] = useState<Corretor[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadCorretores()
-  }, [])
-
   const loadCorretores = async () => {
     const result = await getAllCorretores()
     if (result.success && result.corretores) {
@@ -37,6 +33,10 @@ export default function CorretoresPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadCorretores()
+  }, [])
 
   const handleApprove = async (corretorId: string) => {
     const result = await approveCorretor(corretorId)

@@ -21,10 +21,6 @@ export default function ImoveisPage() {
   const [imoveis, setImoveis] = useState<Imovel[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadImoveis()
-  }, [])
-
   const loadImoveis = async () => {
     const result = await getMyImoveis()
     if (result.success && result.imoveis) {
@@ -32,6 +28,10 @@ export default function ImoveisPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadImoveis()
+  }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar este imóvel?')) {
