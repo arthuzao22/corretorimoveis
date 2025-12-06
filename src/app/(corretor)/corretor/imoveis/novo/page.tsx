@@ -186,14 +186,15 @@ export default function NovoImovelPage() {
             <h3 className="text-lg font-semibold text-gray-900">Fotos do Imóvel</h3>
             
             <div className="flex gap-2">
-              <Input
-                label=""
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                disabled={loading}
-                placeholder="Cole a URL da imagem"
-                className="flex-1"
-              />
+              <div className="flex-1">
+                <Input
+                  label=""
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  disabled={loading}
+                  placeholder="Cole a URL da imagem"
+                />
+              </div>
               <Button
                 type="button"
                 onClick={addImage}

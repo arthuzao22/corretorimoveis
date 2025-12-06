@@ -32,13 +32,6 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
     notFound()
   }
 
-  const handleWhatsApp = () => {
-    if (corretor.whatsapp) {
-      const phone = corretor.whatsapp.replace(/\D/g, '')
-      window.open(`https://wa.me/55${phone}`, '_blank')
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
