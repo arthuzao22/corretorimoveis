@@ -33,10 +33,31 @@ export default function LoginPage() {
         return
       }
 
-      // Redirecionar baseado no papel do usuário
-      router.push('/corretor/dashboard')
-      router.refresh()
+      if (result?.ok) {
+        // Pequeno delay para garantir que a sessão foi criada
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Buscar a sessão para determinar o papel do usuário
+        const response = await fetch('/api/auth/session')
+        const session = await response.json()
+
+        console.log('Session:', session) // Debug
+
+        // Redirecionar baseado no papel do usuário
+        if (session?.user?.role === 'ADMIN') {
+          window.location.href = '/admin/dashboard'
+        } else if (session?.user?.role === 'CORRETOR') {
+          window.location.href = '/corretor/dashboard'
+        } else {
+          setError('Erro ao identificar tipo de usuário')
+          setLoading(false)
+        }
+      } else {
+        setError('Erro ao fazer login')
+        setLoading(false)
+      }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Erro ao fazer login')
       setLoading(false)
     }

@@ -25,6 +25,7 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user || !user.active) {
+          console.log('User not found or inactive')
           return null
         }
 
@@ -34,8 +35,16 @@ export const authOptions: NextAuthOptions = {
         )
 
         if (!isPasswordValid) {
+          console.log('Invalid password')
           return null
         }
+
+        console.log('Login successful:', {
+          email: user.email,
+          role: user.role,
+          hasAdmin: !!user.admin,
+          hasCorretor: !!user.corretorProfile
+        })
 
         return {
           id: user.id,
@@ -66,6 +75,14 @@ export const authOptions: NextAuthOptions = {
         session.user.approved = token.approved as boolean
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Se a URL já é absoluta e é do mesmo domínio, usar ela
+      if (url.startsWith(baseUrl)) return url
+      // Se começa com /, é relativa ao baseUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // Caso contrário, redirecionar para o baseUrl
+      return baseUrl
     }
   },
   pages: {
