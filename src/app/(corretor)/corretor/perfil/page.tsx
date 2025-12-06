@@ -54,7 +54,7 @@ export default function PerfilPage() {
     if (slug.length >= 3) {
       setSlugChecking(true)
       const result = await checkSlugAvailability(slug)
-      if (result.success) {
+      if (result.success && result.available !== undefined) {
         setSlugAvailable(result.available)
       }
       setSlugChecking(false)
