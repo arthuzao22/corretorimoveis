@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CORRETOR
+}
+
+enum ImovelTipo {
+  VENDA
+  ALUGUEL
+}
+
+enum ImovelStatus {
+  ATIVO
+  INATIVO
+  VENDIDO
+  ALUGADO
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  corretorProfile CorretorProfile?
+  admin           Admin?
+
+  @@map("users")
+}
+
+model CorretorProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  slug        String   @unique
+  bio         String?  @db.Text
+  phone       String?
+  photo       String?
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imoveis Imovel[]
+  leads   Lead[]
+
+  @@map("corretor_profiles")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+model Imovel {
+  id          String        @id @default(cuid())
+  corretorId  String
+  titulo      String
+  descricao   String        @db.Text
+  tipo        ImovelTipo
+  status      ImovelStatus  @default(ATIVO)
+  valor       Decimal       @db.Decimal(10, 2)
+  endereco    String
+  cidade      String
+  estado      String
+  cep         String?
+  fotos       String[]      @default([])
+  views       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relacionamentos
+  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  leads    Lead[]
+
+  @@index([corretorId])
+  @@index([tipo])
+  @@index([status])
+  @@map("imoveis")
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  imovelId   String
+  corretorId String
+  name       String
+  email      String
+  phone      String
+  message    String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  // Relacionamentos
+  imovel   Imovel          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+
+  @@index([corretorId])
+  @@index([imovelId])
+  @@map("leads")
+}
