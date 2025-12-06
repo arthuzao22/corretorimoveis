@@ -126,7 +126,8 @@ export async function updateLandingPage(
   } catch (error: unknown) {
     console.error('Update landing page error:', error)
     if (error && typeof error === 'object' && 'issues' in error) {
-      return { success: false, error: (error as { issues: Array<{ message: string }> }).issues[0].message }
+      const zodError = error as unknown as { issues: Array<{ message: string }> }
+      return { success: false, error: zodError.issues[0].message }
     }
     return { success: false, error: 'Erro ao atualizar landing page' }
   }

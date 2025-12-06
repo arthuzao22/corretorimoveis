@@ -70,6 +70,7 @@ export default function EditLandingPage() {
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [corretorId])
 
   const handleSubmit = async (e: React.FormEvent) => {

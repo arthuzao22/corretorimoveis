@@ -43,6 +43,7 @@ export default function MinhaLandingPage() {
     }
     
     fetchLanding()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleCopyLink = () => {

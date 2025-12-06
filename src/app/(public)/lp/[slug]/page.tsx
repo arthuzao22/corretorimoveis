@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { getPublicLandingPage } from '@/server/actions/landing'
 import { ImovelCard } from '@/components/ui/ImovelCard'
 import { notFound } from 'next/navigation'
 import { MapPin, Phone, MessageCircle } from 'lucide-react'
@@ -6,31 +6,16 @@ import { MapPin, Phone, MessageCircle } from 'lucide-react'
 export default async function PublicLandingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   
-  const corretorRaw = await prisma.corretorProfile.findUnique({
-    where: { slug },
-    include: {
-      user: {
-        select: {
-          name: true
-        }
-      },
-      imoveis: {
-        where: {
-          status: 'ATIVO'
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }
-    }
-  })
+  const result = await getPublicLandingPage(slug)
 
-  if (!corretorRaw) {
+  if (!result.success || !result.corretor) {
     notFound()
   }
 
+  const corretor = result.corretor
+
   // Se landing não está ativa, mostrar mensagem
-  if (!corretorRaw.landingAtiva) {
+  if (!corretor.landingAtiva) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md mx-auto p-8 bg-white rounded-lg shadow-lg text-center">
@@ -43,15 +28,6 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
         </div>
       </div>
     )
-  }
-
-  // Converter Decimal para número nos imóveis
-  const corretor = {
-    ...corretorRaw,
-    imoveis: corretorRaw.imoveis.map(imovel => ({
-      ...imovel,
-      valor: Number(imovel.valor)
-    }))
   }
 
   const temaCor = corretor.temaCor || '#3B82F6'
