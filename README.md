@@ -1,36 +1,200 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal Imobiliário para Corretores
 
-## Getting Started
+Sistema completo de gerenciamento de imóveis para corretores, desenvolvido com Next.js 14+, TypeScript, Prisma e PostgreSQL.
 
-First, run the development server:
+## 🚀 Funcionalidades
+
+### Para Corretores
+- ✅ Cadastro e autenticação
+- ✅ Dashboard com métricas (imóveis, leads)
+- ✅ CRUD completo de imóveis (venda/aluguel)
+- ✅ Visualização de leads recebidos
+- ✅ Perfil público personalizado
+
+### Para Administradores
+- ✅ Dashboard administrativo
+- ✅ Gerenciamento de corretores
+- ✅ Aprovação manual de corretores
+- ✅ Visualização de todos os imóveis e leads
+- ✅ Bloqueio/desbloqueio de contas
+
+### Para Visitantes (Leads)
+- ✅ Navegação pública de imóveis
+- ✅ Visualização de perfis de corretores
+- ✅ Envio de contatos diretos nos imóveis
+
+## 🛠️ Stack Tecnológica
+
+- **Framework:** Next.js 14+ (App Router)
+- **Linguagem:** TypeScript
+- **Banco de Dados:** PostgreSQL
+- **ORM:** Prisma
+- **Autenticação:** NextAuth.js
+- **Estilização:** Tailwind CSS
+- **Validação:** Zod
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── app/
+│   ├── (public)/           # Rotas públicas
+│   │   ├── imovel/[id]
+│   │   └── corretor/[slug]
+│   ├── (auth)/             # Autenticação
+│   │   ├── login
+│   │   └── register
+│   ├── (corretor)/         # Portal do corretor
+│   │   └── corretor/
+│   │       ├── dashboard
+│   │       ├── imoveis
+│   │       ├── leads
+│   │       └── perfil
+│   ├── (admin)/            # Portal administrativo
+│   │   └── admin/
+│   │       ├── dashboard
+│   │       ├── corretores
+│   │       ├── imoveis
+│   │       └── leads
+│   └── api/                # API Routes
+│       ├── auth/[...nextauth]
+│       └── imoveis/[id]
+├── components/
+│   ├── ui/                 # Componentes reutilizáveis
+│   └── forms/              # Formulários
+├── server/
+│   ├── actions/            # Server Actions
+│   ├── repositories/       # Camada de dados
+│   └── services/           # Lógica de negócio
+├── lib/                    # Utilitários
+└── types/                  # Definições TypeScript
+```
+
+## 🚀 Como Executar
+
+### 1. Pré-requisitos
+
+- Node.js 18+
+- PostgreSQL
+- npm ou yarn
+
+### 2. Clone o repositório
+
+```bash
+git clone <repository-url>
+cd corretorimoveis
+```
+
+### 3. Instale as dependências
+
+```bash
+npm install
+```
+
+### 4. Configure as variáveis de ambiente
+
+Copie o arquivo `.env.example` para `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/corretorimoveis?schema=public"
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### 5. Configure o banco de dados
+
+```bash
+# Gerar o cliente Prisma
+npm run db:generate
+
+# Criar as tabelas no banco
+npm run db:push
+
+# Popular o banco com dados de exemplo
+npm run db:seed
+```
+
+### 6. Execute o projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 👤 Credenciais de Teste
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Após executar o seed, você pode usar:
 
-## Learn More
+**Administrador:**
+- Email: admin@example.com
+- Senha: 123456
 
-To learn more about Next.js, take a look at the following resources:
+**Corretor 1:**
+- Email: joao@example.com
+- Senha: 123456
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Corretor 2:**
+- Email: maria@example.com
+- Senha: 123456
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📊 Modelos de Dados
 
-## Deploy on Vercel
+### User
+- Autenticação e informações básicas
+- Tipos: ADMIN, CORRETOR
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### CorretorProfile
+- Informações públicas do corretor
+- Slug único para URL pública
+- Aprovação manual por admin
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Imovel
+- Informações completas do imóvel
+- Tipos: VENDA, ALUGUEL
+- Status: ATIVO, INATIVO, VENDIDO, ALUGADO
+
+### Lead
+- Contatos recebidos nos imóveis
+- Vinculado a um imóvel e corretor
+
+## 🔐 Segurança
+
+- ✅ Senhas criptografadas com bcrypt
+- ✅ Autenticação JWT via NextAuth
+- ✅ Middleware para proteção de rotas
+- ✅ Validação de dados com Zod
+- ✅ Controle de acesso baseado em roles
+
+## 🚧 Próximas Funcionalidades
+
+- [ ] Planos pagos por corretor
+- [ ] Destaque de imóveis
+- [ ] Integração com WhatsApp
+- [ ] Upload de imagens (Cloudinary)
+- [ ] Busca avançada de imóveis
+- [ ] Favoritos e comparação de imóveis
+- [ ] Métricas e relatórios
+
+## 📝 Scripts Disponíveis
+
+```bash
+npm run dev          # Inicia o servidor de desenvolvimento
+npm run build        # Compila o projeto para produção
+npm run start        # Inicia o servidor de produção
+npm run lint         # Executa o linter
+npm run db:generate  # Gera o cliente Prisma
+npm run db:push      # Sincroniza o schema com o banco
+npm run db:seed      # Popula o banco com dados de teste
+npm run db:studio    # Abre o Prisma Studio
+```
+
+## 📄 Licença
+
+Este projeto foi criado como exemplo de implementação de um sistema SaaS para corretores de imóveis.
