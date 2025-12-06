@@ -57,6 +57,16 @@ model CorretorProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Landing Page (somente admin altera)
+  temaCor     String?  @default("#3B82F6")
+  fundoCor    String?  @default("#F9FAFB")
+  bannerUrl   String?
+  logoUrl     String?
+  tituloLP    String?  @default("Encontre o Imóvel dos Seus Sonhos")
+  subtituloLP String?  @default("Imóveis de qualidade com atendimento personalizado")
+  textoCTA    String?  @default("Ver Imóveis Disponíveis")
+  landingAtiva Boolean @default(true)
+
   // Relacionamentos
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   imoveis Imovel[]
