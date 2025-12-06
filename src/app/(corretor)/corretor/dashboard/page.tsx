@@ -1,6 +1,9 @@
 import { getMyImoveis } from '@/server/actions/imoveis'
 import { getMyLeads } from '@/server/actions/leads'
 import { Card } from '@/components/ui/Card'
+import { MetricCard } from '@/components/ui/MetricCard'
+import { LeadTable } from '@/components/ui/LeadTable'
+import { Building2, Home, TrendingUp, Users } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,67 +19,45 @@ export default async function CorretorDashboard() {
   const totalLeads = leads?.length || 0
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">Bem-vindo ao seu painel de controle</p>
+      </div>
 
+      {/* Metrics Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <h3 className="text-sm font-medium text-gray-500">Total de Imóveis</h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900">
-            {imoveis?.length || 0}
-          </p>
-        </Card>
-
-        <Card>
-          <h3 className="text-sm font-medium text-gray-500">Imóveis Ativos</h3>
-          <p className="mt-2 text-3xl font-semibold text-green-600">
-            {imoveisAtivos}
-          </p>
-        </Card>
-
-        <Card>
-          <h3 className="text-sm font-medium text-gray-500">Imóveis Inativos</h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-600">
-            {imoveisInativos}
-          </p>
-        </Card>
-
-        <Card>
-          <h3 className="text-sm font-medium text-gray-500">Total de Leads</h3>
-          <p className="mt-2 text-3xl font-semibold text-blue-600">
-            {totalLeads}
-          </p>
-        </Card>
+        <MetricCard
+          title="Total de Imóveis"
+          value={imoveis?.length || 0}
+          icon={Building2}
+          color="blue"
+        />
+        <MetricCard
+          title="Imóveis Ativos"
+          value={imoveisAtivos}
+          icon={Home}
+          color="green"
+        />
+        <MetricCard
+          title="Imóveis Inativos"
+          value={imoveisInativos}
+          icon={TrendingUp}
+          color="orange"
+        />
+        <MetricCard
+          title="Total de Leads"
+          value={totalLeads}
+          icon={Users}
+          color="purple"
+        />
       </div>
 
-      <div className="mt-8">
-        <Card>
-          <h2 className="text-xl font-semibold mb-4">Últimos Leads</h2>
-          {leads && leads.length > 0 ? (
-            <div className="space-y-4">
-              {leads.slice(0, 5).map((lead: any) => (
-                <div key={lead.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-gray-900">{lead.name}</p>
-                      <p className="text-sm text-gray-600">{lead.email}</p>
-                      <p className="text-sm text-gray-600">{lead.phone}</p>
-                      <p className="text-sm text-blue-600 mt-1">
-                        {lead.imovel.titulo}
-                      </p>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">Nenhum lead ainda</p>
-          )}
-        </Card>
-      </div>
+      {/* Leads Table */}
+      <Card>
+        <h2 className="text-xl font-semibold mb-6 text-gray-900">Últimos Leads</h2>
+        <LeadTable leads={leads?.slice(0, 5) || []} />
+      </Card>
     </div>
   )
 }
