@@ -1,5 +1,5 @@
 import { getPublicLanding } from '@/server/actions/landing'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { HeroBloco } from '@/components/landing/blocks/HeroBloco'
 import { HistoriaBloco } from '@/components/landing/blocks/HistoriaBloco'
 import { GaleriaBloco } from '@/components/landing/blocks/GaleriaBloco'
@@ -8,8 +8,10 @@ import { ImoveisBloco } from '@/components/landing/blocks/ImoveisBloco'
 import { VideoBloco } from '@/components/landing/blocks/VideoBloco'
 import { TextoBloco } from '@/components/landing/blocks/TextoBloco'
 import { ContatoBloco } from '@/components/landing/blocks/ContatoBloco'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Building2 } from 'lucide-react'
 import { Metadata } from 'next'
+import Link from 'next/link'
+import { LandingBloco } from '@/types/landing'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -17,23 +19,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!result.success || !result.corretor) {
     return {
-      title: 'Landing Page não encontrada'
+      title: 'Corretor de Imóveis',
+      description: 'Encontre os melhores imóveis'
     }
   }
 
   const corretor = result.corretor
-  const heroBlock = corretor.landingBlocos.find((b: any) => b.tipo === 'hero')
-  const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça os imóveis de ${corretor.user.name}`
+  const heroBlock = corretor.landingBlocos.find((b: { tipo: string }) => b.tipo === 'hero')
+  const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça ${corretor.user.name} - Sua melhor escolha no mercado imobiliário`
   const image = heroBlock?.imagens?.[0]
 
   return {
-    title: `${corretor.user.name} - Corretor de Imóveis`,
+    title: `${corretor.user.name} - Corretor de Imóveis | Marketing Imobiliário`,
     description,
+    keywords: ['corretor de imóveis', 'imóveis', corretor.cidade, corretor.user.name, 'comprar imóvel', 'alugar imóvel'].filter(Boolean).join(', '),
     openGraph: {
       title: `${corretor.user.name} - Corretor de Imóveis`,
       description,
       images: image ? [image] : [],
-      type: 'website'
+      type: 'website',
+      locale: 'pt_BR'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: image ? [image] : []
     }
   }
 }
@@ -42,38 +53,45 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   const { slug } = await params
   const result = await getPublicLanding(slug)
 
+  // If landing is not found or inactive, redirect to profile page
   if (!result.success || !result.corretor) {
-    notFound()
+    // Try to redirect to profile page as fallback
+    redirect(`/corretor/${slug}`)
   }
 
   const corretor = result.corretor
 
-  const renderBloco = (bloco: any) => {
+  // If landing has no active blocks, redirect to profile page
+  if (!corretor.landingBlocos || corretor.landingBlocos.length === 0) {
+    redirect(`/corretor/${slug}`)
+  }
+
+  const renderBloco = (bloco: LandingBloco) => {
     switch (bloco.tipo) {
       case 'hero':
-        return <HeroBloco key={bloco.id} bloco={bloco} whatsapp={corretor.whatsapp} />
+        return <HeroBloco key={bloco.id} bloco={bloco as any} whatsapp={corretor.whatsapp} />
       
       case 'historia':
       case 'carrossel':
-        return <HistoriaBloco key={bloco.id} bloco={bloco} />
+        return <HistoriaBloco key={bloco.id} bloco={bloco as any} />
       
       case 'galeria':
-        return <GaleriaBloco key={bloco.id} bloco={bloco} />
+        return <GaleriaBloco key={bloco.id} bloco={bloco as any} />
       
       case 'cta':
-        return <CTABloco key={bloco.id} bloco={bloco} whatsapp={corretor.whatsapp} />
+        return <CTABloco key={bloco.id} bloco={bloco as any} whatsapp={corretor.whatsapp} />
       
       case 'imoveis':
-        return <ImoveisBloco key={bloco.id} bloco={bloco} imoveis={corretor.imoveis} />
+        return <ImoveisBloco key={bloco.id} bloco={bloco as any} imoveis={corretor.imoveis} />
       
       case 'video':
-        return <VideoBloco key={bloco.id} bloco={bloco} />
+        return <VideoBloco key={bloco.id} bloco={bloco as any} />
       
       case 'texto':
-        return <TextoBloco key={bloco.id} bloco={bloco} />
+        return <TextoBloco key={bloco.id} bloco={bloco as any} />
       
       case 'contato':
-        return <ContatoBloco key={bloco.id} bloco={bloco} corretorId={corretor.id} whatsapp={corretor.whatsapp} />
+        return <ContatoBloco key={bloco.id} bloco={bloco as any} corretorId={corretor.id} whatsapp={corretor.whatsapp} />
       
       default:
         return null
@@ -84,6 +102,25 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-white">
       {/* Render blocos dinamicamente */}
       {corretor.landingBlocos.map(renderBloco)}
+
+      {/* Navigation to Profile - Ver Todos os Imóveis */}
+      <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Conheça Todos os Nossos Imóveis
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Veja nossa carteira completa de imóveis disponíveis para venda e aluguel
+          </p>
+          <Link
+            href={`/corretor/${corretor.slug}`}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+          >
+            <Building2 className="w-6 h-6" />
+            VER TODOS OS IMÓVEIS
+          </Link>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">

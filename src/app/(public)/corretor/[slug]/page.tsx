@@ -3,7 +3,59 @@ import { Card } from '@/components/ui/Card'
 import { ImovelCard } from '@/components/ui/ImovelCard'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { MapPin, Phone, MessageCircle } from 'lucide-react'
+import { MapPin, Phone, MessageCircle, Building2 } from 'lucide-react'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  
+  const corretor = await prisma.corretorProfile.findUnique({
+    where: { slug },
+    include: {
+      user: {
+        select: {
+          name: true
+        }
+      },
+      imoveis: {
+        where: {
+          status: 'ATIVO'
+        },
+        select: {
+          id: true
+        }
+      }
+    }
+  })
+
+  if (!corretor) {
+    return {
+      title: 'Corretor não encontrado'
+    }
+  }
+
+  const imoveisCount = corretor.imoveis.length
+  const description = corretor.bio || `${corretor.user.name} - Corretor de Imóveis em ${corretor.cidade || 'sua região'}. ${imoveisCount} ${imoveisCount === 1 ? 'imóvel disponível' : 'imóveis disponíveis'} para venda e aluguel.`
+
+  return {
+    title: `${corretor.user.name} - Imóveis para Venda e Aluguel${corretor.cidade ? ` em ${corretor.cidade}` : ''}`,
+    description,
+    keywords: ['imóveis', 'venda', 'aluguel', 'corretor', corretor.cidade, corretor.user.name, 'comprar casa', 'alugar apartamento'].filter(Boolean).join(', '),
+    openGraph: {
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: corretor.photo ? [corretor.photo] : [],
+      type: 'profile',
+      locale: 'pt_BR'
+    },
+    twitter: {
+      card: 'summary',
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: corretor.photo ? [corretor.photo] : []
+    }
+  }
+}
 
 export default async function CorretorPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -23,6 +75,12 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
         },
         orderBy: {
           createdAt: 'desc'
+        }
+      },
+      landingBlocos: {
+        where: { ativo: true },
+        select: {
+          id: true
         }
       }
     }
@@ -112,6 +170,27 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
           </div>
         </Card>
 
+        {/* Navigation to Landing Page - if active */}
+        {corretorRaw.landingAtiva && corretorRaw.landingBlocos && corretorRaw.landingBlocos.length > 0 && (
+          <Card className="mb-8 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
+            <div className="text-center py-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Conheça Nossa Empresa
+              </h2>
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                Descubra mais sobre nossa história, valores e o que nos torna únicos no mercado imobiliário
+              </p>
+              <Link
+                href={`/lp/${corretor.slug}`}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+              >
+                <Building2 className="w-6 h-6" />
+                CONHEÇA NOSSA EMPRESA
+              </Link>
+            </div>
+          </Card>
+        )}
+
         {/* Imóveis do Corretor */}
         <div>
           <div className="flex items-center justify-between mb-6">
@@ -131,7 +210,16 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {corretor.imoveis.map((imovel: any) => (
+              {corretor.imoveis.map((imovel: { 
+                id: string; 
+                titulo: string; 
+                valor: number; 
+                tipo: string; 
+                cidade: string; 
+                estado: string; 
+                images: string[]; 
+                views: number 
+              }) => (
                 <ImovelCard
                   key={imovel.id}
                   id={imovel.id}
