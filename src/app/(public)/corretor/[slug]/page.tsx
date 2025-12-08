@@ -101,15 +101,6 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            Portal Imobiliário
-          </Link>
-        </nav>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Perfil do Corretor */}
         <Card className="mb-8">

@@ -37,32 +37,6 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-              <Building2 className="w-8 h-8" />
-              <span>ImóvelPro</span>
-            </Link>
-            <div className="flex gap-3">
-              <Link
-                href="/login"
-                className="text-gray-700 hover:text-gray-900 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all font-medium"
-              >
-                Entrar
-              </Link>
-              <Link
-                href="/register"
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
-              >
-                Cadastrar-se
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </header>
-
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white py-24 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>

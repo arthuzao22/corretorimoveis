@@ -124,18 +124,6 @@ export default function ImovelPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            Portal Imobiliário
-          </Link>
-          <Link href={`/corretor/${imovel.corretor.slug}`} className="text-gray-600 hover:text-gray-900">
-            Ver mais imóveis do corretor
-          </Link>
-        </nav>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
