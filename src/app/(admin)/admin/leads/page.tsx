@@ -11,11 +11,11 @@ type Lead = {
   phone: string
   message?: string
   createdAt: Date
-  imovel: {
+  imovel?: {
     id: string
     titulo: string
     tipo: string
-  }
+  } | null
   corretor: {
     user: {
       name: string
@@ -72,7 +72,7 @@ export default function LeadsAdminPage() {
                     </p>
                     <p>
                       <span className="font-medium">Imóvel de interesse:</span>{' '}
-                      {lead.imovel.titulo}
+                      {lead.imovel?.titulo || 'Imóvel não informado / removido'}
                     </p>
                     <p>
                       <span className="font-medium">Corretor:</span>{' '}

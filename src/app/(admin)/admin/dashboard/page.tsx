@@ -61,7 +61,7 @@ export default async function AdminDashboard() {
                   <p className="font-medium text-gray-900">{lead.name}</p>
                   <p className="text-sm text-gray-600">{lead.email}</p>
                   <p className="text-sm text-blue-600">
-                    {lead.imovel.titulo}
+                    {lead.imovel?.titulo || 'Imóvel não informado / removido'}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     Corretor: {lead.corretor.user.name}
