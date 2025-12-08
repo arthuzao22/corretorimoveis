@@ -7,6 +7,7 @@ async function main() {
   console.log('🌱 Starting database seed...')
 
   // Limpar dados existentes
+  await prisma.landingBloco.deleteMany()
   await prisma.lead.deleteMany()
   await prisma.imovel.deleteMany()
   await prisma.corretorProfile.deleteMany()
@@ -44,7 +45,10 @@ async function main() {
           slug: 'joao-silva',
           bio: 'Corretor especializado em imóveis residenciais com 10 anos de experiência no mercado.',
           phone: '(11) 98765-4321',
-          approved: true
+          whatsapp: '11987654321',
+          cidade: 'São Paulo',
+          approved: true,
+          landingAtiva: true
         }
       }
     },
@@ -64,7 +68,10 @@ async function main() {
           slug: 'maria-santos',
           bio: 'Especialista em imóveis comerciais e de alto padrão.',
           phone: '(11) 98765-1234',
-          approved: true
+          whatsapp: '11987651234',
+          cidade: 'São Paulo',
+          approved: true,
+          landingAtiva: true
         }
       }
     },
@@ -195,11 +202,81 @@ async function main() {
 
   console.log('✅ Created leads')
 
+  // Criar Landing Blocos para o Corretor 1
+  await prisma.landingBloco.create({
+    data: {
+      corretorId: corretor1User.corretorProfile!.id,
+      tipo: 'hero',
+      titulo: 'Encontre o Imóvel dos Seus Sonhos',
+      subtitulo: 'Com mais de 10 anos de experiência no mercado imobiliário',
+      texto: 'Especializado em imóveis residenciais em São Paulo. Atendimento personalizado e completo.',
+      imagens: ['https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200'],
+      ordem: 0,
+      ativo: true
+    }
+  })
+
+  await prisma.landingBloco.create({
+    data: {
+      corretorId: corretor1User.corretorProfile!.id,
+      tipo: 'historia',
+      titulo: 'Nossa História',
+      subtitulo: 'Conectando pessoas aos seus lares ideais',
+      texto: 'Há mais de uma década, venho ajudando famílias a encontrar o lar perfeito. Com dedicação, transparência e compromisso, transformo sonhos em realidade.',
+      imagens: [
+        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+        'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800'
+      ],
+      ordem: 1,
+      ativo: true
+    }
+  })
+
+  await prisma.landingBloco.create({
+    data: {
+      corretorId: corretor1User.corretorProfile!.id,
+      tipo: 'imoveis',
+      titulo: 'Imóveis em Destaque',
+      subtitulo: 'Confira nossas melhores oportunidades',
+      ordem: 2,
+      ativo: true
+    }
+  })
+
+  await prisma.landingBloco.create({
+    data: {
+      corretorId: corretor1User.corretorProfile!.id,
+      tipo: 'cta',
+      titulo: 'Pronto para Encontrar Seu Imóvel?',
+      subtitulo: 'Entre em contato agora e agende uma visita',
+      texto: 'Estou pronto para ajudá-lo a encontrar o imóvel perfeito para você e sua família.',
+      ordem: 3,
+      ativo: true
+    }
+  })
+
+  await prisma.landingBloco.create({
+    data: {
+      corretorId: corretor1User.corretorProfile!.id,
+      tipo: 'contato',
+      titulo: 'Fale Comigo',
+      subtitulo: 'Tire suas dúvidas e agende uma visita',
+      texto: 'Preencha o formulário abaixo ou entre em contato direto via WhatsApp.',
+      ordem: 4,
+      ativo: true
+    }
+  })
+
+  console.log('✅ Created landing blocos')
+
   console.log('\n🎉 Database seeded successfully!')
   console.log('\n📝 Test credentials:')
   console.log('   Admin: admin@example.com / 123456')
   console.log('   Corretor 1: joao@example.com / 123456')
   console.log('   Corretor 2: maria@example.com / 123456')
+  console.log('\n🔗 Landing Pages:')
+  console.log('   João Silva: /lp/joao-silva')
+  console.log('   Maria Santos: /lp/maria-santos')
 }
 
 main()
