@@ -8,8 +8,9 @@ import { ImoveisBloco } from '@/components/landing/blocks/ImoveisBloco'
 import { VideoBloco } from '@/components/landing/blocks/VideoBloco'
 import { TextoBloco } from '@/components/landing/blocks/TextoBloco'
 import { ContatoBloco } from '@/components/landing/blocks/ContatoBloco'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Building2 } from 'lucide-react'
 import { Metadata } from 'next'
+import Link from 'next/link'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -84,6 +85,25 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-white">
       {/* Render blocos dinamicamente */}
       {corretor.landingBlocos.map(renderBloco)}
+
+      {/* Navigation to Profile - Ver Todos os Imóveis */}
+      <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Conheça Todos os Nossos Imóveis
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Veja nossa carteira completa de imóveis disponíveis para venda e aluguel
+          </p>
+          <Link
+            href={`/corretor/${corretor.slug}`}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+          >
+            <Building2 className="w-6 h-6" />
+            VER TODOS OS IMÓVEIS
+          </Link>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">

@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { ImovelCard } from '@/components/ui/ImovelCard'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { MapPin, Phone, MessageCircle } from 'lucide-react'
+import { MapPin, Phone, MessageCircle, Building2 } from 'lucide-react'
 
 export default async function CorretorPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -23,6 +23,12 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
         },
         orderBy: {
           createdAt: 'desc'
+        }
+      },
+      landingBlocos: {
+        where: { ativo: true },
+        select: {
+          id: true
         }
       }
     }
@@ -111,6 +117,27 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
             </div>
           </div>
         </Card>
+
+        {/* Navigation to Landing Page - if active */}
+        {corretorRaw.landingAtiva && corretorRaw.landingBlocos && corretorRaw.landingBlocos.length > 0 && (
+          <Card className="mb-8 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
+            <div className="text-center py-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Conheça Nossa Empresa
+              </h2>
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                Descubra mais sobre nossa história, valores e o que nos torna únicos no mercado imobiliário
+              </p>
+              <Link
+                href={`/lp/${corretor.slug}`}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+              >
+                <Building2 className="w-6 h-6" />
+                CONHEÇA NOSSA EMPRESA
+              </Link>
+            </div>
+          </Card>
+        )}
 
         {/* Imóveis do Corretor */}
         <div>
