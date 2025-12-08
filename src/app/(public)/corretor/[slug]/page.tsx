@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { getCorretorBySlug } from '@/lib/corretor'
 import { Card } from '@/components/ui/Card'
 import { ImovelCard } from '@/components/ui/ImovelCard'
 import Link from 'next/link'
@@ -8,51 +9,41 @@ import { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  
-  const corretor = await prisma.corretorProfile.findUnique({
-    where: { slug },
-    include: {
-      user: {
-        select: {
-          name: true
-        }
-      },
-      imoveis: {
-        where: {
-          status: 'ATIVO'
-        },
-        select: {
-          id: true
-        }
+  try {
+    const corretor = await getCorretorBySlug(slug, { includeImoveis: false })
+
+    if (!corretor) {
+      return {
+        title: 'Corretor não encontrado'
       }
     }
-  })
 
-  if (!corretor) {
+    const imoveisCount = (corretor.imoveis || []).length
+    const description = corretor.bio || `${corretor.user?.name || ''} - Corretor de Imóveis em ${corretor.cidade || 'sua região'}. ${imoveisCount} ${imoveisCount === 1 ? 'imóvel disponível' : 'imóveis disponíveis'} para venda e aluguel.`
+
     return {
-      title: 'Corretor não encontrado'
+      title: `${corretor.user?.name || ''} - Imóveis para Venda e Aluguel${corretor.cidade ? ` em ${corretor.cidade}` : ''}`,
+      description,
+      keywords: ['imóveis', 'venda', 'aluguel', 'corretor', corretor.cidade, corretor.user?.name, 'comprar casa', 'alugar apartamento'].filter(Boolean).join(', '),
+      openGraph: {
+        title: `${corretor.user?.name || ''} - Corretor de Imóveis`,
+        description,
+        images: corretor.photo ? [corretor.photo] : [],
+        type: 'profile',
+        locale: 'pt_BR'
+      },
+      twitter: {
+        card: 'summary',
+        title: `${corretor.user?.name || ''} - Corretor de Imóveis`,
+        description,
+        images: corretor.photo ? [corretor.photo] : []
+      }
     }
-  }
-
-  const imoveisCount = corretor.imoveis.length
-  const description = corretor.bio || `${corretor.user.name} - Corretor de Imóveis em ${corretor.cidade || 'sua região'}. ${imoveisCount} ${imoveisCount === 1 ? 'imóvel disponível' : 'imóveis disponíveis'} para venda e aluguel.`
-
-  return {
-    title: `${corretor.user.name} - Imóveis para Venda e Aluguel${corretor.cidade ? ` em ${corretor.cidade}` : ''}`,
-    description,
-    keywords: ['imóveis', 'venda', 'aluguel', 'corretor', corretor.cidade, corretor.user.name, 'comprar casa', 'alugar apartamento'].filter(Boolean).join(', '),
-    openGraph: {
-      title: `${corretor.user.name} - Corretor de Imóveis`,
-      description,
-      images: corretor.photo ? [corretor.photo] : [],
-      type: 'profile',
-      locale: 'pt_BR'
-    },
-    twitter: {
-      card: 'summary',
-      title: `${corretor.user.name} - Corretor de Imóveis`,
-      description,
-      images: corretor.photo ? [corretor.photo] : []
+  } catch (err) {
+    console.error('generateMetadata error (corretor page):', err)
+    return {
+      title: 'Corretor',
+      description: 'Perfil do corretor'
     }
   }
 }
@@ -60,31 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CorretorPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   
-  const corretorRaw = await prisma.corretorProfile.findUnique({
-    where: { slug },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true
-        }
-      },
-      imoveis: {
-        where: {
-          status: 'ATIVO'
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      },
-      landingBlocos: {
-        where: { ativo: true },
-        select: {
-          id: true
-        }
-      }
-    }
-  })
+  const corretorRaw = await getCorretorBySlug(slug, { includeImoveis: true, includeLandingCount: true })
 
   if (!corretorRaw) {
     notFound()
@@ -93,7 +60,7 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
   // Converter Decimal para número nos imóveis
   const corretor = {
     ...corretorRaw,
-    imoveis: corretorRaw.imoveis.map(imovel => ({
+    imoveis: corretorRaw.imoveis.map((imovel: any) => ({
       ...imovel,
       valor: Number(imovel.valor)
     }))

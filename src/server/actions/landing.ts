@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { getCorretorBySlug } from '@/lib/corretor'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 
@@ -228,25 +229,7 @@ export async function toggleLandingAtiva(corretorId: string, ativa: boolean) {
 
 export async function getPublicLanding(slug: string) {
   try {
-    const corretor = await prisma.corretorProfile.findUnique({
-      where: { slug },
-      include: {
-        user: {
-          select: {
-            name: true
-          }
-        },
-        landingBlocos: {
-          where: { ativo: true },
-          orderBy: { ordem: 'asc' }
-        },
-        imoveis: {
-          where: { status: 'ATIVO' },
-          orderBy: { createdAt: 'desc' },
-          take: 8
-        }
-      }
-    })
+    const corretor = await getCorretorBySlug(slug, { includeImoveis: true, includeLandingBlocosFull: true, imoveisTake: 8 })
 
     if (!corretor || !corretor.landingAtiva) {
       return { success: false, error: 'Landing não encontrada' }

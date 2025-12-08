@@ -15,36 +15,44 @@ import { LandingBloco } from '@/types/landing'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const result = await getPublicLanding(slug)
+  try {
+    const result = await getPublicLanding(slug)
 
-  if (!result.success || !result.corretor) {
-    return {
-      title: 'Corretor de Imóveis',
-      description: 'Encontre os melhores imóveis'
+    if (!result.success || !result.corretor) {
+      return {
+        title: 'Corretor de Imóveis',
+        description: 'Encontre os melhores imóveis'
+      }
     }
-  }
 
-  const corretor = result.corretor
-  const heroBlock = corretor.landingBlocos.find((b: { tipo: string }) => b.tipo === 'hero')
-  const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça ${corretor.user.name} - Sua melhor escolha no mercado imobiliário`
-  const image = heroBlock?.imagens?.[0]
+    const corretor = result.corretor
+    const heroBlock = corretor.landingBlocos.find((b: { tipo: string }) => b.tipo === 'hero')
+    const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça ${corretor.user.name} - Sua melhor escolha no mercado imobiliário`
+    const image = heroBlock?.imagens?.[0]
 
-  return {
-    title: `${corretor.user.name} - Corretor de Imóveis | Marketing Imobiliário`,
-    description,
-    keywords: ['corretor de imóveis', 'imóveis', corretor.cidade, corretor.user.name, 'comprar imóvel', 'alugar imóvel'].filter(Boolean).join(', '),
-    openGraph: {
-      title: `${corretor.user.name} - Corretor de Imóveis`,
+    return {
+      title: `${corretor.user.name} - Corretor de Imóveis | Marketing Imobiliário`,
       description,
-      images: image ? [image] : [],
-      type: 'website',
-      locale: 'pt_BR'
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${corretor.user.name} - Corretor de Imóveis`,
-      description,
-      images: image ? [image] : []
+      keywords: ['corretor de imóveis', 'imóveis', corretor.cidade, corretor.user.name, 'comprar imóvel', 'alugar imóvel'].filter(Boolean).join(', '),
+      openGraph: {
+        title: `${corretor.user.name} - Corretor de Imóveis`,
+        description,
+        images: image ? [image] : [],
+        type: 'website',
+        locale: 'pt_BR'
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${corretor.user.name} - Corretor de Imóveis`,
+        description,
+        images: image ? [image] : []
+      }
+    }
+  } catch (err) {
+    console.error('generateMetadata error (lp page):', err)
+    return {
+      title: 'Landing Page',
+      description: 'Conheça nossos serviços imobiliários'
     }
   }
 }
