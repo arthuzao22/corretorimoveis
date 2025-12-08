@@ -238,7 +238,7 @@ export async function getPublicLanding(slug: string) {
     // Converter Decimal para número nos imóveis
     const corretorWithNumbers = {
       ...corretor,
-      imoveis: corretor.imoveis.map(imovel => ({
+      imoveis: corretor.imoveis.map((imovel: any) => ({
         ...imovel,
         valor: Number(imovel.valor)
       }))
