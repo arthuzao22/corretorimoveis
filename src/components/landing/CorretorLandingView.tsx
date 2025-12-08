@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Copy, Eye, Layers, CheckCircle } from 'lucide-react'
@@ -11,13 +11,19 @@ interface CorretorLandingViewProps {
 
 export function CorretorLandingView({ corretor }: CorretorLandingViewProps) {
   const [copied, setCopied] = useState(false)
+  const [fullUrl, setFullUrl] = useState('')
+  const landingPath = `/lp/${corretor.slug}`
 
-  const landingUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/lp/${corretor.slug}`
-    : `/lp/${corretor.slug}`
+  // Atualiza a URL completa apenas no cliente
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setFullUrl(`${window.location.origin}${landingPath}`)
+    }
+  }, [landingPath])
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(landingUrl)
+    const urlToCopy = fullUrl || landingPath
+    navigator.clipboard.writeText(urlToCopy)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -79,7 +85,7 @@ export function CorretorLandingView({ corretor }: CorretorLandingViewProps) {
             </div>
           </div>
           <a
-            href={landingUrl}
+            href={landingPath}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -97,7 +103,7 @@ export function CorretorLandingView({ corretor }: CorretorLandingViewProps) {
           <div className="flex gap-3">
             <input
               type="text"
-              value={landingUrl}
+              value={fullUrl || landingPath}
               readOnly
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
             />
