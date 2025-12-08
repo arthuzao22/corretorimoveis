@@ -40,7 +40,7 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
   }
 }
 
-export async function getMyLeads() {
+export async function getMyLeads(filters?: { status?: string }) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -48,10 +48,16 @@ export async function getMyLeads() {
       return { success: false, error: 'Não autorizado' }
     }
 
+    const where: any = {
+      corretorId: session.user.corretorId
+    }
+
+    if (filters?.status) {
+      where.status = filters.status
+    }
+
     const leads = await prisma.lead.findMany({
-      where: {
-        corretorId: session.user.corretorId
-      },
+      where,
       include: {
         imovel: {
           select: {
@@ -110,5 +116,46 @@ export async function getAllLeads() {
   } catch (error) {
     console.error('Get all leads error:', error)
     return { success: false, error: 'Erro ao buscar leads' }
+  }
+}
+
+const updateLeadSchema = z.object({
+  leadId: z.string(),
+  status: z.enum(['NOVO', 'CONTATADO', 'QUALIFICADO', 'NEGOCIACAO', 'CONVERTIDO', 'PERDIDO']),
+  anotacoes: z.string().optional()
+})
+
+export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const validatedData = updateLeadSchema.parse(data)
+
+    // Verify lead belongs to this corretor
+    const lead = await prisma.lead.findUnique({
+      where: { id: validatedData.leadId }
+    })
+
+    if (!lead || lead.corretorId !== session.user.corretorId) {
+      return { success: false, error: 'Lead não encontrado' }
+    }
+
+    const updatedLead = await prisma.lead.update({
+      where: { id: validatedData.leadId },
+      data: {
+        status: validatedData.status,
+        anotacoes: validatedData.anotacoes,
+        updatedAt: new Date()
+      }
+    })
+
+    return { success: true, lead: updatedLead }
+  } catch (error) {
+    console.error('Update lead status error:', error)
+    return { success: false, error: 'Erro ao atualizar status do lead' }
   }
 }

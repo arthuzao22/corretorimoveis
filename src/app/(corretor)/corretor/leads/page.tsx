@@ -1,43 +1,25 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import { getMyLeads } from '@/server/actions/leads'
 import { Card } from '@/components/ui/Card'
 import { LeadTable } from '@/components/ui/LeadTable'
-import { getMyLeads } from '@/server/actions/leads'
+import { LeadFilters } from '@/components/leads/LeadFilters'
 import { Users } from 'lucide-react'
+import { Suspense } from 'react'
+import { TableSkeleton } from '@/components/skeletons'
 
-type Lead = {
-  id: string
-  name: string
-  email: string
-  phone: string
-  message?: string | null
-  createdAt: Date
-  imovel: {
-    id: string
-    titulo: string
-    tipo: string
-  }
-}
+export const dynamic = 'force-dynamic'
 
-export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [loading, setLoading] = useState(true)
+async function LeadsContent({ searchParams }: { searchParams: any }) {
+  const status = searchParams.status || undefined
+  const result = await getMyLeads({ status })
+  const leads = result.success && result.leads ? result.leads : []
 
-  const loadLeads = async () => {
-    const result = await getMyLeads()
-    if (result.success && result.leads) {
-      setLeads(result.leads as any)
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    loadLeads()
-  }, [])
-
-  if (loading) {
-    return <div className="text-center py-8">Carregando...</div>
+  // Calculate stats
+  const stats = {
+    total: leads.length,
+    novos: leads.filter((l: any) => l.status === 'NOVO').length,
+    contatados: leads.filter((l: any) => l.status === 'CONTATADO').length,
+    qualificados: leads.filter((l: any) => l.status === 'QUALIFICADO').length,
+    convertidos: leads.filter((l: any) => l.status === 'CONVERTIDO').length,
   }
 
   return (
@@ -46,20 +28,52 @@ export default function LeadsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Meus Leads</h1>
           <p className="text-gray-600 mt-1">
-            {leads.length} {leads.length === 1 ? 'lead recebido' : 'leads recebidos'}
+            {stats.total} {stats.total === 1 ? 'lead recebido' : 'leads recebidos'}
           </p>
         </div>
         <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg">
           <Users className="w-5 h-5" />
-          <span className="font-semibold">{leads.length}</span>
+          <span className="font-semibold">{stats.total}</span>
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">Novos</p>
+          <p className="text-2xl font-bold text-blue-600">{stats.novos}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">Contatados</p>
+          <p className="text-2xl font-bold text-purple-600">{stats.contatados}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">Qualificados</p>
+          <p className="text-2xl font-bold text-orange-600">{stats.qualificados}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">Convertidos</p>
+          <p className="text-2xl font-bold text-green-600">{stats.convertidos}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">Taxa Conv.</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {stats.total > 0 ? Math.round((stats.convertidos / stats.total) * 100) : 0}%
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <LeadFilters currentStatus={status} />
+
+      {/* Leads Table */}
       {leads.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Você ainda não recebeu nenhum lead.</p>
+            <p className="text-gray-500 text-lg">
+              {status ? 'Nenhum lead encontrado com este filtro.' : 'Você ainda não recebeu nenhum lead.'}
+            </p>
             <p className="text-sm text-gray-400 mt-2">
               Os leads aparecem quando alguém demonstra interesse em seus imóveis.
             </p>
@@ -71,5 +85,13 @@ export default function LeadsPage() {
         </Card>
       )}
     </div>
+  )
+}
+
+export default function LeadsPage({ searchParams }: { searchParams: any }) {
+  return (
+    <Suspense fallback={<TableSkeleton rows={8} />}>
+      <LeadsContent searchParams={searchParams} />
+    </Suspense>
   )
 }
