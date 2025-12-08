@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/ui/Sidebar'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +17,7 @@ export default async function CorretorLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar userName={session.user.name || 'Usuário'} />
-      <main className="ml-64 p-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {children}
       </main>
     </div>

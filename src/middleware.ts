@@ -11,14 +11,14 @@ export default withAuth(
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    // Verificar se admin está tentando acessar área de corretor
-    if (path.startsWith('/corretor') && token.role === 'ADMIN') {
-      return NextResponse.redirect(new URL('/admin/dashboard', req.url))
+    // Bloquear acesso à área de admin para não-admins
+    if (path.startsWith('/admin') && token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/403', req.url))
     }
 
-    // Verificar se corretor está tentando acessar área de admin
-    if (path.startsWith('/admin') && token.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/corretor/dashboard', req.url))
+    // Bloquear acesso à área de corretor para não-corretores
+    if (path.startsWith('/corretor') && token.role !== 'CORRETOR') {
+      return NextResponse.redirect(new URL('/403', req.url))
     }
 
     return NextResponse.next()
@@ -37,4 +37,9 @@ export const config = {
   ]
 }
 
-// Note: /lp/:path* is public and doesn't need authentication
+// Rotas públicas que não precisam de autenticação:
+// - /lp/:path* (landing pages públicas)
+// - /imovel/:path* (páginas de imóveis públicas)
+// - /(public)/corretor/:slug (perfil público do corretor)
+// - /login, /register, / (home)
+
