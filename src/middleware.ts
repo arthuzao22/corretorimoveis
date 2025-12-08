@@ -6,7 +6,7 @@ export default withAuth(
     const token = req.nextauth.token
     const path = req.nextUrl.pathname
 
-    // Se não houver token, deixar o withAuth lidar
+    // Se não houver token, redirecionar para login (rotas protegidas somente)
     if (!token) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
@@ -31,9 +31,18 @@ export default withAuth(
 )
 
 export const config = {
+  // Match apenas as rotas realmente protegidas.
+  // Deixamos as páginas públicas do corretor (ex: /corretor/[slug]) fora do matcher.
   matcher: [
-    '/corretor/:path*',
-    '/admin/:path*'
+    '/admin/:path*',
+    '/corretor/dashboard',
+    '/corretor/dashboard/:path*',
+    '/corretor/imoveis',
+    '/corretor/imoveis/:path*',
+    '/corretor/leads',
+    '/corretor/leads/:path*',
+    '/corretor/minha-landing',
+    '/corretor/minha-landing/:path*'
   ]
 }
 
