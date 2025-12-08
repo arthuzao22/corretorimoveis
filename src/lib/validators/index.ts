@@ -18,7 +18,7 @@ export const imovelSchema = z.object({
   titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
   descricao: z.string().min(20, 'Descrição deve ter no mínimo 20 caracteres'),
   tipo: z.enum(['VENDA', 'ALUGUEL'], {
-    errorMap: () => ({ message: 'Tipo inválido' }),
+    message: 'Tipo inválido',
   }),
   status: z.enum(['ATIVO', 'INATIVO', 'VENDIDO', 'ALUGADO']).optional(),
   valor: z.number().positive('Valor deve ser maior que zero'),
@@ -85,7 +85,7 @@ export const landingBlocoSchema = z.object({
   videoUrl: z.string().url().optional(),
   ordem: z.number().int(),
   ativo: z.boolean().optional(),
-  config: z.record(z.any()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
 })
 
 // Image upload validators

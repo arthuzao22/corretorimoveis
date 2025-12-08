@@ -182,21 +182,10 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
                 titulo: string; 
                 valor: number; 
                 tipo: string; 
-                cidade: string; 
-                estado: string; 
-                images: string[]; 
-                views: number 
               }) => (
                 <ImovelCard
                   key={imovel.id}
-                  id={imovel.id}
-                  titulo={imovel.titulo}
-                  valor={Number(imovel.valor)}
-                  tipo={imovel.tipo}
-                  cidade={imovel.cidade}
-                  estado={imovel.estado}
-                  images={imovel.images}
-                  views={imovel.views}
+                  imovel={imovel as any}
                 />
               ))}
             </div>
