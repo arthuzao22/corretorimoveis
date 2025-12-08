@@ -1,5 +1,5 @@
 import { getPublicLanding } from '@/server/actions/landing'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { HeroBloco } from '@/components/landing/blocks/HeroBloco'
 import { HistoriaBloco } from '@/components/landing/blocks/HistoriaBloco'
 import { GaleriaBloco } from '@/components/landing/blocks/GaleriaBloco'
@@ -18,23 +18,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!result.success || !result.corretor) {
     return {
-      title: 'Landing Page não encontrada'
+      title: 'Corretor de Imóveis',
+      description: 'Encontre os melhores imóveis'
     }
   }
 
   const corretor = result.corretor
   const heroBlock = corretor.landingBlocos.find((b: any) => b.tipo === 'hero')
-  const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça os imóveis de ${corretor.user.name}`
+  const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça ${corretor.user.name} - Sua melhor escolha no mercado imobiliário`
   const image = heroBlock?.imagens?.[0]
 
   return {
-    title: `${corretor.user.name} - Corretor de Imóveis`,
+    title: `${corretor.user.name} - Corretor de Imóveis | Marketing Imobiliário`,
     description,
+    keywords: ['corretor de imóveis', 'imóveis', corretor.cidade, corretor.user.name, 'comprar imóvel', 'alugar imóvel'].filter(Boolean).join(', '),
     openGraph: {
       title: `${corretor.user.name} - Corretor de Imóveis`,
       description,
       images: image ? [image] : [],
-      type: 'website'
+      type: 'website',
+      locale: 'pt_BR'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: image ? [image] : []
     }
   }
 }
@@ -43,11 +52,18 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
   const { slug } = await params
   const result = await getPublicLanding(slug)
 
+  // If landing is not found or inactive, redirect to profile page
   if (!result.success || !result.corretor) {
-    notFound()
+    // Try to redirect to profile page as fallback
+    redirect(`/corretor/${slug}`)
   }
 
   const corretor = result.corretor
+
+  // If landing has no active blocks, redirect to profile page
+  if (!corretor.landingBlocos || corretor.landingBlocos.length === 0) {
+    redirect(`/corretor/${slug}`)
+  }
 
   const renderBloco = (bloco: any) => {
     switch (bloco.tipo) {

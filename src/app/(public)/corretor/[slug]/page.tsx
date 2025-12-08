@@ -4,6 +4,58 @@ import { ImovelCard } from '@/components/ui/ImovelCard'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin, Phone, MessageCircle, Building2 } from 'lucide-react'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  
+  const corretor = await prisma.corretorProfile.findUnique({
+    where: { slug },
+    include: {
+      user: {
+        select: {
+          name: true
+        }
+      },
+      imoveis: {
+        where: {
+          status: 'ATIVO'
+        },
+        select: {
+          id: true
+        }
+      }
+    }
+  })
+
+  if (!corretor) {
+    return {
+      title: 'Corretor não encontrado'
+    }
+  }
+
+  const imoveisCount = corretor.imoveis.length
+  const description = corretor.bio || `${corretor.user.name} - Corretor de Imóveis em ${corretor.cidade || 'sua região'}. ${imoveisCount} ${imoveisCount === 1 ? 'imóvel disponível' : 'imóveis disponíveis'} para venda e aluguel.`
+
+  return {
+    title: `${corretor.user.name} - Imóveis para Venda e Aluguel${corretor.cidade ? ` em ${corretor.cidade}` : ''}`,
+    description,
+    keywords: ['imóveis', 'venda', 'aluguel', 'corretor', corretor.cidade, corretor.user.name, 'comprar casa', 'alugar apartamento'].filter(Boolean).join(', '),
+    openGraph: {
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: corretor.photo ? [corretor.photo] : [],
+      type: 'profile',
+      locale: 'pt_BR'
+    },
+    twitter: {
+      card: 'summary',
+      title: `${corretor.user.name} - Corretor de Imóveis`,
+      description,
+      images: corretor.photo ? [corretor.photo] : []
+    }
+  }
+}
 
 export default async function CorretorPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
