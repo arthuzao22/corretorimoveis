@@ -21,10 +21,12 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
     const result = await createLeadFromLanding({
       corretorId,
@@ -39,7 +41,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
       setFormData({ name: '', phone: '', email: '', message: '' })
       setTimeout(() => setSuccess(false), 5000)
     } else {
-      alert('Erro ao enviar mensagem. Tente novamente.')
+      setError('Erro ao enviar mensagem. Tente novamente.')
     }
 
     setLoading(false)
@@ -60,6 +62,12 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
         )}
 
         <div className="bg-white rounded-lg shadow-lg p-8">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+          
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

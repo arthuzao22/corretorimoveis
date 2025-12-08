@@ -1,7 +1,9 @@
 import { MessageCircle } from 'lucide-react'
 
+import { HeroBloco as HeroBlocoType } from '@/types/landing'
+
 interface HeroBlocoProps {
-  bloco: any
+  bloco: HeroBlocoType
   whatsapp?: string | null
 }
 

@@ -3,14 +3,20 @@ interface VideoBlocoProps {
 }
 
 export function VideoBloco({ bloco }: VideoBlocoProps) {
-  // Converter URL do YouTube para embed
+  // Converter URL do YouTube para embed com validação de segurança
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return null
+    
+    // Validar que é uma URL do YouTube
+    const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\//
+    if (!youtubeRegex.test(url)) {
+      return null
+    }
     
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
     const match = url.match(regExp)
     
-    if (match && match[2].length === 11) {
+    if (match && match[2].length === 11 && /^[a-zA-Z0-9_-]+$/.test(match[2])) {
       return `https://www.youtube.com/embed/${match[2]}`
     }
     

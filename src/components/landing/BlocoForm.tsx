@@ -23,20 +23,48 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
     config: {}
   })
   const [novaImagem, setNovaImagem] = useState('')
+  const [imageError, setImageError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit(formData)
   }
 
-  const addImagem = () => {
-    if (novaImagem.trim()) {
-      setFormData({
-        ...formData,
-        imagens: [...formData.imagens, novaImagem.trim()]
-      })
-      setNovaImagem('')
+  const validateImageUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url)
+      // Validar que é uma URL HTTP/HTTPS
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        return false
+      }
+      // Validar extensão de imagem
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+      const hasValidExtension = validExtensions.some(ext => 
+        urlObj.pathname.toLowerCase().endsWith(ext)
+      )
+      return hasValidExtension || urlObj.hostname.includes('unsplash.com') || urlObj.hostname.includes('cloudinary.com')
+    } catch {
+      return false
     }
+  }
+
+  const addImagem = () => {
+    if (!novaImagem.trim()) {
+      setImageError('URL não pode estar vazia')
+      return
+    }
+    
+    if (!validateImageUrl(novaImagem.trim())) {
+      setImageError('URL inválida. Use URLs HTTPS de imagens válidas.')
+      return
+    }
+    
+    setFormData({
+      ...formData,
+      imagens: [...formData.imagens, novaImagem.trim()]
+    })
+    setNovaImagem('')
+    setImageError('')
   }
 
   const removeImagem = (index: number) => {
@@ -129,14 +157,20 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
               <div className="flex gap-2">
                 <Input
                   value={novaImagem}
-                  onChange={(e) => setNovaImagem(e.target.value)}
-                  placeholder="URL da imagem"
+                  onChange={(e) => {
+                    setNovaImagem(e.target.value)
+                    setImageError('')
+                  }}
+                  placeholder="URL da imagem (HTTPS)"
                   className="flex-1"
                 />
                 <Button type="button" onClick={addImagem}>
                   Adicionar
                 </Button>
               </div>
+              {imageError && (
+                <p className="text-sm text-red-600">{imageError}</p>
+              )}
             </div>
           </div>
         )}

@@ -189,15 +189,13 @@ export async function reorderLandingBlocos(corretorId: string, blocoIds: string[
       return { success: false, error: 'Não autorizado' }
     }
 
-    // Atualizar ordem de cada bloco
-    await Promise.all(
-      blocoIds.map((id, index) =>
-        prisma.landingBloco.update({
-          where: { id },
-          data: { ordem: index }
-        })
-      )
-    )
+    // Atualizar ordem de cada bloco sequencialmente para evitar race conditions
+    for (let index = 0; index < blocoIds.length; index++) {
+      await prisma.landingBloco.update({
+        where: { id: blocoIds[index] },
+        data: { ordem: index }
+      })
+    }
 
     return { success: true }
   } catch (error) {
