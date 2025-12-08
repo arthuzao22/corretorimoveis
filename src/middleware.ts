@@ -36,3 +36,5 @@ export const config = {
     '/admin/:path*'
   ]
 }
+
+// Note: /lp/:path* is public and doesn't need authentication
