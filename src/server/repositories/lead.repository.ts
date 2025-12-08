@@ -128,6 +128,9 @@ export const leadRepository = {
   },
 
   async getRecentLeads(corretorId: string, limit: number = 10) {
+    // Limit maximum to prevent performance issues
+    const maxLimit = Math.min(limit, 50)
+    
     return prisma.lead.findMany({
       where: { corretorId },
       include: {
@@ -141,7 +144,7 @@ export const leadRepository = {
       orderBy: {
         createdAt: 'desc',
       },
-      take: limit,
+      take: maxLimit,
     })
   },
 }

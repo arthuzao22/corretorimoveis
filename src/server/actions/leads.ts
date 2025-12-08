@@ -44,16 +44,16 @@ export async function getMyLeads(filters?: { status?: string }) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || session.user.role !== 'CORRETOR') {
+    if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
 
-    const where: any = {
+    const where: { corretorId: string; status?: any } = {
       corretorId: session.user.corretorId
     }
 
     if (filters?.status) {
-      where.status = filters.status
+      where.status = filters.status as any
     }
 
     const leads = await prisma.lead.findMany({

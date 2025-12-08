@@ -1,4 +1,4 @@
-import { RATE_LIMITS, type RateLimitConfig } from '@/lib/validators'
+import { RATE_LIMITS, MAX_RATE_LIMIT_ENTRIES, type RateLimitConfig } from '@/lib/validators'
 
 interface RateLimitEntry {
   count: number
@@ -21,7 +21,7 @@ export function checkRateLimit(
   const key = identifier
 
   // Clean up expired entries
-  if (rateLimitStore.size > 10000) {
+  if (rateLimitStore.size > MAX_RATE_LIMIT_ENTRIES) {
     for (const [k, entry] of rateLimitStore.entries()) {
       if (entry.resetAt < now) {
         rateLimitStore.delete(k)

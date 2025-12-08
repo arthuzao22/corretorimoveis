@@ -54,7 +54,7 @@ export const imovelSearchSchema = z.object({
 // Lead validators
 export const leadSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
-  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  email: z.string().email('Email inválido').optional(),
   phone: z.string().min(10, 'Telefone inválido'),
   message: z.string().optional(),
   imovelId: z.string().optional(),
@@ -115,6 +115,8 @@ export interface RateLimitConfig {
   interval: number // milliseconds
   maxRequests: number
 }
+
+export const MAX_RATE_LIMIT_ENTRIES = 10000
 
 export const RATE_LIMITS = {
   login: { interval: 60 * 1000, maxRequests: 5 }, // 5 requests per minute
