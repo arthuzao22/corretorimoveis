@@ -27,6 +27,15 @@ enum ImovelStatus {
   ALUGADO
 }
 
+enum LeadStatus {
+  NOVO
+  CONTATADO
+  QUALIFICADO
+  NEGOCIACAO
+  CONVERTIDO
+  PERDIDO
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -91,8 +100,16 @@ model Imovel {
   cidade      String
   estado      String
   cep         String?
+  bairro      String?
+  quartos     Int?
+  banheiros   Int?
+  area        Decimal?      @db.Decimal(10, 2)
+  garagem     Int?
   images      String[]      @default([])
   views       Int           @default(0)
+  latitude    Decimal?      @db.Decimal(10, 8)
+  longitude   Decimal?      @db.Decimal(11, 8)
+  destaque    Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -103,19 +120,24 @@ model Imovel {
   @@index([corretorId])
   @@index([tipo])
   @@index([status])
+  @@index([cidade])
+  @@index([destaque])
   @@map("imoveis")
 }
 
 model Lead {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   imovelId   String?
   corretorId String
   name       String
   email      String?
   phone      String
-  message    String?  @db.Text
-  origem     String?  @default("site")
-  createdAt  DateTime @default(now())
+  message    String?    @db.Text
+  origem     String?    @default("site")
+  status     LeadStatus @default(NOVO)
+  anotacoes  String?    @db.Text
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   // Relacionamentos
   imovel   Imovel?         @relation(fields: [imovelId], references: [id], onDelete: Cascade)
@@ -123,6 +145,8 @@ model Lead {
 
   @@index([corretorId])
   @@index([imovelId])
+  @@index([status])
+  @@index([createdAt])
   @@map("leads")
 }
 
