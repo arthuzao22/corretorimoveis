@@ -210,7 +210,16 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {corretor.imoveis.map((imovel: any) => (
+              {corretor.imoveis.map((imovel: { 
+                id: string; 
+                titulo: string; 
+                valor: number; 
+                tipo: string; 
+                cidade: string; 
+                estado: string; 
+                images: string[]; 
+                views: number 
+              }) => (
                 <ImovelCard
                   key={imovel.id}
                   id={imovel.id}

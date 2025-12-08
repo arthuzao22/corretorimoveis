@@ -1,5 +1,5 @@
 import { getPublicLanding } from '@/server/actions/landing'
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { HeroBloco } from '@/components/landing/blocks/HeroBloco'
 import { HistoriaBloco } from '@/components/landing/blocks/HistoriaBloco'
 import { GaleriaBloco } from '@/components/landing/blocks/GaleriaBloco'
@@ -11,6 +11,7 @@ import { ContatoBloco } from '@/components/landing/blocks/ContatoBloco'
 import { MessageCircle, Building2 } from 'lucide-react'
 import { Metadata } from 'next'
 import Link from 'next/link'
+import { LandingBloco } from '@/types/landing'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const corretor = result.corretor
-  const heroBlock = corretor.landingBlocos.find((b: any) => b.tipo === 'hero')
+  const heroBlock = corretor.landingBlocos.find((b: { tipo: string }) => b.tipo === 'hero')
   const description = heroBlock?.subtitulo || heroBlock?.texto || `Conheça ${corretor.user.name} - Sua melhor escolha no mercado imobiliário`
   const image = heroBlock?.imagens?.[0]
 
@@ -65,32 +66,32 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     redirect(`/corretor/${slug}`)
   }
 
-  const renderBloco = (bloco: any) => {
+  const renderBloco = (bloco: LandingBloco) => {
     switch (bloco.tipo) {
       case 'hero':
-        return <HeroBloco key={bloco.id} bloco={bloco} whatsapp={corretor.whatsapp} />
+        return <HeroBloco key={bloco.id} bloco={bloco as any} whatsapp={corretor.whatsapp} />
       
       case 'historia':
       case 'carrossel':
-        return <HistoriaBloco key={bloco.id} bloco={bloco} />
+        return <HistoriaBloco key={bloco.id} bloco={bloco as any} />
       
       case 'galeria':
-        return <GaleriaBloco key={bloco.id} bloco={bloco} />
+        return <GaleriaBloco key={bloco.id} bloco={bloco as any} />
       
       case 'cta':
-        return <CTABloco key={bloco.id} bloco={bloco} whatsapp={corretor.whatsapp} />
+        return <CTABloco key={bloco.id} bloco={bloco as any} whatsapp={corretor.whatsapp} />
       
       case 'imoveis':
-        return <ImoveisBloco key={bloco.id} bloco={bloco} imoveis={corretor.imoveis} />
+        return <ImoveisBloco key={bloco.id} bloco={bloco as any} imoveis={corretor.imoveis} />
       
       case 'video':
-        return <VideoBloco key={bloco.id} bloco={bloco} />
+        return <VideoBloco key={bloco.id} bloco={bloco as any} />
       
       case 'texto':
-        return <TextoBloco key={bloco.id} bloco={bloco} />
+        return <TextoBloco key={bloco.id} bloco={bloco as any} />
       
       case 'contato':
-        return <ContatoBloco key={bloco.id} bloco={bloco} corretorId={corretor.id} whatsapp={corretor.whatsapp} />
+        return <ContatoBloco key={bloco.id} bloco={bloco as any} corretorId={corretor.id} whatsapp={corretor.whatsapp} />
       
       default:
         return null
