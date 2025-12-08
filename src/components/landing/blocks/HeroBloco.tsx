@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react'
 
 interface HeroBlocoProps {
   bloco: any
-  whatsapp?: string
+  whatsapp?: string | null
 }
 
 export function HeroBloco({ bloco, whatsapp }: HeroBlocoProps) {

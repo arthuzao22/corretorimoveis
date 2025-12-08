@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react'
 
 interface CTABlocoProps {
   bloco: any
-  whatsapp?: string
+  whatsapp?: string | null
 }
 
 export function CTABloco({ bloco, whatsapp }: CTABlocoProps) {

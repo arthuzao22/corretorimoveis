@@ -159,7 +159,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           <div className="flex gap-3">
             <Button
               onClick={handleToggleLandingAtiva}
-              variant={corretor.landingAtiva ? 'outline' : 'default'}
+              variant={corretor.landingAtiva ? 'outline' : 'primary'}
               disabled={loading}
             >
               {corretor.landingAtiva ? 'Pausar Landing' : 'Ativar Landing'}

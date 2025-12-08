@@ -9,7 +9,7 @@ import { createLeadFromLanding } from '@/server/actions/landing'
 interface ContatoBlocoProps {
   bloco: any
   corretorId: string
-  whatsapp?: string
+  whatsapp?: string | null
 }
 
 export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps) {

@@ -4,13 +4,14 @@ import { Mail, Phone, Calendar, Users } from 'lucide-react'
 interface Lead {
   id: string
   name: string
-  email: string
+  email?: string | null
   phone: string
   message?: string | null
   createdAt: Date
-  imovel: {
+  imovel?: {
     titulo: string
-  }
+  } | null
+  origem?: string | null
 }
 
 interface LeadTableProps {
@@ -51,12 +52,14 @@ export function LeadTable({ leads }: LeadTableProps) {
               </td>
               <td className="py-4 px-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <a href={`mailto:${lead.email}`} className="hover:text-blue-600">
-                      {lead.email}
-                    </a>
-                  </div>
+                  {lead.email && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Mail className="w-4 h-4" />
+                      <a href={`mailto:${lead.email}`} className="hover:text-blue-600">
+                        {lead.email}
+                      </a>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Phone className="w-4 h-4" />
                     <a href={`tel:${lead.phone}`} className="hover:text-blue-600">
@@ -66,7 +69,13 @@ export function LeadTable({ leads }: LeadTableProps) {
                 </div>
               </td>
               <td className="py-4 px-4">
-                <p className="text-sm text-blue-600 font-medium">{lead.imovel.titulo}</p>
+                {lead.imovel ? (
+                  <p className="text-sm text-blue-600 font-medium">{lead.imovel.titulo}</p>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">
+                    {lead.origem === 'landing' ? 'Contato via Landing' : 'Sem imóvel'}
+                  </p>
+                )}
               </td>
               <td className="py-4 px-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
