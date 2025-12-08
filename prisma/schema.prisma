@@ -54,13 +54,15 @@ model CorretorProfile {
   whatsapp    String?
   cidade      String?
   approved    Boolean  @default(false)
+  landingAtiva Boolean @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relacionamentos
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imoveis Imovel[]
-  leads   Lead[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imoveis       Imovel[]
+  leads         Lead[]
+  landingBlocos LandingBloco[]
 
   @@map("corretor_profiles")
 }
@@ -106,19 +108,43 @@ model Imovel {
 
 model Lead {
   id         String   @id @default(cuid())
-  imovelId   String
+  imovelId   String?
   corretorId String
   name       String
-  email      String
+  email      String?
   phone      String
   message    String?  @db.Text
+  origem     String?  @default("site")
   createdAt  DateTime @default(now())
 
   // Relacionamentos
-  imovel   Imovel          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  imovel   Imovel?         @relation(fields: [imovelId], references: [id], onDelete: Cascade)
   corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
 
   @@index([corretorId])
   @@index([imovelId])
   @@map("leads")
+}
+
+model LandingBloco {
+  id         String   @id @default(cuid())
+  corretorId String
+  tipo       String   // hero | historia | galeria | carrossel | cta | imoveis | video | contato
+  titulo     String?
+  subtitulo  String?
+  texto      String?  @db.Text
+  imagens    String[] @default([])
+  videoUrl   String?
+  ordem      Int
+  ativo      Boolean  @default(true)
+  config     Json?    // Configurações adicionais específicas do bloco
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relacionamentos
+  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+
+  @@index([corretorId])
+  @@index([ordem])
+  @@map("landing_blocos")
 }
