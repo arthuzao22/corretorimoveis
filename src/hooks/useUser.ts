@@ -21,7 +21,12 @@ export function useUser() {
     // Buscar slug do corretor se disponível
     if (session?.user?.corretorId) {
       fetch(`/api/corretor/${session.user.corretorId}/slug`)
-        .then(res => res.json())
+        .then(res => {
+          if (res.ok) {
+            return res.json()
+          }
+          throw new Error('Failed to fetch slug')
+        })
         .then(data => setSlug(data.slug))
         .catch(() => setSlug(null))
     }
