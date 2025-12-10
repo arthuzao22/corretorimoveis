@@ -1,5 +1,7 @@
-import Link from 'next/link'
+'use client'
+
 import { Building2, Phone, Mail, MapPin } from 'lucide-react'
+import { TransitionLink } from '@/components/loading'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -10,10 +12,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo e Descrição */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-400 hover:text-blue-300 transition-colors mb-4">
+            <TransitionLink href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-400 hover:text-blue-300 transition-colors mb-4">
               <Building2 className="w-8 h-8" />
               <span>ImóvelPro</span>
-            </Link>
+            </TransitionLink>
             <p className="text-gray-400 mb-4 max-w-md">
               Conectamos você aos melhores corretores e imóveis do mercado. 
               Encontre seu próximo lar com facilidade e segurança.
@@ -25,24 +27,24 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4 text-white">Links Rápidos</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                <TransitionLink href="/" className="text-gray-400 hover:text-white transition-colors">
                   Início
-                </Link>
+                </TransitionLink>
               </li>
               <li>
-                <Link href="/imoveis" className="text-gray-400 hover:text-white transition-colors">
+                <TransitionLink href="/imoveis" className="text-gray-400 hover:text-white transition-colors">
                   Buscar Imóveis
-                </Link>
+                </TransitionLink>
               </li>
               <li>
-                <Link href="/register" className="text-gray-400 hover:text-white transition-colors">
+                <TransitionLink href="/register" className="text-gray-400 hover:text-white transition-colors">
                   Seja um Corretor
-                </Link>
+                </TransitionLink>
               </li>
               <li>
-                <Link href="/login" className="text-gray-400 hover:text-white transition-colors">
+                <TransitionLink href="/login" className="text-gray-400 hover:text-white transition-colors">
                   Área do Corretor
-                </Link>
+                </TransitionLink>
               </li>
             </ul>
           </div>
@@ -77,12 +79,12 @@ export function Footer() {
             © {currentYear} ImóvelPro. Todos os direitos reservados.
           </p>
           <div className="flex gap-4 text-sm">
-            <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+            <TransitionLink href="#" className="text-gray-400 hover:text-white transition-colors">
               Termos de Uso
-            </Link>
-            <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+            </TransitionLink>
+            <TransitionLink href="#" className="text-gray-400 hover:text-white transition-colors">
               Privacidade
-            </Link>
+            </TransitionLink>
           </div>
         </div>
       </div>

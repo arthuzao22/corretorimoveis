@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Building2, Menu, X, Home, Search, LogIn, UserPlus } from 'lucide-react'
 import { useState } from 'react'
+import { TransitionLink } from '@/components/loading'
 
 interface NavbarProps {
   transparent?: boolean
@@ -30,18 +30,18 @@ export function Navbar({ transparent = false }: NavbarProps) {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link 
+          <TransitionLink 
             href="/" 
             className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
           >
             <Building2 className="w-7 h-7 sm:w-8 sm:h-8" />
             <span>ImóvelPro</span>
-          </Link>
+          </TransitionLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
+              <TransitionLink
                 key={link.href}
                 href={link.href}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -52,26 +52,26 @@ export function Navbar({ transparent = false }: NavbarProps) {
               >
                 <link.icon className="w-4 h-4" />
                 {link.label}
-              </Link>
+              </TransitionLink>
             ))}
           </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
+            <TransitionLink
               href="/login"
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-all font-medium text-sm"
             >
               <LogIn className="w-4 h-4" />
               Entrar
-            </Link>
-            <Link
+            </TransitionLink>
+            <TransitionLink
               href="/register"
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium text-sm"
             >
               <UserPlus className="w-4 h-4" />
               Cadastrar-se
-            </Link>
+            </TransitionLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,7 +93,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
           <div className="md:hidden py-4 border-t border-gray-100">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
-                <Link
+                <TransitionLink
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
@@ -105,26 +105,26 @@ export function Navbar({ transparent = false }: NavbarProps) {
                 >
                   <link.icon className="w-5 h-5" />
                   {link.label}
-                </Link>
+                </TransitionLink>
               ))}
               
               <div className="border-t border-gray-100 mt-2 pt-2">
-                <Link
+                <TransitionLink
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
                 >
                   <LogIn className="w-5 h-5" />
                   Entrar
-                </Link>
-                <Link
+                </TransitionLink>
+                <TransitionLink
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all mt-2"
                 >
                   <UserPlus className="w-5 h-5" />
                   Cadastrar-se
-                </Link>
+                </TransitionLink>
               </div>
             </div>
           </div>
