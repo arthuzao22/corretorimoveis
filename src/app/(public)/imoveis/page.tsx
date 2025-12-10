@@ -8,7 +8,19 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-async function ImoveisContent({ searchParams }: { searchParams: any }) {
+interface SearchParams {
+  tipo?: string
+  cidadeId?: string
+  statusId?: string
+  minValor?: string
+  maxValor?: string
+  quartos?: string
+  search?: string
+  cursor?: string
+}
+
+async function ImoveisContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const params = await searchParams
   const {
     tipo,
     cidadeId,
@@ -17,7 +29,7 @@ async function ImoveisContent({ searchParams }: { searchParams: any }) {
     maxValor,
     quartos,
     search,
-  } = searchParams
+  } = params
 
   const limit = 12
 
@@ -136,13 +148,13 @@ async function ImoveisContent({ searchParams }: { searchParams: any }) {
             </p>
           </div>
 
-          <FilterBar currentFilters={searchParams} />
+          <FilterBar currentFilters={params} />
 
           <div className="mt-8">
             <ImoveisList
               initialImoveis={serializedImoveis}
               initialPagination={pagination}
-              filters={searchParams}
+              filters={params}
             />
           </div>
         </div>
@@ -152,7 +164,7 @@ async function ImoveisContent({ searchParams }: { searchParams: any }) {
   )
 }
 
-export default function ImoveisPage({ searchParams }: { searchParams: any }) {
+export default async function ImoveisPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   return (
     <Suspense fallback={<PropertyListSkeleton />}>
       <ImoveisContent searchParams={searchParams} />

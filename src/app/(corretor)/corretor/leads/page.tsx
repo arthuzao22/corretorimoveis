@@ -10,7 +10,14 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-async function LeadsContent({ searchParams }: { searchParams: any }) {
+interface SearchParams {
+  statusId?: string
+  origem?: string
+  cursor?: string
+}
+
+async function LeadsContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const params = await searchParams
   const session = await getServerSession(authOptions)
   
   if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
@@ -23,7 +30,7 @@ async function LeadsContent({ searchParams }: { searchParams: any }) {
     )
   }
 
-  const { statusId, origem } = searchParams
+  const { statusId, origem } = params
   const limit = 20
 
   // Build where clause
@@ -147,19 +154,19 @@ async function LeadsContent({ searchParams }: { searchParams: any }) {
       </div>
 
       {/* Filters */}
-      <LeadFilters currentFilters={searchParams} />
+      <LeadFilters currentFilters={params} />
 
       {/* Leads List */}
       <LeadsList
         initialLeads={leads}
         initialPagination={pagination}
-        filters={searchParams}
+        filters={params}
       />
     </div>
   )
 }
 
-export default function LeadsPage({ searchParams }: { searchParams: any }) {
+export default async function LeadsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   return (
     <Suspense fallback={<TableSkeleton rows={8} />}>
       <LeadsContent searchParams={searchParams} />
