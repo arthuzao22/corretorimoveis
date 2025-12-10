@@ -42,7 +42,9 @@ export const config = {
     '/corretor/leads',
     '/corretor/leads/:path*',
     '/corretor/minha-landing',
-    '/corretor/minha-landing/:path*'
+    '/corretor/minha-landing/:path*',
+    '/corretor/calendario',
+    '/corretor/calendario/:path*'
   ]
 }
 

@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers, Calendar } from 'lucide-react'
 
 interface SidebarProps {
   userName: string
@@ -27,6 +27,11 @@ export function Sidebar({ userName }: SidebarProps) {
       label: 'Leads',
       href: '/corretor/leads',
       icon: Users
+    },
+    {
+      label: 'Calendário',
+      href: '/corretor/calendario',
+      icon: Calendar
     },
     {
       label: 'Minha Landing',

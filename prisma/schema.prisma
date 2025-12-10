@@ -192,6 +192,7 @@ model Imovel {
   cidadeRef    Cidade?            @relation(fields: [cidadeId], references: [id], onDelete: SetNull)
   statusConfig ImovelStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
   leads        Lead[]
+  eventos      EventoCalendario[]
 
   @@index([corretorId])
   @@index([tipo])
@@ -229,6 +230,7 @@ model Lead {
   imovel       Imovel?          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
   corretor     CorretorProfile  @relation(fields: [corretorId], references: [id], onDelete: Cascade)
   statusConfig LeadStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
+  eventos      EventoCalendario[]
 
   @@index([corretorId])
   @@index([imovelId])
@@ -260,4 +262,24 @@ model LandingBloco {
   @@index([corretorId])
   @@index([ordem])
   @@map("landing_blocos")
+}
+
+model EventoCalendario {
+  id         String   @id @default(cuid())
+  leadId     String
+  imovelId   String
+  dataHora   DateTime
+  observacao String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relacionamentos
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  imovel Imovel @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+
+  @@index([dataHora])
+  @@index([leadId])
+  @@index([imovelId])
+  @@index([createdAt])
+  @@map("eventos_calendario")
 }
