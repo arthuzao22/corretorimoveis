@@ -6,15 +6,183 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // Limpar dados existentes
+  // Limpar dados existentes (ordem importante por causa das FKs)
   await prisma.landingBloco.deleteMany()
   await prisma.lead.deleteMany()
   await prisma.imovel.deleteMany()
   await prisma.corretorProfile.deleteMany()
   await prisma.admin.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.cidade.deleteMany()
+  await prisma.imovelStatusConfig.deleteMany()
+  await prisma.leadStatusConfig.deleteMany()
 
   console.log('✅ Cleared existing data')
+
+  // =============================================
+  // CRIAR DADOS NORMALIZADOS
+  // =============================================
+
+  // Criar Cidades
+  const cidadeSP = await prisma.cidade.create({
+    data: {
+      nome: 'São Paulo',
+      uf: 'SP',
+      slug: 'sao-paulo-sp',
+    }
+  })
+
+  const cidadeRJ = await prisma.cidade.create({
+    data: {
+      nome: 'Rio de Janeiro',
+      uf: 'RJ',
+      slug: 'rio-de-janeiro-rj',
+    }
+  })
+
+  const cidadeBH = await prisma.cidade.create({
+    data: {
+      nome: 'Belo Horizonte',
+      uf: 'MG',
+      slug: 'belo-horizonte-mg',
+    }
+  })
+
+  const cidadeCuritiba = await prisma.cidade.create({
+    data: {
+      nome: 'Curitiba',
+      uf: 'PR',
+      slug: 'curitiba-pr',
+    }
+  })
+
+  const cidadePOA = await prisma.cidade.create({
+    data: {
+      nome: 'Porto Alegre',
+      uf: 'RS',
+      slug: 'porto-alegre-rs',
+    }
+  })
+
+  console.log('✅ Created cidades')
+
+  // Criar Status de Imóvel Configuráveis
+  const statusDisponivel = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Disponível',
+      slug: 'disponivel',
+      cor: '#10B981', // green
+      ordem: 1,
+    }
+  })
+
+  const statusReservado = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Reservado',
+      slug: 'reservado',
+      cor: '#F59E0B', // amber
+      ordem: 2,
+    }
+  })
+
+  const statusEmNegociacao = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Em Negociação',
+      slug: 'em-negociacao',
+      cor: '#3B82F6', // blue
+      ordem: 3,
+    }
+  })
+
+  const statusVendido = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Vendido',
+      slug: 'vendido',
+      cor: '#8B5CF6', // purple
+      ordem: 4,
+    }
+  })
+
+  const statusAlugado = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Alugado',
+      slug: 'alugado',
+      cor: '#6366F1', // indigo
+      ordem: 5,
+    }
+  })
+
+  const statusIndisponivel = await prisma.imovelStatusConfig.create({
+    data: {
+      nome: 'Indisponível',
+      slug: 'indisponivel',
+      cor: '#EF4444', // red
+      ordem: 6,
+    }
+  })
+
+  console.log('✅ Created imovel status configs')
+
+  // Criar Status de Lead Configuráveis
+  const leadNovo = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Novo',
+      slug: 'novo',
+      cor: '#3B82F6', // blue
+      ordem: 1,
+    }
+  })
+
+  const leadEmContato = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Em Contato',
+      slug: 'em-contato',
+      cor: '#F59E0B', // amber
+      ordem: 2,
+    }
+  })
+
+  const leadAgendado = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Visita Agendada',
+      slug: 'visita-agendada',
+      cor: '#8B5CF6', // purple
+      ordem: 3,
+    }
+  })
+
+  const leadProposta = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Proposta Enviada',
+      slug: 'proposta-enviada',
+      cor: '#6366F1', // indigo
+      ordem: 4,
+    }
+  })
+
+  const leadFechado = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Fechado',
+      slug: 'fechado',
+      cor: '#10B981', // green
+      ordem: 5,
+    }
+  })
+
+  const leadPerdido = await prisma.leadStatusConfig.create({
+    data: {
+      nome: 'Perdido',
+      slug: 'perdido',
+      cor: '#EF4444', // red
+      ordem: 6,
+    }
+  })
+
+  console.log('✅ Created lead status configs')
+
+  // =============================================
+  // CRIAR USUÁRIOS E DADOS PRINCIPAIS
+  // =============================================
 
   // Hash da senha padrão
   const hashedPassword = await bcrypt.hash('123456', 12)
@@ -47,6 +215,7 @@ async function main() {
           phone: '(11) 98765-4321',
           whatsapp: '11987654321',
           cidade: 'São Paulo',
+          cidadeId: cidadeSP.id,
           approved: true,
           landingAtiva: true
         }
@@ -70,6 +239,7 @@ async function main() {
           phone: '(11) 98765-1234',
           whatsapp: '11987651234',
           cidade: 'São Paulo',
+          cidadeId: cidadeSP.id,
           approved: true,
           landingAtiva: true
         }
@@ -90,11 +260,20 @@ async function main() {
       descricao: 'Excelente apartamento com 3 quartos, 2 banheiros, sala ampla e cozinha completa. Localizado no coração da cidade.',
       tipo: 'VENDA',
       status: 'ATIVO',
+      statusConfigId: statusDisponivel.id,
       valor: 450000,
       endereco: 'Rua das Flores, 123',
       cidade: 'São Paulo',
+      cidadeId: cidadeSP.id,
       estado: 'SP',
       cep: '01234-567',
+      quartos: 3,
+      banheiros: 2,
+      suites: 1,
+      area: 85,
+      garagem: 1,
+      condominio: 650,
+      iptu: 280,
       views: 15
     }
   })
@@ -106,11 +285,20 @@ async function main() {
       descricao: 'Linda casa de 4 quartos com piscina, churrasqueira e área de lazer completa em condomínio de alto padrão.',
       tipo: 'VENDA',
       status: 'ATIVO',
+      statusConfigId: statusDisponivel.id,
       valor: 850000,
       endereco: 'Rua dos Lírios, 456',
       cidade: 'São Paulo',
+      cidadeId: cidadeSP.id,
       estado: 'SP',
       cep: '01234-890',
+      quartos: 4,
+      banheiros: 4,
+      suites: 2,
+      area: 280,
+      areaTerreno: 450,
+      garagem: 3,
+      condominio: 1200,
       views: 32
     }
   })
@@ -122,11 +310,17 @@ async function main() {
       descricao: 'Kitnet completamente mobiliada, ideal para estudantes ou profissionais. Próximo ao metrô.',
       tipo: 'ALUGUEL',
       status: 'ATIVO',
+      statusConfigId: statusDisponivel.id,
       valor: 1200,
       endereco: 'Avenida Paulista, 789',
       cidade: 'São Paulo',
+      cidadeId: cidadeSP.id,
       estado: 'SP',
       cep: '01311-000',
+      quartos: 1,
+      banheiros: 1,
+      area: 32,
+      condominio: 350,
       views: 48
     }
   })
@@ -139,11 +333,16 @@ async function main() {
       descricao: 'Sala comercial de 80m² em prédio empresarial moderno. 2 vagas de garagem incluídas.',
       tipo: 'ALUGUEL',
       status: 'ATIVO',
+      statusConfigId: statusDisponivel.id,
       valor: 3500,
       endereco: 'Avenida Faria Lima, 1000',
       cidade: 'São Paulo',
+      cidadeId: cidadeSP.id,
       estado: 'SP',
       cep: '01452-000',
+      area: 80,
+      garagem: 2,
+      condominio: 800,
       views: 22
     }
   })
@@ -155,11 +354,19 @@ async function main() {
       descricao: 'Luxuosa cobertura duplex com 5 suítes, terraço gourmet e vista panorâmica da cidade.',
       tipo: 'VENDA',
       status: 'ATIVO',
+      statusConfigId: statusEmNegociacao.id,
       valor: 2500000,
       endereco: 'Rua Haddock Lobo, 500',
       cidade: 'São Paulo',
+      cidadeId: cidadeSP.id,
       estado: 'SP',
       cep: '01414-000',
+      quartos: 5,
+      banheiros: 6,
+      suites: 5,
+      area: 450,
+      garagem: 4,
+      condominio: 2500,
       views: 67
     }
   })
@@ -174,7 +381,9 @@ async function main() {
       name: 'Pedro Oliveira',
       email: 'pedro@example.com',
       phone: '(11) 99999-8888',
-      message: 'Tenho interesse em visitar o imóvel este fim de semana.'
+      message: 'Tenho interesse em visitar o imóvel este fim de semana.',
+      origem: 'imovel',
+      statusConfigId: leadNovo.id,
     }
   })
 
@@ -185,7 +394,9 @@ async function main() {
       name: 'Ana Costa',
       email: 'ana@example.com',
       phone: '(11) 98888-7777',
-      message: 'Gostaria de mais informações sobre financiamento.'
+      message: 'Gostaria de mais informações sobre financiamento.',
+      origem: 'landing',
+      statusConfigId: leadEmContato.id,
     }
   })
 
@@ -196,7 +407,10 @@ async function main() {
       name: 'Carlos Mendes',
       email: 'carlos@example.com',
       phone: '(11) 97777-6666',
-      message: 'Preciso de uma sala comercial urgentemente.'
+      message: 'Preciso de uma sala comercial urgentemente.',
+      origem: 'perfil',
+      statusConfigId: leadAgendado.id,
+      dataAgendamento: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 dias no futuro
     }
   })
 

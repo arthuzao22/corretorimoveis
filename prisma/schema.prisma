@@ -36,6 +36,70 @@ enum LeadStatus {
   PERDIDO
 }
 
+// =============================================
+// TABELAS NORMALIZADAS PARA FILTROS AVANÇADOS
+// =============================================
+
+model Cidade {
+  id        String   @id @default(cuid())
+  nome      String
+  uf        String   // Sigla do estado (SP, RJ, MG, etc)
+  slug      String   @unique
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  imoveis    Imovel[]
+  corretores CorretorProfile[]
+
+  @@unique([nome, uf])
+  @@index([nome])
+  @@index([uf])
+  @@index([slug])
+  @@map("cidades")
+}
+
+model ImovelStatusConfig {
+  id        String   @id @default(cuid())
+  nome      String   // "Disponível", "Alugado", "Vendido", "Em negociação", "Reservado"
+  slug      String   @unique
+  cor       String?  // Cor para exibição (hex)
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  imoveis Imovel[]
+
+  @@index([slug])
+  @@index([ordem])
+  @@map("imovel_status_config")
+}
+
+model LeadStatusConfig {
+  id        String   @id @default(cuid())
+  nome      String   // "Novo", "Em contato", "Agendado", "Fechado", "Perdido"
+  slug      String   @unique
+  cor       String?  // Cor para exibição (hex)
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  leads Lead[]
+
+  @@index([slug])
+  @@index([ordem])
+  @@map("lead_status_config")
+}
+
+// =============================================
+// TABELAS PRINCIPAIS
+// =============================================
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -54,25 +118,29 @@ model User {
 }
 
 model CorretorProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  slug        String   @unique
-  bio         String?  @db.Text
-  phone       String?
-  photo       String?
-  whatsapp    String?
-  cidade      String?
-  approved    Boolean  @default(false)
-  landingAtiva Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  slug         String   @unique
+  bio          String?  @db.Text
+  phone        String?
+  photo        String?
+  whatsapp     String?
+  cidade       String?  // Campo legado - mantido para compatibilidade
+  cidadeId     String?  // Nova FK para tabela normalizada
+  approved     Boolean  @default(false)
+  landingAtiva Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relacionamentos
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cidadeRef     Cidade?        @relation(fields: [cidadeId], references: [id], onDelete: SetNull)
   imoveis       Imovel[]
   leads         Lead[]
   landingBlocos LandingBloco[]
 
+  @@index([slug])
+  @@index([cidadeId])
   @@map("corretor_profiles")
 }
 
@@ -89,71 +157,92 @@ model Admin {
 }
 
 model Imovel {
-  id          String        @id @default(cuid())
-  corretorId  String
-  titulo      String
-  descricao   String        @db.Text
-  tipo        ImovelTipo
-  status      ImovelStatus  @default(ATIVO)
-  valor       Decimal       @db.Decimal(10, 2)
-  endereco    String
-  cidade      String
-  estado      String
-  cep         String?
-  bairro      String?
-  quartos     Int?
-  banheiros   Int?
-  area        Decimal?      @db.Decimal(10, 2)
-  garagem     Int?
-  images      String[]      @default([])
-  views       Int           @default(0)
-  latitude    Decimal?      @db.Decimal(10, 8)
-  longitude   Decimal?      @db.Decimal(11, 8)
-  destaque    Boolean       @default(false)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  corretorId     String
+  titulo         String
+  descricao      String        @db.Text
+  tipo           ImovelTipo
+  status         ImovelStatus  @default(ATIVO) // Campo legado mantido
+  statusConfigId String?       // Nova FK para tabela normalizada
+  valor          Decimal       @db.Decimal(12, 2)
+  endereco       String
+  cidade         String        // Campo legado mantido
+  cidadeId       String?       // Nova FK para tabela normalizada
+  estado         String
+  cep            String?
+  bairro         String?
+  quartos        Int?
+  banheiros      Int?
+  suites         Int?          // Novo campo
+  area           Decimal?      @db.Decimal(10, 2)
+  areaTerreno    Decimal?      @db.Decimal(10, 2) // Novo campo
+  garagem        Int?
+  images         String[]      @default([])
+  views          Int           @default(0)
+  latitude       Decimal?      @db.Decimal(10, 8)
+  longitude      Decimal?      @db.Decimal(11, 8)
+  destaque       Boolean       @default(false)
+  condominio     Decimal?      @db.Decimal(10, 2) // Valor do condomínio
+  iptu           Decimal?      @db.Decimal(10, 2) // Valor do IPTU
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // Relacionamentos
-  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
-  leads    Lead[]
+  corretor     CorretorProfile    @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  cidadeRef    Cidade?            @relation(fields: [cidadeId], references: [id], onDelete: SetNull)
+  statusConfig ImovelStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
+  leads        Lead[]
 
   @@index([corretorId])
   @@index([tipo])
   @@index([status])
+  @@index([statusConfigId])
   @@index([cidade])
+  @@index([cidadeId])
   @@index([destaque])
+  @@index([createdAt])
+  @@index([valor])
+  @@index([tipo, valor])
+  @@index([tipo, cidade])
+  @@index([quartos])
   @@map("imoveis")
 }
 
 model Lead {
-  id         String     @id @default(cuid())
-  imovelId   String?
-  corretorId String
-  name       String
-  email      String?
-  phone      String
-  message    String?    @db.Text
-  origem     String?    @default("site")
-  status     LeadStatus @default(NOVO)
-  anotacoes  String?    @db.Text
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id             String     @id @default(cuid())
+  imovelId       String?
+  corretorId     String
+  name           String
+  email          String?
+  phone          String
+  message        String?    @db.Text
+  origem         String?    @default("site") // 'site' | 'landing' | 'perfil' | 'imovel' | 'whatsapp'
+  status         LeadStatus @default(NOVO) // Campo legado mantido
+  statusConfigId String?    // Nova FK para tabela normalizada
+  anotacoes      String?    @db.Text
+  dataContato    DateTime?  // Data do último contato
+  dataAgendamento DateTime? // Data de agendamento de visita
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relacionamentos
-  imovel   Imovel?         @relation(fields: [imovelId], references: [id], onDelete: Cascade)
-  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  imovel       Imovel?          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  corretor     CorretorProfile  @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  statusConfig LeadStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
 
   @@index([corretorId])
   @@index([imovelId])
   @@index([status])
+  @@index([statusConfigId])
   @@index([createdAt])
+  @@index([origem])
   @@map("leads")
 }
 
 model LandingBloco {
   id         String   @id @default(cuid())
   corretorId String
-  tipo       String   // hero | historia | galeria | carrossel | cta | imoveis | video | contato
+  tipo       String   // hero | historia | galeria | carrossel | cta | imoveis | video | contato | texto
   titulo     String?
   subtitulo  String?
   texto      String?  @db.Text
