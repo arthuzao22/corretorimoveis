@@ -52,9 +52,13 @@ export function ImoveisList({ initialImoveis, initialPagination, filters }: Imov
       if (data.success) {
         setImoveis((prev) => [...prev, ...data.imoveis])
         setPagination(data.pagination)
+      } else {
+        console.error('Error loading more imoveis:', data.error)
+        alert('Erro ao carregar mais imóveis. Tente novamente.')
       }
     } catch (error) {
       console.error('Error loading more imoveis:', error)
+      alert('Erro ao carregar mais imóveis. Tente novamente.')
     } finally {
       setLoading(false)
     }

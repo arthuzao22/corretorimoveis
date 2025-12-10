@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     // Check if there's a next page
     const hasNextPage = imoveis.length > params.limit
     const results = hasNextPage ? imoveis.slice(0, -1) : imoveis
-    const nextCursor = hasNextPage ? imoveis[imoveis.length - 2].id : null
+    const nextCursor = hasNextPage ? results[results.length - 1].id : null
 
     // Serialize Decimal values
     const serializedImoveis = results.map((imovel) => ({

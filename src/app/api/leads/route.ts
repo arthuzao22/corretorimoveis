@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     // Check if there's a next page
     const hasNextPage = leads.length > params.limit
     const results = hasNextPage ? leads.slice(0, -1) : leads
-    const nextCursor = hasNextPage ? leads[leads.length - 2].id : null
+    const nextCursor = hasNextPage ? results[results.length - 1].id : null
 
     return NextResponse.json({
       success: true,

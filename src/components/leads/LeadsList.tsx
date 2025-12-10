@@ -52,9 +52,13 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
       if (data.success) {
         setLeads((prev) => [...prev, ...data.leads])
         setPagination(data.pagination)
+      } else {
+        console.error('Error loading more leads:', data.error)
+        alert('Erro ao carregar mais leads. Tente novamente.')
       }
     } catch (error) {
       console.error('Error loading more leads:', error)
+      alert('Erro ao carregar mais leads. Tente novamente.')
     } finally {
       setLoading(false)
     }
