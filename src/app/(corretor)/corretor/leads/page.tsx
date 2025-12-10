@@ -1,19 +1,52 @@
-import { getMyLeads } from '@/server/actions/leads'
 import { Card } from '@/components/ui/Card'
-import { LeadTable } from '@/components/ui/LeadTable'
 import { LeadFilters } from '@/components/leads/LeadFilters'
+import { LeadsList } from '@/components/leads/LeadsList'
 import { Users } from 'lucide-react'
 import { Suspense } from 'react'
 import { TableSkeleton } from '@/components/skeletons'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-options'
 
 export const dynamic = 'force-dynamic'
 
 async function LeadsContent({ searchParams }: { searchParams: any }) {
-  const status = searchParams.status || undefined
-  const result = await getMyLeads({ status })
-  const leads = result.success && result.leads ? result.leads : []
+  const session = await getServerSession(authOptions)
+  
+  if (!session?.user || session.user.role !== 'CORRETOR') {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">Acesso não autorizado</p>
+        </div>
+      </div>
+    )
+  }
 
-  // Calculate stats
+  const { statusId, origem } = searchParams
+
+  // Build query params for API
+  const params = new URLSearchParams()
+  if (statusId) params.set('statusId', statusId)
+  if (origem) params.set('origem', origem)
+  params.set('limit', '20')
+
+  // Fetch from API
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  
+  // We need to pass the session cookie for authenticated requests
+  const headers: HeadersInit = {}
+  
+  const response = await fetch(`${baseUrl}/api/leads?${params.toString()}`, {
+    cache: 'no-store',
+    headers,
+  })
+  
+  const data = await response.json()
+
+  const leads = data.success ? data.leads : []
+  const pagination = data.pagination || { nextCursor: null, hasNextPage: false, limit: 20 }
+
+  // Calculate stats from all leads (we'd need a separate endpoint for total stats)
   const stats = {
     total: leads.length,
     novos: leads.filter((l: any) => l.status === 'NOVO').length,
@@ -28,12 +61,12 @@ async function LeadsContent({ searchParams }: { searchParams: any }) {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Meus Leads</h1>
           <p className="text-gray-600 mt-1">
-            {stats.total} {stats.total === 1 ? 'lead recebido' : 'leads recebidos'}
+            {leads.length} {leads.length === 1 ? 'lead' : 'leads'} {pagination.hasNextPage ? '(mostrando os primeiros)' : ''}
           </p>
         </div>
         <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg">
           <Users className="w-5 h-5" />
-          <span className="font-semibold">{stats.total}</span>
+          <span className="font-semibold">{leads.length}+</span>
         </div>
       </div>
 
@@ -64,26 +97,14 @@ async function LeadsContent({ searchParams }: { searchParams: any }) {
       </div>
 
       {/* Filters */}
-      <LeadFilters currentStatus={status} />
+      <LeadFilters currentFilters={searchParams} />
 
-      {/* Leads Table */}
-      {leads.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">
-              {status ? 'Nenhum lead encontrado com este filtro.' : 'Você ainda não recebeu nenhum lead.'}
-            </p>
-            <p className="text-sm text-gray-400 mt-2">
-              Os leads aparecem quando alguém demonstra interesse em seus imóveis.
-            </p>
-          </div>
-        </Card>
-      ) : (
-        <Card>
-          <LeadTable leads={leads} />
-        </Card>
-      )}
+      {/* Leads List */}
+      <LeadsList
+        initialLeads={leads}
+        initialPagination={pagination}
+        filters={searchParams}
+      />
     </div>
   )
 }
