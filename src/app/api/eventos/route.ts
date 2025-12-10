@@ -6,6 +6,35 @@ import { authOptions } from '@/lib/auth-options'
 
 export const dynamic = 'force-dynamic'
 
+// Type for evento with included relations
+type EventoWithRelations = {
+  id: string
+  dataHora: Date
+  observacao: string | null
+  createdAt: Date
+  updatedAt: Date
+  lead: {
+    id: string
+    name: string
+    phone: string
+    email: string | null
+    corretor: {
+      id: string
+      user: {
+        name: string
+      }
+    }
+  }
+  imovel: {
+    id: string
+    titulo: string
+    endereco: string
+    cidade: string
+    estado: string
+    valor: { toNumber(): number } | number
+  }
+}
+
 // Validation schema for creating an event
 const createEventoSchema = z.object({
   leadId: z.string().min(1, 'Lead é obrigatório'),
@@ -218,7 +247,7 @@ export async function GET(request: NextRequest) {
       queryOptions.skip = 1 // Skip the cursor itself
     }
 
-    const eventos = await prisma.eventoCalendario.findMany(queryOptions) as any[]
+    const eventos = await prisma.eventoCalendario.findMany(queryOptions) as unknown as EventoWithRelations[]
 
     // Check if there's a next page
     const hasNextPage = eventos.length > params.limit
@@ -226,11 +255,11 @@ export async function GET(request: NextRequest) {
     const nextCursor = hasNextPage ? results[results.length - 1]?.id : null
 
     // Serialize Decimal values
-    const serializedEventos = results.map((evento: any) => ({
+    const serializedEventos = results.map((evento: EventoWithRelations) => ({
       ...evento,
       imovel: {
         ...evento.imovel,
-        valor: Number(evento.imovel.valor),
+        valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
       },
     }))
 

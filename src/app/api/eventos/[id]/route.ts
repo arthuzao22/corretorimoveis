@@ -6,6 +6,60 @@ import { authOptions } from '@/lib/auth-options'
 
 export const dynamic = 'force-dynamic'
 
+// Type for evento with included relations for GET
+type EventoWithFullRelations = {
+  id: string
+  dataHora: Date
+  observacao: string | null
+  createdAt: Date
+  updatedAt: Date
+  lead: {
+    id: string
+    name: string
+    phone: string
+    email: string | null
+    corretorId: string
+    corretor: {
+      id: string
+      user: {
+        name: string
+      }
+    }
+  }
+  imovel: {
+    id: string
+    titulo: string
+    endereco: string
+    cidade: string
+    estado: string
+    valor: { toNumber(): number } | number
+    corretorId: string
+  }
+}
+
+// Type for evento with basic relations for UPDATE
+type EventoWithBasicRelations = {
+  id: string
+  dataHora: Date
+  observacao: string | null
+  createdAt: Date
+  updatedAt: Date
+  lead: {
+    id: string
+    name: string
+    phone: string
+    email: string | null
+  }
+  imovel: {
+    id: string
+    titulo: string
+    endereco: string
+    cidade: string
+    estado: string
+    valor: { toNumber(): number } | number
+  }
+}
+
 // Validation schema for updating an event
 const updateEventoSchema = z.object({
   leadId: z.string().min(1, 'Lead é obrigatório').optional(),
@@ -64,7 +118,7 @@ export async function GET(
           },
         },
       },
-    }) as any
+    }) as unknown as EventoWithFullRelations | null
 
     if (!evento) {
       return NextResponse.json(
@@ -88,7 +142,7 @@ export async function GET(
       ...evento,
       imovel: {
         ...evento.imovel,
-        valor: Number(evento.imovel.valor),
+        valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
       },
     }
 
@@ -228,14 +282,14 @@ export async function PUT(
           },
         },
       },
-    }) as any
+    }) as unknown as EventoWithBasicRelations
 
     // Serialize Decimal values
     const serializedEvento = {
       ...evento,
       imovel: {
         ...evento.imovel,
-        valor: Number(evento.imovel.valor),
+        valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
       },
     }
 
