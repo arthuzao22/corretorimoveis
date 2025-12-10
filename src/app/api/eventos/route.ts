@@ -218,15 +218,15 @@ export async function GET(request: NextRequest) {
       queryOptions.skip = 1 // Skip the cursor itself
     }
 
-    const eventos = await prisma.eventoCalendario.findMany(queryOptions)
+    const eventos = await prisma.eventoCalendario.findMany(queryOptions) as any[]
 
     // Check if there's a next page
     const hasNextPage = eventos.length > params.limit
     const results = hasNextPage ? eventos.slice(0, -1) : eventos
-    const nextCursor = hasNextPage ? results[results.length - 1].id : null
+    const nextCursor = hasNextPage ? results[results.length - 1]?.id : null
 
     // Serialize Decimal values
-    const serializedEventos = results.map((evento) => ({
+    const serializedEventos = results.map((evento: any) => ({
       ...evento,
       imovel: {
         ...evento.imovel,

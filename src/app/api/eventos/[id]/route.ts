@@ -64,7 +64,7 @@ export async function GET(
           },
         },
       },
-    })
+    }) as any
 
     if (!evento) {
       return NextResponse.json(
@@ -228,7 +228,7 @@ export async function PUT(
           },
         },
       },
-    })
+    }) as any
 
     // Serialize Decimal values
     const serializedEvento = {
