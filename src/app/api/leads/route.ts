@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: 'Invalid query parameters', details: error.errors },
+        { success: false, error: 'Invalid query parameters', details: error.issues },
         { status: 400 }
       )
     }
