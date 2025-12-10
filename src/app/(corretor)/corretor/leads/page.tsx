@@ -6,13 +6,14 @@ import { Suspense } from 'react'
 import { TableSkeleton } from '@/components/skeletons'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 async function LeadsContent({ searchParams }: { searchParams: any }) {
   const session = await getServerSession(authOptions)
   
-  if (!session?.user || session.user.role !== 'CORRETOR') {
+  if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
     return (
       <div className="space-y-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -23,30 +24,79 @@ async function LeadsContent({ searchParams }: { searchParams: any }) {
   }
 
   const { statusId, origem } = searchParams
+  const limit = 20
 
-  // Build query params for API
-  const params = new URLSearchParams()
-  if (statusId) params.set('statusId', statusId)
-  if (origem) params.set('origem', origem)
-  params.set('limit', '20')
+  // Build where clause
+  const where: any = {
+    corretorId: session.user.corretorId,
+  }
 
-  // Fetch from API
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  
-  // We need to pass the session cookie for authenticated requests
-  const headers: HeadersInit = {}
-  
-  const response = await fetch(`${baseUrl}/api/leads?${params.toString()}`, {
-    cache: 'no-store',
-    headers,
+  if (statusId) {
+    where.statusConfigId = statusId
+  }
+
+  if (origem) {
+    where.origem = origem
+  }
+
+  // Fetch leads directly from database (server-side)
+  const leadsQuery = await prisma.lead.findMany({
+    where,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      message: true,
+      origem: true,
+      status: true,
+      anotacoes: true,
+      dataContato: true,
+      dataAgendamento: true,
+      createdAt: true,
+      updatedAt: true,
+      imovel: {
+        select: {
+          id: true,
+          titulo: true,
+        },
+      },
+      corretor: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      statusConfig: {
+        select: {
+          id: true,
+          nome: true,
+          cor: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: limit + 1, // Fetch one extra to check for next page
   })
-  
-  const data = await response.json()
 
-  const leads = data.success ? data.leads : []
-  const pagination = data.pagination || { nextCursor: null, hasNextPage: false, limit: 20 }
+  // Check if there's a next page
+  const hasNextPage = leadsQuery.length > limit
+  const leads = hasNextPage ? leadsQuery.slice(0, -1) : leadsQuery
+  const nextCursor = hasNextPage ? leads[leads.length - 1].id : null
 
-  // Calculate stats from all leads (we'd need a separate endpoint for total stats)
+  const pagination = {
+    nextCursor,
+    hasNextPage,
+    limit,
+  }
+
+  // Calculate stats from current page
   const stats = {
     total: leads.length,
     novos: leads.filter((l: any) => l.status === 'NOVO').length,
