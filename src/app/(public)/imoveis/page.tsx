@@ -4,6 +4,8 @@ import { SearchFilters } from '@/components/search/SearchFilters'
 import { Suspense } from 'react'
 import { PropertyListSkeleton } from '@/components/skeletons'
 import { Building2 } from 'lucide-react'
+import { Navbar } from '@/components/ui/Navbar'
+import { Footer } from '@/components/ui/Footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +37,9 @@ async function ImoveisContent({ searchParams }: { searchParams: any }) {
   const { imoveis, total, totalPages, page: currentPage } = result
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <div className="flex-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Buscar Imóveis</h1>
@@ -104,10 +108,12 @@ async function ImoveisContent({ searchParams }: { searchParams: any }) {
                   </a>
                 )}
               </div>
-            )}
+)}            
           </>
         )}
       </div>
+      </div>
+      <Footer />
     </div>
   )
 }

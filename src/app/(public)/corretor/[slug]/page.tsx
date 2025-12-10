@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin, Phone, MessageCircle, Building2 } from 'lucide-react'
 import { Metadata } from 'next'
+import { Navbar } from '@/components/ui/Navbar'
+import { Footer } from '@/components/ui/Footer'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -67,15 +69,11 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            Portal Imobiliário
-          </Link>
-        </nav>
-      </header>
+      <Navbar />
+
+      <div className="flex-1">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Perfil do Corretor */}
@@ -192,13 +190,10 @@ export default async function CorretorPublicPage({ params }: { params: Promise<{
           )}
         </div>
       </div>
+      </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2024 Portal Imobiliário. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

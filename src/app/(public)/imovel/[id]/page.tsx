@@ -9,6 +9,8 @@ import { Building2, MapPin, Phone, MessageCircle, User } from 'lucide-react'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { PropertyDetailSkeleton } from '@/components/skeletons'
+import { Navbar } from '@/components/ui/Navbar'
+import { Footer } from '@/components/ui/Footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,31 +95,11 @@ async function PropertyContent({ id }: { id: string }) {
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-            <Building2 className="w-8 h-8" />
-            <span>ImóvelPro</span>
-          </Link>
-          <div className="flex gap-4">
-            <Link
-              href="/imoveis"
-              className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Buscar Imóveis
-            </Link>
-            <Link
-              href={`/corretor/${imovel.corretor.slug}`}
-              className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Ver Corretor
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <Navbar />
 
+      <div className="flex-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -237,6 +219,8 @@ async function PropertyContent({ id }: { id: string }) {
           </div>
         </div>
       </div>
+      </div>
+      <Footer />
     </div>
   )
 }

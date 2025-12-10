@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
 import { registerUser } from '@/server/actions/auth'
+import { Navbar } from '@/components/ui/Navbar'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -58,7 +59,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6">Cadastro</h1>
         
@@ -136,6 +139,7 @@ export default function RegisterPage() {
           </Link>
         </div>
       </Card>
+      </div>
     </div>
   )
 }

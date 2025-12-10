@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { Building2, MapPin, TrendingUp, Users, Home as HomeIcon, Search } from 'lucide-react'
+import { Navbar } from '@/components/ui/Navbar'
+import { Footer } from '@/components/ui/Footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,30 +40,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-              <Building2 className="w-8 h-8" />
-              <span>ImóvelPro</span>
-            </Link>
-            <div className="flex gap-3">
-              <Link
-                href="/login"
-                className="text-gray-700 hover:text-gray-900 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all font-medium"
-              >
-                Entrar
-              </Link>
-              <Link
-                href="/register"
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium"
-              >
-                Cadastrar-se
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </header>
+      <Navbar transparent />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white py-24 overflow-hidden">
@@ -238,46 +217,7 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 text-white font-bold text-xl mb-4">
-                <Building2 className="w-6 h-6" />
-                <span>ImóvelPro</span>
-              </div>
-              <p className="text-sm">
-                A melhor plataforma para encontrar seu imóvel dos sonhos.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Links Rápidos</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
-                <li><Link href="/login" className="hover:text-white transition-colors">Entrar</Link></li>
-                <li><Link href="/register" className="hover:text-white transition-colors">Cadastrar</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Para Corretores</h3>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/register" className="hover:text-white transition-colors">Criar Conta</Link></li>
-                <li><Link href="/login" className="hover:text-white transition-colors">Área do Corretor</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Contato</h3>
-              <ul className="space-y-2 text-sm">
-                <li>contato@imovelpro.com.br</li>
-                <li>(11) 99999-9999</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>&copy; 2024 ImóvelPro. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
