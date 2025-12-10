@@ -129,7 +129,14 @@ export async function GET(
 
     // Check authorization
     if (session.user.role === 'CORRETOR') {
-      if (evento.lead.corretorId !== session.user.corretorId) {
+      const { corretorId } = session.user
+      if (!corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Usuário não possui perfil de corretor' },
+          { status: 403 }
+        )
+      }
+      if (evento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para ver este evento' },
           { status: 403 }
@@ -203,7 +210,14 @@ export async function PUT(
 
     // Check authorization
     if (session.user.role === 'CORRETOR') {
-      if (existingEvento.lead.corretorId !== session.user.corretorId) {
+      const { corretorId } = session.user
+      if (!corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Usuário não possui perfil de corretor' },
+          { status: 403 }
+        )
+      }
+      if (existingEvento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para editar este evento' },
           { status: 403 }
@@ -224,11 +238,14 @@ export async function PUT(
         )
       }
 
-      if (session.user.role === 'CORRETOR' && lead.corretorId !== session.user.corretorId) {
-        return NextResponse.json(
-          { success: false, error: 'Você não tem permissão para usar este lead' },
-          { status: 403 }
-        )
+      if (session.user.role === 'CORRETOR') {
+        const { corretorId } = session.user
+        if (!corretorId || lead.corretorId !== corretorId) {
+          return NextResponse.json(
+            { success: false, error: 'Você não tem permissão para usar este lead' },
+            { status: 403 }
+          )
+        }
       }
     }
 
@@ -244,11 +261,14 @@ export async function PUT(
         )
       }
 
-      if (session.user.role === 'CORRETOR' && imovel.corretorId !== session.user.corretorId) {
-        return NextResponse.json(
-          { success: false, error: 'Você não tem permissão para usar este imóvel' },
-          { status: 403 }
-        )
+      if (session.user.role === 'CORRETOR') {
+        const { corretorId } = session.user
+        if (!corretorId || imovel.corretorId !== corretorId) {
+          return NextResponse.json(
+            { success: false, error: 'Você não tem permissão para usar este imóvel' },
+            { status: 403 }
+          )
+        }
       }
     }
 
@@ -285,11 +305,17 @@ export async function PUT(
     }) as unknown as EventoWithBasicRelations
 
     // Serialize Decimal values
+    let valorNumericoPut = 0
+    if (evento.imovel?.valor) {
+      valorNumericoPut = typeof evento.imovel.valor === 'number' 
+        ? evento.imovel.valor 
+        : evento.imovel.valor.toNumber()
+    }
     const serializedEvento = {
       ...evento,
       imovel: {
         ...evento.imovel,
-        valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
+        valor: valorNumericoPut,
       },
     }
 
@@ -351,7 +377,14 @@ export async function DELETE(
 
     // Check authorization
     if (session.user.role === 'CORRETOR') {
-      if (existingEvento.lead.corretorId !== session.user.corretorId) {
+      const { corretorId } = session.user
+      if (!corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Usuário não possui perfil de corretor' },
+          { status: 403 }
+        )
+      }
+      if (existingEvento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para excluir este evento' },
           { status: 403 }

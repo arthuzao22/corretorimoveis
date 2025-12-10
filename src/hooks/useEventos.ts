@@ -21,10 +21,10 @@ export interface Evento {
   imovel: {
     id: string
     titulo: string
-    endereco: string
-    cidade: string
-    estado: string
-    valor: number
+    endereco?: string
+    cidade?: string
+    estado?: string
+    valor?: number
   }
 }
 

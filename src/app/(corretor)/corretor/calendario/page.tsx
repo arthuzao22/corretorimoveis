@@ -281,14 +281,15 @@ export default function CalendarioPage() {
 
                 <div>
                   <label className="text-sm font-medium text-gray-500">Imóvel</label>
-                  <p className="text-lg text-gray-900">{viewingEvento.imovel.titulo}</p>
+                  <p className="text-lg text-gray-900">{viewingEvento.imovel?.titulo ?? 'Sem título'}</p>
                   <p className="text-sm text-gray-600">
-                    {viewingEvento.imovel.endereco}, {viewingEvento.imovel.cidade} -{' '}
-                    {viewingEvento.imovel.estado}
+                    {viewingEvento.imovel?.endereco ?? ''}{viewingEvento.imovel?.cidade ? `, ${viewingEvento.imovel.cidade}` : ''}{viewingEvento.imovel?.estado ? ` - ${viewingEvento.imovel.estado}` : ''}
                   </p>
-                  <p className="text-sm font-medium text-green-600 mt-1">
-                    R$ {viewingEvento.imovel.valor.toLocaleString('pt-BR')}
-                  </p>
+                  {viewingEvento.imovel?.valor != null && (
+                    <p className="text-sm font-medium text-green-600 mt-1">
+                      R$ {Number(viewingEvento.imovel.valor).toLocaleString('pt-BR')}
+                    </p>
+                  )}
                 </div>
 
                 {viewingEvento.observacao && (

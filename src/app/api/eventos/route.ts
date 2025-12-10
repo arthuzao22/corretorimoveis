@@ -87,8 +87,14 @@ export async function POST(request: NextRequest) {
 
     // Check authorization
     if (session.user.role === 'CORRETOR') {
-      if (lead.corretorId !== session.user.corretorId || 
-          imovel.corretorId !== session.user.corretorId) {
+      const { corretorId } = session.user
+      if (!corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Usuário não possui perfil de corretor' },
+          { status: 403 }
+        )
+      }
+      if (lead.corretorId !== corretorId || imovel.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para criar evento com este lead ou imóvel' },
           { status: 403 }
@@ -173,8 +179,15 @@ export async function GET(request: NextRequest) {
 
     // For corretores, only show events with their own leads/imoveis
     if (session.user.role === 'CORRETOR') {
+      const { corretorId } = session.user
+      if (!corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Usuário não possui perfil de corretor' },
+          { status: 403 }
+        )
+      }
       where.lead = {
-        corretorId: session.user.corretorId,
+        corretorId: corretorId,
       }
     }
 
@@ -255,13 +268,21 @@ export async function GET(request: NextRequest) {
     const nextCursor = hasNextPage ? results[results.length - 1]?.id : null
 
     // Serialize Decimal values
-    const serializedEventos = results.map((evento: EventoWithRelations) => ({
-      ...evento,
-      imovel: {
-        ...evento.imovel,
-        valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
-      },
-    }))
+    const serializedEventos = results.map((evento: EventoWithRelations) => {
+      let valorNumerico = 0
+      if (evento.imovel?.valor) {
+        valorNumerico = typeof evento.imovel.valor === 'number' 
+          ? evento.imovel.valor 
+          : evento.imovel.valor.toNumber()
+      }
+      return {
+        ...evento,
+        imovel: {
+          ...evento.imovel,
+          valor: valorNumerico,
+        },
+      }
+    })
 
     return NextResponse.json({
       success: true,
