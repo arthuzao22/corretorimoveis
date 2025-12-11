@@ -30,10 +30,38 @@ enum ImovelStatus {
 enum LeadStatus {
   NOVO
   CONTATADO
+  ACOMPANHAMENTO
+  VISITA_AGENDADA
   QUALIFICADO
   NEGOCIACAO
+  FECHADO
   CONVERTIDO
   PERDIDO
+}
+
+enum LeadPriority {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum EventoTipo {
+  VISITA
+  ACOMPANHAMENTO
+  REUNIAO
+  URGENTE
+}
+
+enum TimelineAction {
+  CREATED
+  STATUS_CHANGED
+  NOTE_ADDED
+  EVENT_SCHEDULED
+  EVENT_COMPLETED
+  CONTACT_MADE
+  EMAIL_SENT
+  WHATSAPP_SENT
 }
 
 // =============================================
@@ -210,32 +238,35 @@ model Imovel {
 }
 
 model Lead {
-  id             String     @id @default(cuid())
-  imovelId       String?
-  corretorId     String
-  name           String
-  email          String?
-  phone          String
-  message        String?    @db.Text
-  origem         String?    @default("site") // 'site' | 'landing' | 'perfil' | 'imovel' | 'whatsapp'
-  status         LeadStatus @default(NOVO) // Campo legado mantido
-  statusConfigId String?    // Nova FK para tabela normalizada
-  anotacoes      String?    @db.Text
-  dataContato    DateTime?  // Data do último contato
-  dataAgendamento DateTime? // Data de agendamento de visita
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id              String        @id @default(cuid())
+  imovelId        String?
+  corretorId      String
+  name            String
+  email           String?
+  phone           String
+  message         String?       @db.Text
+  origem          String?       @default("site") // 'site' | 'landing' | 'perfil' | 'imovel' | 'whatsapp'
+  status          LeadStatus    @default(NOVO) // Campo legado mantido
+  statusConfigId  String?       // Nova FK para tabela normalizada
+  priority        LeadPriority  @default(MEDIA)
+  anotacoes       String?       @db.Text
+  dataContato     DateTime?     // Data do último contato
+  dataAgendamento DateTime?     // Data de agendamento de visita
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   // Relacionamentos
-  imovel       Imovel?          @relation(fields: [imovelId], references: [id], onDelete: Cascade)
-  corretor     CorretorProfile  @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  imovel       Imovel?           @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  corretor     CorretorProfile   @relation(fields: [corretorId], references: [id], onDelete: Cascade)
   statusConfig LeadStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
   eventos      EventoCalendario[]
+  timeline     LeadTimeline[]
 
   @@index([corretorId])
   @@index([imovelId])
   @@index([status])
   @@index([statusConfigId])
+  @@index([priority])
   @@index([createdAt])
   @@index([origem])
   @@map("leads")
@@ -265,13 +296,15 @@ model LandingBloco {
 }
 
 model EventoCalendario {
-  id         String   @id @default(cuid())
+  id         String      @id @default(cuid())
   leadId     String
   imovelId   String
+  tipo       EventoTipo  @default(VISITA)
   dataHora   DateTime
-  observacao String?  @db.Text
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  observacao String?     @db.Text
+  completed  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   // Relacionamentos
   lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -280,6 +313,24 @@ model EventoCalendario {
   @@index([dataHora])
   @@index([leadId])
   @@index([imovelId])
+  @@index([tipo])
+  @@index([completed])
   @@index([createdAt])
   @@map("eventos_calendario")
+}
+
+model LeadTimeline {
+  id          String         @id @default(cuid())
+  leadId      String
+  action      TimelineAction
+  description String         @db.Text
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+
+  // Relacionamentos
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([createdAt])
+  @@map("lead_timeline")
 }

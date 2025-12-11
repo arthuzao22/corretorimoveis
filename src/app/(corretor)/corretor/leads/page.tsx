@@ -57,6 +57,7 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
       message: true,
       origem: true,
       status: true,
+      priority: true,
       anotacoes: true,
       dataContato: true,
       dataAgendamento: true,
@@ -108,8 +109,10 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     total: leads.length,
     novos: leads.filter((l: any) => l.status === 'NOVO').length,
     contatados: leads.filter((l: any) => l.status === 'CONTATADO').length,
-    qualificados: leads.filter((l: any) => l.status === 'QUALIFICADO').length,
-    convertidos: leads.filter((l: any) => l.status === 'CONVERTIDO').length,
+    acompanhamento: leads.filter((l: any) => l.status === 'ACOMPANHAMENTO').length,
+    visitaAgendada: leads.filter((l: any) => l.status === 'VISITA_AGENDADA').length,
+    negociacao: leads.filter((l: any) => l.status === 'NEGOCIACAO').length,
+    fechados: leads.filter((l: any) => l.status === 'FECHADO' || l.status === 'CONVERTIDO').length,
   }
 
   return (
@@ -128,28 +131,30 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">Novos</p>
           <p className="text-2xl font-bold text-blue-600">{stats.novos}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-sm text-gray-600">Contatados</p>
           <p className="text-2xl font-bold text-purple-600">{stats.contatados}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-600">Qualificados</p>
-          <p className="text-2xl font-bold text-orange-600">{stats.qualificados}</p>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-600">Follow-up</p>
+          <p className="text-2xl font-bold text-yellow-600">{stats.acompanhamento}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-600">Convertidos</p>
-          <p className="text-2xl font-bold text-green-600">{stats.convertidos}</p>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-600">Visitas</p>
+          <p className="text-2xl font-bold text-indigo-600">{stats.visitaAgendada}</p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-600">Taxa Conv.</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {stats.total > 0 ? Math.round((stats.convertidos / stats.total) * 100) : 0}%
-          </p>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-600">Negociando</p>
+          <p className="text-2xl font-bold text-orange-600">{stats.negociacao}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-sm text-gray-600">Fechados</p>
+          <p className="text-2xl font-bold text-green-600">{stats.fechados}</p>
         </div>
       </div>
 
