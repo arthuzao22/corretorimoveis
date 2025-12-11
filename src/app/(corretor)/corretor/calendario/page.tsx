@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash2, Calendar as CalendarIcon } from 'lucide-react'
+import { Plus, Trash2, Calendar as CalendarIcon, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Calendario } from './components/Calendario'
-import { EventoModal } from './components/EventoModal'
+import { EventoModalEnhanced } from './components/EventoModalEnhanced'
 import { useEventos, type Evento } from '@/hooks/useEventos'
+import { addTimelineEntry } from '@/server/actions/timeline'
 
 interface Lead {
   id: string
@@ -119,9 +120,33 @@ export default function CalendarioPage() {
     }
   }
 
+  const handleCompleteEvent = async () => {
+    if (!viewingEvento) return
+
+    const updated = await updateEvento(viewingEvento.id, { completed: true })
+    if (updated) {
+      setEventos((prev) =>
+        prev.map((e) => (e.id === viewingEvento.id ? updated : e))
+      )
+      setViewingEvento(null)
+      
+      // Add timeline entry
+      await addTimelineEntry(
+        viewingEvento.lead.id,
+        'EVENT_COMPLETED',
+        `Evento concluído: ${viewingEvento.tipo}`
+      )
+      
+      showFeedback('success', 'Evento marcado como concluído')
+    } else {
+      showFeedback('error', error || 'Erro ao marcar evento como concluído')
+    }
+  }
+
   const handleSaveEvento = async (data: {
     leadId: string
     imovelId: string
+    tipo: any
     dataHora: string
     observacao?: string
   }) => {
@@ -144,6 +169,14 @@ export default function CalendarioPage() {
       if (created) {
         setEventos((prev) => [...prev, created])
         setIsModalOpen(false)
+        
+        // Add timeline entry
+        await addTimelineEntry(
+          data.leadId,
+          'EVENT_SCHEDULED',
+          `Evento agendado: ${data.tipo} para ${new Date(data.dataHora).toLocaleDateString('pt-BR')}`
+        )
+        
         showFeedback('success', 'Evento criado com sucesso')
       } else {
         showFeedback('error', error || 'Erro ao criar evento')
@@ -160,6 +193,26 @@ export default function CalendarioPage() {
     setViewingEvento(null)
   }
 
+  const getEventTypeColor = (tipo: string) => {
+    const colors: Record<string, string> = {
+      VISITA: 'bg-blue-500',
+      ACOMPANHAMENTO: 'bg-yellow-500',
+      REUNIAO: 'bg-green-500',
+      URGENTE: 'bg-red-500',
+    }
+    return colors[tipo] || 'bg-gray-500'
+  }
+
+  const getEventTypeLabel = (tipo: string) => {
+    const labels: Record<string, string> = {
+      VISITA: 'Visita',
+      ACOMPANHAMENTO: 'Follow-up',
+      REUNIAO: 'Reunião',
+      URGENTE: 'Urgente',
+    }
+    return labels[tipo] || tipo
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Page Header */}
@@ -167,7 +220,7 @@ export default function CalendarioPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <CalendarIcon size={32} />
+              <CalendarIcon size={32} className="text-purple-600" />
               Calendário de Eventos
             </h1>
             <p className="text-gray-600 mt-2">
@@ -179,7 +232,7 @@ export default function CalendarioPage() {
               setSelectedEvento(null)
               setIsModalOpen(true)
             }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
           >
             <Plus size={20} />
             Novo Evento
@@ -232,7 +285,7 @@ export default function CalendarioPage() {
       />
 
       {/* Event Modal */}
-      <EventoModal
+      <EventoModalEnhanced
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveEvento}
@@ -245,10 +298,15 @@ export default function CalendarioPage() {
       {/* Event Details Modal */}
       {viewingEvento && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
             <div className="p-6">
               <div className="flex items-start justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Detalhes do Evento</h2>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Detalhes do Evento</h2>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getEventTypeColor(viewingEvento.tipo)} text-white`}>
+                    {getEventTypeLabel(viewingEvento.tipo)}
+                  </span>
+                </div>
                 <button
                   onClick={handleCloseViewing}
                   className="text-gray-400 hover:text-gray-600"
@@ -298,6 +356,13 @@ export default function CalendarioPage() {
                     <p className="text-gray-900">{viewingEvento.observacao}</p>
                   </div>
                 )}
+
+                {viewingEvento.completed && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="text-green-700 font-medium">Evento concluído</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 justify-end mt-6 pt-6 border-t">
@@ -305,6 +370,12 @@ export default function CalendarioPage() {
                   <Trash2 size={16} />
                   Excluir
                 </Button>
+                {!viewingEvento.completed && (
+                  <Button onClick={handleCompleteEvent} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                    <CheckCircle size={16} />
+                    Marcar como Concluído
+                  </Button>
+                )}
                 <Button onClick={handleEditClick}>Editar</Button>
               </div>
             </div>

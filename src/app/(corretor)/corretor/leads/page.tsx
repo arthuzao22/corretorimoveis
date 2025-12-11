@@ -11,8 +11,11 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 interface SearchParams {
-  statusId?: string
+  status?: string
+  priority?: string
   origem?: string
+  dateFrom?: string
+  dateTo?: string
   cursor?: string
 }
 
@@ -30,7 +33,7 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     )
   }
 
-  const { statusId, origem } = params
+  const { status, priority, origem, dateFrom, dateTo } = params
   const limit = 20
 
   // Build where clause
@@ -38,12 +41,26 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     corretorId: session.user.corretorId,
   }
 
-  if (statusId) {
-    where.statusConfigId = statusId
+  if (status) {
+    where.status = status
+  }
+
+  if (priority) {
+    where.priority = priority
   }
 
   if (origem) {
     where.origem = origem
+  }
+
+  if (dateFrom || dateTo) {
+    where.createdAt = {}
+    if (dateFrom) {
+      where.createdAt.gte = new Date(dateFrom)
+    }
+    if (dateTo) {
+      where.createdAt.lte = new Date(dateTo + 'T23:59:59.999Z')
+    }
   }
 
   // Fetch leads directly from database (server-side)

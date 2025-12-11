@@ -1,9 +1,12 @@
 import { useState, useCallback } from 'react'
+import { EventoTipo } from '@prisma/client'
 
 export interface Evento {
   id: string
+  tipo: EventoTipo
   dataHora: string
   observacao?: string | null
+  completed: boolean
   createdAt: string
   updatedAt: string
   lead: {
@@ -31,6 +34,7 @@ export interface Evento {
 interface CreateEventoData {
   leadId: string
   imovelId: string
+  tipo: EventoTipo
   dataHora: string
   observacao?: string
 }
@@ -38,8 +42,10 @@ interface CreateEventoData {
 interface UpdateEventoData {
   leadId?: string
   imovelId?: string
+  tipo?: EventoTipo
   dataHora?: string
   observacao?: string | null
+  completed?: boolean
 }
 
 interface FetchEventosParams {
