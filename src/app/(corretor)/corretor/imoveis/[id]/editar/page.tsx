@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { ImovelForm } from '@/components/imoveis/ImovelForm'
 import { getImovelById, updateImovel } from '@/server/actions/imoveis'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default function EditarImovelPage() {
@@ -15,19 +13,7 @@ export default function EditarImovelPage() {
   const id = params.id as string
 
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
-    titulo: '',
-    descricao: '',
-    tipo: 'VENDA' as 'VENDA' | 'ALUGUEL',
-    valor: '',
-    endereco: '',
-    cidade: '',
-    estado: '',
-    cep: '',
-    images: [] as string[]
-  })
-  const [newImageUrl, setNewImageUrl] = useState('')
+  const [imovel, setImovel] = useState<any>(null)
 
   useEffect(() => {
     loadImovel()
@@ -36,18 +22,7 @@ export default function EditarImovelPage() {
   const loadImovel = async () => {
     const result = await getImovelById(id)
     if (result.success && result.imovel) {
-      const { imovel } = result
-      setFormData({
-        titulo: imovel.titulo,
-        descricao: imovel.descricao,
-        tipo: imovel.tipo as 'VENDA' | 'ALUGUEL',
-        valor: imovel.valor.toString(),
-        endereco: imovel.endereco,
-        cidade: imovel.cidade,
-        estado: imovel.estado,
-        cep: imovel.cep || '',
-        images: (imovel as any).images || []
-      })
+      setImovel(result.imovel)
     } else {
       alert('Imóvel não encontrado')
       router.push('/corretor/imoveis')
@@ -55,49 +30,47 @@ export default function EditarImovelPage() {
     setLoading(false)
   }
 
-  const handleAddImage = () => {
-    if (newImageUrl.trim()) {
-      try {
-        new URL(newImageUrl)
-        setFormData({
-          ...formData,
-          images: [...formData.images, newImageUrl.trim()]
-        })
-        setNewImageUrl('')
-      } catch {
-        alert('URL inválida')
-      }
-    }
+  const handleUpdate = async (data: any) => {
+    return await updateImovel(id, data)
   }
 
-  const handleRemoveImage = (index: number) => {
-    setFormData({
-      ...formData,
-      images: formData.images.filter((_, i) => i !== index)
-    })
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando imóvel...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
+  if (!imovel) {
+    return null
+  }
 
-    try {
-      const result = await updateImovel(id, {
-        ...formData,
-        valor: parseFloat(formData.valor)
-      })
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link
+          href="/corretor/imoveis"
+          className="text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Editar Imóvel</h1>
+          <p className="text-gray-600 mt-2">
+            Atualize as informações do imóvel "{imovel.titulo}"
+          </p>
+        </div>
+      </div>
 
-      if (result.success) {
-        alert('Imóvel atualizado com sucesso!')
-        router.push('/corretor/imoveis')
-      } else {
-        alert(result.error || 'Erro ao atualizar imóvel')
-      }
-    } catch (error) {
-      alert('Erro ao atualizar imóvel')
-    } finally {
-      setSubmitting(false)
-    }
+      <ImovelForm imovel={imovel} onSubmit={handleUpdate} submitLabel="Salvar Alterações" />
+    </div>
+  )
+}
+
   }
 
   if (loading) {

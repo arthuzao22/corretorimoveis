@@ -6,15 +6,40 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 
 const imovelSchema = z.object({
-  titulo: z.string().min(5),
-  descricao: z.string().min(20),
+  // Campos obrigatórios
+  titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
+  descricao: z.string().min(20, 'Descrição deve ter no mínimo 20 caracteres'),
   tipo: z.enum(['VENDA', 'ALUGUEL']),
-  valor: z.number().positive(),
-  endereco: z.string().min(5),
-  cidade: z.string().min(2),
-  estado: z.string().length(2),
+  valor: z.number().positive('Valor deve ser positivo'),
+  endereco: z.string().min(5, 'Endereço é obrigatório'),
+  cidade: z.string().min(2, 'Cidade é obrigatória'),
+  estado: z.string().length(2, 'Estado deve ter 2 letras'),
+  images: z.array(z.string().url()).min(1, 'Pelo menos uma imagem é obrigatória'),
+  
+  // Campos opcionais - relacionamentos
+  statusConfigId: z.string().optional(),
+  cidadeId: z.string().optional(),
+  
+  // Campos opcionais - localização
   cep: z.string().optional(),
-  images: z.array(z.string().url()).min(1, 'Pelo menos uma imagem é obrigatória').default([])
+  bairro: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  
+  // Campos opcionais - características
+  quartos: z.number().int().nonnegative().optional(),
+  banheiros: z.number().int().nonnegative().optional(),
+  suites: z.number().int().nonnegative().optional(),
+  area: z.number().positive().optional(),
+  areaTerreno: z.number().positive().optional(),
+  garagem: z.number().int().nonnegative().optional(),
+  
+  // Campos opcionais - valores
+  condominio: z.number().nonnegative().optional(),
+  iptu: z.number().nonnegative().optional(),
+  
+  // Campos opcionais - extras
+  destaque: z.boolean().default(false),
 })
 
 export async function createImovel(data: z.infer<typeof imovelSchema>) {
@@ -64,13 +89,36 @@ export async function updateImovel(id: string, data: Partial<z.infer<typeof imov
 
     const updatedImovel = await prisma.imovel.update({
       where: { id },
-      data
+      data: {
+        ...data,
+        // Garantir que campos opcionais null/undefined sejam tratados corretamente
+        statusConfigId: data.statusConfigId || null,
+        cidadeId: data.cidadeId || null,
+        cep: data.cep || null,
+        bairro: data.bairro || null,
+        quartos: data.quartos ?? null,
+        banheiros: data.banheiros ?? null,
+        suites: data.suites ?? null,
+        area: data.area ?? null,
+        areaTerreno: data.areaTerreno ?? null,
+        garagem: data.garagem ?? null,
+        condominio: data.condominio ?? null,
+        iptu: data.iptu ?? null,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
+      }
     })
 
     // Converter Decimal para número
     const imovelSerializado = {
       ...updatedImovel,
-      valor: Number(updatedImovel.valor)
+      valor: Number(updatedImovel.valor),
+      area: updatedImovel.area ? Number(updatedImovel.area) : null,
+      areaTerreno: updatedImovel.areaTerreno ? Number(updatedImovel.areaTerreno) : null,
+      condominio: updatedImovel.condominio ? Number(updatedImovel.condominio) : null,
+      iptu: updatedImovel.iptu ? Number(updatedImovel.iptu) : null,
+      latitude: updatedImovel.latitude ? Number(updatedImovel.latitude) : null,
+      longitude: updatedImovel.longitude ? Number(updatedImovel.longitude) : null,
     }
 
     return { success: true, imovel: imovelSerializado }
@@ -120,6 +168,22 @@ export async function getMyImoveis() {
       where: {
         corretorId: session.user.corretorId
       },
+      include: {
+        cidadeRef: {
+          select: {
+            id: true,
+            nome: true,
+            uf: true,
+          }
+        },
+        statusConfig: {
+          select: {
+            id: true,
+            nome: true,
+            cor: true,
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -128,7 +192,13 @@ export async function getMyImoveis() {
     // Converter Decimal para número
     const imoveisSerializados = imoveis.map(imovel => ({
       ...imovel,
-      valor: Number(imovel.valor)
+      valor: Number(imovel.valor),
+      area: imovel.area ? Number(imovel.area) : null,
+      areaTerreno: imovel.areaTerreno ? Number(imovel.areaTerreno) : null,
+      condominio: imovel.condominio ? Number(imovel.condominio) : null,
+      iptu: imovel.iptu ? Number(imovel.iptu) : null,
+      latitude: imovel.latitude ? Number(imovel.latitude) : null,
+      longitude: imovel.longitude ? Number(imovel.longitude) : null,
     }))
 
     return { success: true, imoveis: imoveisSerializados }
@@ -147,7 +217,23 @@ export async function getImovelById(id: string) {
     }
 
     const imovel = await prisma.imovel.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        cidadeRef: {
+          select: {
+            id: true,
+            nome: true,
+            uf: true,
+          }
+        },
+        statusConfig: {
+          select: {
+            id: true,
+            nome: true,
+            cor: true,
+          }
+        }
+      }
     })
 
     if (!imovel || imovel.corretorId !== session.user.corretorId) {
@@ -157,7 +243,13 @@ export async function getImovelById(id: string) {
     // Converter Decimal para número
     const imovelSerializado = {
       ...imovel,
-      valor: Number(imovel.valor)
+      valor: Number(imovel.valor),
+      area: imovel.area ? Number(imovel.area) : null,
+      areaTerreno: imovel.areaTerreno ? Number(imovel.areaTerreno) : null,
+      condominio: imovel.condominio ? Number(imovel.condominio) : null,
+      iptu: imovel.iptu ? Number(imovel.iptu) : null,
+      latitude: imovel.latitude ? Number(imovel.latitude) : null,
+      longitude: imovel.longitude ? Number(imovel.longitude) : null,
     }
 
     return { success: true, imovel: imovelSerializado }

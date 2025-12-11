@@ -1,0 +1,1 @@
+export { ImovelForm } from './ImovelForm'

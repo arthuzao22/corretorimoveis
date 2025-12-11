@@ -1,5 +1,5 @@
 ---
-name: agentCorretores
+name: DevMaster
 description: >
   Full-stack expert (Next.js, React, TypeScript, Prisma, PostgreSQL) focused on 
   clean architecture, security, performance, and UI/UX. It executes IMPLEMENTATION 
