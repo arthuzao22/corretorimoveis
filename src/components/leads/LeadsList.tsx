@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { LeadTable } from '@/components/ui/LeadTable'
+import { LeadDrawer } from './LeadDrawer'
 import { Users, Loader2 } from 'lucide-react'
 
 interface LeadsListProps {
@@ -18,6 +19,8 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
   const [leads, setLeads] = useState(initialLeads)
   const [pagination, setPagination] = useState(initialPagination)
   const [loading, setLoading] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<any | null>(null)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   // Reset state when filters change
   useEffect(() => {
@@ -64,6 +67,23 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
     }
   }
 
+  const handleLeadClick = (lead: any) => {
+    setSelectedLead(lead)
+    setIsDrawerOpen(true)
+  }
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false)
+    setSelectedLead(null)
+  }
+
+  const handleLeadUpdate = async () => {
+    // Trigger a state refresh by refetching the page data
+    // Note: In a production app, consider using SWR or React Query for better state management
+    const params = new URLSearchParams(window.location.search)
+    window.location.href = `${window.location.pathname}?${params.toString()}&t=${Date.now()}`
+  }
+
   if (leads.length === 0) {
     return (
       <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
@@ -83,7 +103,7 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <LeadTable leads={leads} />
+        <LeadTable leads={leads} onLeadClick={handleLeadClick} />
       </div>
 
       {/* Load More Button */}
@@ -113,6 +133,16 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
             Você visualizou todos os {leads.length} leads
           </p>
         </div>
+      )}
+
+      {/* Lead Drawer */}
+      {selectedLead && (
+        <LeadDrawer
+          lead={selectedLead}
+          isOpen={isDrawerOpen}
+          onClose={handleDrawerClose}
+          onUpdate={handleLeadUpdate}
+        />
       )}
     </div>
   )

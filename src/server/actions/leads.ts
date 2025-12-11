@@ -121,41 +121,99 @@ export async function getAllLeads() {
 
 const updateLeadSchema = z.object({
   leadId: z.string(),
-  status: z.enum(['NOVO', 'CONTATADO', 'QUALIFICADO', 'NEGOCIACAO', 'CONVERTIDO', 'PERDIDO']),
-  anotacoes: z.string().optional()
+  status: z.enum(['NOVO', 'CONTATADO', 'ACOMPANHAMENTO', 'VISITA_AGENDADA', 'QUALIFICADO', 'NEGOCIACAO', 'FECHADO', 'CONVERTIDO', 'PERDIDO']).optional(),
+  priority: z.enum(['BAIXA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
+  anotacoes: z.string().optional(),
+  dataContato: z.string().optional(),
+  dataAgendamento: z.string().optional()
 })
 
 export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || session.user.role !== 'CORRETOR') {
+    if (!session?.user || (session.user.role !== 'CORRETOR' && session.user.role !== 'ADMIN')) {
       return { success: false, error: 'Não autorizado' }
     }
 
     const validatedData = updateLeadSchema.parse(data)
 
-    // Verify lead belongs to this corretor
+    // Verify lead belongs to this corretor (for non-admins)
     const lead = await prisma.lead.findUnique({
       where: { id: validatedData.leadId }
     })
 
-    if (!lead || lead.corretorId !== session.user.corretorId) {
+    if (!lead) {
       return { success: false, error: 'Lead não encontrado' }
     }
 
+    if (session.user.role === 'CORRETOR' && lead.corretorId !== session.user.corretorId) {
+      return { success: false, error: 'Lead não encontrado' }
+    }
+
+    interface LeadUpdateData {
+      updatedAt: Date
+      status?: typeof validatedData.status
+      priority?: typeof validatedData.priority
+      anotacoes?: string | null
+      dataContato?: Date
+      dataAgendamento?: Date
+    }
+
+    const updateData: LeadUpdateData = {
+      updatedAt: new Date()
+    }
+
+    if (validatedData.status) updateData.status = validatedData.status
+    if (validatedData.priority) updateData.priority = validatedData.priority
+    if (validatedData.anotacoes !== undefined) updateData.anotacoes = validatedData.anotacoes
+    if (validatedData.dataContato) updateData.dataContato = new Date(validatedData.dataContato)
+    if (validatedData.dataAgendamento) updateData.dataAgendamento = new Date(validatedData.dataAgendamento)
+
     const updatedLead = await prisma.lead.update({
       where: { id: validatedData.leadId },
-      data: {
-        status: validatedData.status,
-        anotacoes: validatedData.anotacoes,
-        updatedAt: new Date()
+      data: updateData,
+      include: {
+        imovel: {
+          select: {
+            id: true,
+            titulo: true
+          }
+        },
+        corretor: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        statusConfig: {
+          select: {
+            id: true,
+            nome: true,
+            cor: true
+          }
+        }
       }
     })
+
+    // Add timeline entry if status changed
+    if (validatedData.status && validatedData.status !== lead.status) {
+      await prisma.leadTimeline.create({
+        data: {
+          leadId: validatedData.leadId,
+          action: 'STATUS_CHANGED',
+          description: `Status alterado de ${lead.status} para ${validatedData.status}`
+        }
+      })
+    }
 
     return { success: true, lead: updatedLead }
   } catch (error) {
     console.error('Update lead status error:', error)
-    return { success: false, error: 'Erro ao atualizar status do lead' }
+    return { success: false, error: 'Erro ao atualizar lead' }
   }
 }
