@@ -34,7 +34,7 @@ export async function addTimelineEntry(
         leadId,
         action,
         description,
-        metadata: metadata || null,
+        metadata,
       },
     })
 

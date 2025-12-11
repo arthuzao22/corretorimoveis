@@ -74,6 +74,7 @@ export function EventoModalEnhanced({
     dataHora: '',
     observacao: '',
   })
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
     if (evento) {
@@ -96,16 +97,18 @@ export function EventoModalEnhanced({
         observacao: '',
       })
     }
+    setValidationError(null)
   }, [evento, isOpen])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.leadId || !formData.imovelId || !formData.dataHora) {
-      alert('Por favor, preencha todos os campos obrigatórios')
+      setValidationError('Por favor, preencha todos os campos obrigatórios')
       return
     }
 
+    setValidationError(null)
     onSave({
       leadId: formData.leadId,
       imovelId: formData.imovelId,
@@ -153,6 +156,13 @@ export function EventoModalEnhanced({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Validation Error */}
+            {validationError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
+                <span className="text-sm">{validationError}</span>
+              </div>
+            )}
+
             {/* Event Type Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">

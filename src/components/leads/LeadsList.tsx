@@ -77,9 +77,11 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
     setSelectedLead(null)
   }
 
-  const handleLeadUpdate = () => {
-    // Refresh the page to get updated data
-    window.location.reload()
+  const handleLeadUpdate = async () => {
+    // Trigger a state refresh by refetching the page data
+    // Note: In a production app, consider using SWR or React Query for better state management
+    const params = new URLSearchParams(window.location.search)
+    window.location.href = `${window.location.pathname}?${params.toString()}&t=${Date.now()}`
   }
 
   if (leads.length === 0) {

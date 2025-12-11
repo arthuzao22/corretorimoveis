@@ -151,7 +151,16 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
       return { success: false, error: 'Lead não encontrado' }
     }
 
-    const updateData: any = {
+    interface LeadUpdateData {
+      updatedAt: Date
+      status?: typeof validatedData.status
+      priority?: typeof validatedData.priority
+      anotacoes?: string | null
+      dataContato?: Date
+      dataAgendamento?: Date
+    }
+
+    const updateData: LeadUpdateData = {
       updatedAt: new Date()
     }
 

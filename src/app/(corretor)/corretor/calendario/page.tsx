@@ -139,7 +139,7 @@ export default function CalendarioPage() {
       
       showFeedback('success', 'Evento marcado como concluído')
     } else {
-      showFeedback('error', error || 'Erro ao marcar evento como concluído')
+      showFeedback('error', 'Erro ao marcar evento como concluído')
     }
   }
 
@@ -161,7 +161,7 @@ export default function CalendarioPage() {
         setSelectedEvento(null)
         showFeedback('success', 'Evento atualizado com sucesso')
       } else {
-        showFeedback('error', error || 'Erro ao atualizar evento')
+        showFeedback('error', 'Erro ao atualizar evento')
       }
     } else {
       // Create new event
@@ -179,7 +179,7 @@ export default function CalendarioPage() {
         
         showFeedback('success', 'Evento criado com sucesso')
       } else {
-        showFeedback('error', error || 'Erro ao criar evento')
+        showFeedback('error', 'Erro ao criar evento')
       }
     }
   }
