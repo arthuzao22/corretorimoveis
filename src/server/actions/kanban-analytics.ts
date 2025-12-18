@@ -172,7 +172,7 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
       : 0
 
     // Leads per agent (admin only)
-    let leadsPerAgent = []
+    let leadsPerAgent: Array<{ agentId: string; agentName: string; totalLeads: number }> = []
     if (session.user.role === 'ADMIN') {
       const agents = await prisma.corretorProfile.findMany({
         include: {

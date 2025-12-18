@@ -49,6 +49,7 @@ type EventoWithBasicRelations = {
     name: string
     phone: string
     email: string | null
+    kanbanColumnId: string | null
   }
   imovel: {
     id: string
@@ -66,6 +67,7 @@ const updateEventoSchema = z.object({
   imovelId: z.string().min(1, 'Imóvel é obrigatório').optional(),
   dataHora: z.string().datetime('Data e hora inválida').optional(),
   observacao: z.string().optional().nullable(),
+  completed: z.boolean().optional(),
 })
 
 export async function GET(
@@ -278,6 +280,7 @@ export async function PUT(
     if (validatedData.imovelId) updateData.imovelId = validatedData.imovelId
     if (validatedData.dataHora) updateData.dataHora = new Date(validatedData.dataHora)
     if (validatedData.observacao !== undefined) updateData.observacao = validatedData.observacao
+    if (validatedData.completed !== undefined) updateData.completed = validatedData.completed
 
     const evento = await prisma.eventoCalendario.update({
       where: { id },
@@ -289,6 +292,7 @@ export async function PUT(
             name: true,
             phone: true,
             email: true,
+            kanbanColumnId: true,
           },
         },
         imovel: {
@@ -303,6 +307,47 @@ export async function PUT(
         },
       },
     }) as unknown as EventoWithBasicRelations
+
+    // If event was marked as completed and it's a VISITA, auto-move lead to next column
+    if (validatedData.completed === true && existingEvento.tipo === 'VISITA') {
+      try {
+        // Find the "Acompanhamento" column
+        const acompanhamentoColumn = await prisma.kanbanColumn.findFirst({
+          where: {
+            name: 'Acompanhamento',
+            board: { isGlobal: true }
+          }
+        })
+
+        if (acompanhamentoColumn && evento.lead.kanbanColumnId !== acompanhamentoColumn.id) {
+          // Move lead to Acompanhamento column
+          await prisma.lead.update({
+            where: { id: evento.lead.id },
+            data: {
+              kanbanColumnId: acompanhamentoColumn.id,
+              updatedAt: new Date()
+            }
+          })
+
+          // Add timeline entry
+          await prisma.leadTimeline.create({
+            data: {
+              leadId: evento.lead.id,
+              action: 'KANBAN_MOVED',
+              description: 'Lead movido automaticamente para "Acompanhamento" após visita concluída',
+              metadata: {
+                autoMoved: true,
+                reason: 'visit_completed',
+                eventId: evento.id
+              }
+            }
+          })
+        }
+      } catch (error) {
+        console.error('Error auto-moving lead after visit completion:', error)
+        // Don't fail the event update if auto-move fails
+      }
+    }
 
     // Serialize Decimal values
     let valorNumericoPut = 0

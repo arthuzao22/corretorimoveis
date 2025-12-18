@@ -10,6 +10,7 @@ import {
   Phone,
   Edit,
   Clock,
+  Columns,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -69,6 +70,11 @@ const actionConfig: Record<
     icon: MessageSquare,
     color: 'text-green-600 bg-green-50',
     label: 'WhatsApp Enviado',
+  },
+  KANBAN_MOVED: {
+    icon: Columns,
+    color: 'text-purple-600 bg-purple-50',
+    label: 'Kanban Movido',
   },
 }
 
