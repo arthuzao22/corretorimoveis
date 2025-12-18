@@ -12,11 +12,19 @@ interface ImageKitUploadProps {
   folder?: string
 }
 
-const imagekit = new ImageKit({
-  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'public_TiW88yZqhiTSzMZJvBq1f+3/9Ig=',
-  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/gfbi8asbh',
+// Validate environment variables
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY
+const URL_ENDPOINT = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+
+if (!PUBLIC_KEY || !URL_ENDPOINT) {
+  console.error('ImageKit environment variables not configured properly')
+}
+
+const imagekit = PUBLIC_KEY && URL_ENDPOINT ? new ImageKit({
+  publicKey: PUBLIC_KEY,
+  urlEndpoint: URL_ENDPOINT,
   authenticationEndpoint: '/api/imagekit-auth',
-})
+}) : null
 
 // Validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -51,6 +59,11 @@ export function ImageKitUpload({
     
     if (files.length === 0) return
     
+    if (!imagekit) {
+      setError('ImageKit não está configurado. Por favor, configure as variáveis de ambiente.')
+      return
+    }
+    
     if (preview.length + files.length > maxFiles) {
       setError(`Você pode fazer upload de no máximo ${maxFiles} imagens`)
       return
@@ -84,11 +97,16 @@ export function ImageKitUpload({
         tempPreviews.push(previewUrl)
         setPreview(prev => [...prev, previewUrl])
 
-        // Upload to ImageKit
+        // Upload to ImageKit with improved unique filename
         try {
+          // Generate a more unique filename using crypto random values if available
+          const timestamp = Date.now()
+          const randomSuffix = Math.random().toString(36).substring(2, 9)
+          const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+          
           const result = await imagekit.upload({
             file: file,
-            fileName: `${folder}_${Date.now()}_${file.name}`,
+            fileName: `${folder}_${timestamp}_${randomSuffix}_${safeName}`,
             folder: `/${folder}`,
             useUniqueFileName: true,
             tags: [folder, 'property'],
@@ -125,11 +143,8 @@ export function ImageKitUpload({
     const newPreview = preview.filter((_, i) => i !== index)
     setPreview(newPreview)
     
-    // If it's an existing image, notify parent to remove it
-    if (index < existingImages.length) {
-      const remainingExisting = newPreview.filter(url => existingImages.includes(url))
-      onUploadComplete(remainingExisting)
-    }
+    // Notify parent component about the updated image list
+    onUploadComplete(newPreview)
   }
 
   return (

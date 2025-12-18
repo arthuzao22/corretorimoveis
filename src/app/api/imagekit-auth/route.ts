@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ImageKit from 'imagekit-javascript'
 
+// Validate environment variables
+if (!process.env.IMAGEKIT_PRIVATE_KEY) {
+  throw new Error('IMAGEKIT_PRIVATE_KEY is not defined in environment variables')
+}
+
+if (!process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY) {
+  throw new Error('NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY is not defined in environment variables')
+}
+
+if (!process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT) {
+  throw new Error('NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT is not defined in environment variables')
+}
+
 const imagekit = new ImageKit({
-  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'public_TiW88yZqhiTSzMZJvBq1f+3/9Ig=',
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || 'private_Csw7S9tju66Nhe57zoOGvHGEUm0=',
-  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/gfbi8asbh',
+  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
 })
 
 export async function GET(request: NextRequest) {

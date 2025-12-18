@@ -106,15 +106,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
   }, [])
 
   const handleImageUpload = (urls: string[]) => {
-    // Merge new URLs with existing images
-    setFormData({
-      ...formData,
-      images: [...formData.images, ...urls],
-    })
-  }
-
-  const handleImagesUpdate = (urls: string[]) => {
-    // Complete replacement of images
+    // Update form data with all images (existing + new)
     setFormData({
       ...formData,
       images: urls,
