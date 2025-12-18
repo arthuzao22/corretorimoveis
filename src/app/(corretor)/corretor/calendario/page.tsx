@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Plus, Trash2, Calendar as CalendarIcon, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Calendario } from './components/Calendario'
@@ -88,9 +89,9 @@ export default function CalendarioPage() {
   }
 
   const handleDateClick = (date: Date) => {
-    // Open modal with pre-filled date
-    setSelectedEvento(null)
-    setIsModalOpen(true)
+    // Calendar is now read-only - events can only be created from kanban cards
+    // This function is kept for future reference but does nothing
+    return
   }
 
   const handleEventClick = (evento: Evento) => {
@@ -224,19 +225,12 @@ export default function CalendarioPage() {
               Calendário de Eventos
             </h1>
             <p className="text-gray-600 mt-2">
-              Gerencie seus agendamentos com leads e imóveis
+              Visualize seus agendamentos com leads e imóveis
+            </p>
+            <p className="text-sm text-indigo-600 mt-1 bg-indigo-50 inline-block px-3 py-1 rounded-full">
+              ℹ️ Para criar eventos, abra um card do Kanban
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setSelectedEvento(null)
-              setIsModalOpen(true)
-            }}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-          >
-            <Plus size={20} />
-            Novo Evento
-          </Button>
         </div>
       </div>
 
@@ -260,19 +254,14 @@ export default function CalendarioPage() {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Nenhum evento marcado ainda
           </h3>
-          <p className="text-gray-600 mb-6">
-            Comece criando seu primeiro evento de calendário
+          <p className="text-gray-600 mb-4">
+            Crie eventos diretamente nos cards do Kanban
           </p>
-          <Button
-            onClick={() => {
-              setSelectedEvento(null)
-              setIsModalOpen(true)
-            }}
-            className="inline-flex items-center gap-2"
-          >
-            <Plus size={20} />
-            Criar Primeiro Evento
-          </Button>
+          <Link href="/corretor/kanban">
+            <Button className="inline-flex items-center gap-2">
+              Ir para Kanban
+            </Button>
+          </Link>
         </div>
       )}
 
