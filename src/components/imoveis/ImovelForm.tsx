@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { X, Plus, Image as ImageIcon } from 'lucide-react'
+import { ImageKitUpload } from '@/components/upload/ImageKitUpload'
+import { PropertyMap } from '@/components/maps/PropertyMap'
 import { z } from 'zod'
 
 // =============================================
@@ -49,7 +50,6 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
   const [cidades, setCidades] = useState<any[]>([])
   const [statusConfigs, setStatusConfigs] = useState<any[]>([])
 
@@ -105,20 +105,19 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
     loadData()
   }, [])
 
-  const addImage = () => {
-    if (imageUrl.trim() && imageUrl.startsWith('http')) {
-      setFormData({
-        ...formData,
-        images: [...formData.images, imageUrl.trim()],
-      })
-      setImageUrl('')
-    }
-  }
-
-  const removeImage = (index: number) => {
+  const handleImageUpload = (urls: string[]) => {
+    // Merge new URLs with existing images
     setFormData({
       ...formData,
-      images: formData.images.filter((_, i) => i !== index),
+      images: [...formData.images, ...urls],
+    })
+  }
+
+  const handleImagesUpdate = (urls: string[]) => {
+    // Complete replacement of images
+    setFormData({
+      ...formData,
+      images: urls,
     })
   }
 
@@ -403,6 +402,22 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
               placeholder="-46.6333094"
             />
           </div>
+
+          {/* Map Preview */}
+          {formData.latitude && formData.longitude && (
+            <div className="mt-4">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Preview do Mapa
+              </label>
+              <PropertyMap
+                latitude={parseFloat(formData.latitude)}
+                longitude={parseFloat(formData.longitude)}
+                title={formData.titulo || 'Localização do Imóvel'}
+                address={`${formData.endereco}, ${formData.cidade} - ${formData.estado}`}
+                height="300px"
+              />
+            </div>
+          )}
         </div>
       </Card>
 
@@ -482,61 +497,12 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-900 border-b pb-3">📸 Fotos do Imóvel</h3>
 
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                label=""
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                disabled={loading}
-                placeholder="Cole a URL da imagem (https://...)"
-              />
-            </div>
-            <Button
-              type="button"
-              onClick={addImage}
-              disabled={loading || !imageUrl.trim()}
-              className="mt-0"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {formData.images.length === 0 ? (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 font-medium">Nenhuma imagem adicionada</p>
-              <p className="text-sm text-gray-400 mt-1">Adicione pelo menos uma imagem *</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {formData.images.map((img, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={img}
-                    alt={`Imagem ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder-property.jpg'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    disabled={loading}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  {index === 0 && (
-                    <span className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-medium">
-                      Capa
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <ImageKitUpload
+            onUploadComplete={handleImageUpload}
+            existingImages={formData.images}
+            maxFiles={20}
+            folder="imoveis"
+          />
         </div>
       </Card>
 
