@@ -121,6 +121,42 @@ export async function getKanbanBoard(boardId?: string) {
                   }
                 }
               }
+            },
+            kanbanColumn: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              }
+            },
+            tags: {
+              select: {
+                id: true,
+                tag: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                  }
+                }
+              }
+            },
+            eventos: {
+              select: {
+                id: true,
+                tipo: true,
+                dataHora: true,
+                observacao: true,
+                completed: true,
+                imovel: {
+                  select: {
+                    titulo: true,
+                  }
+                }
+              },
+              orderBy: {
+                dataHora: 'asc'
+              }
             }
           },
           orderBy: { updatedAt: 'desc' }

@@ -2,14 +2,24 @@
 
 import { useState } from 'react'
 import { KanbanColumn } from './KanbanColumn'
+import { LeadDrawer } from '@/components/leads/LeadDrawer'
 import { moveLeadToColumn } from '@/server/actions/kanban'
 import { useRouter } from 'next/navigation'
 
 interface LeadData {
   id: string
   name: string
+  email?: string | null
+  phone: string
+  message?: string | null
+  description?: string | null
   priority: string
+  status: any
+  anotacoes?: string | null
   createdAt: Date
+  dataContato?: Date | null
+  dataAgendamento?: Date | null
+  kanbanColumnId?: string | null
   imovel?: {
     id: string
     titulo: string
@@ -20,6 +30,29 @@ interface LeadData {
       name: string
     }
   }
+  kanbanColumn?: {
+    id: string
+    name: string
+    color: string | null
+  } | null
+  tags?: Array<{
+    id: string
+    tag: {
+      id: string
+      name: string
+      color: string
+    }
+  }>
+  eventos?: Array<{
+    id: string
+    tipo: string
+    dataHora: Date | string
+    observacao?: string | null
+    completed: boolean
+    imovel: {
+      titulo: string
+    }
+  }>
 }
 
 interface ColumnData {
@@ -45,6 +78,8 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [draggedLead, setDraggedLead] = useState<LeadData | null>(null)
   const [draggedFromColumn, setDraggedFromColumn] = useState<string | null>(null)
   const [isMoving, setIsMoving] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<LeadData | null>(null)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const router = useRouter()
 
   const handleDragStart = (lead: LeadData, columnId: string) => {
@@ -102,19 +137,46 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
     setIsMoving(false)
   }
 
+  const handleCardClick = (lead: LeadData) => {
+    setSelectedLead(lead)
+    setIsDrawerOpen(true)
+  }
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false)
+    setSelectedLead(null)
+  }
+
+  const handleDrawerUpdate = () => {
+    router.refresh()
+  }
+
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 px-2">
-      {board.columns.map(column => (
-        <KanbanColumn
-          key={column.id}
-          column={column}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          isDragging={draggedFromColumn === column.id}
-          isMoving={isMoving}
+    <>
+      <div className="flex gap-4 overflow-x-auto pb-4 px-2">
+        {board.columns.map(column => (
+          <KanbanColumn
+            key={column.id}
+            column={column}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onCardClick={handleCardClick}
+            isDragging={draggedFromColumn === column.id}
+            isMoving={isMoving}
+          />
+        ))}
+      </div>
+
+      {/* Lead Detail Drawer */}
+      {selectedLead && (
+        <LeadDrawer
+          lead={selectedLead}
+          isOpen={isDrawerOpen}
+          onClose={handleDrawerClose}
+          onUpdate={handleDrawerUpdate}
         />
-      ))}
-    </div>
+      )}
+    </>
   )
 }

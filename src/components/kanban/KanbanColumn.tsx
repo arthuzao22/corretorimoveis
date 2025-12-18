@@ -34,6 +34,7 @@ interface KanbanColumnProps {
   onDragStart: (lead: LeadData, columnId: string) => void
   onDragOver: (e: React.DragEvent) => void
   onDrop: (columnId: string) => void
+  onCardClick?: (lead: LeadData) => void
   isDragging: boolean
   isMoving: boolean
 }
@@ -43,6 +44,7 @@ export function KanbanColumn({
   onDragStart,
   onDragOver,
   onDrop,
+  onCardClick,
   isDragging,
   isMoving
 }: KanbanColumnProps) {
@@ -94,6 +96,7 @@ export function KanbanColumn({
               key={lead.id}
               lead={lead}
               onDragStart={() => onDragStart(lead, column.id)}
+              onClick={() => onCardClick?.(lead)}
               isDisabled={isMoving}
             />
           ))
