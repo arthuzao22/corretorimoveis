@@ -62,6 +62,7 @@ enum TimelineAction {
   CONTACT_MADE
   EMAIL_SENT
   WHATSAPP_SENT
+  KANBAN_MOVED
 }
 
 // =============================================
@@ -125,6 +126,57 @@ model LeadStatusConfig {
 }
 
 // =============================================
+// KANBAN SYSTEM
+// =============================================
+
+model KanbanBoard {
+  id        String   @id @default(cuid())
+  name      String
+  isGlobal  Boolean  @default(false)
+  ownerId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User?          @relation("OwnedBoards", fields: [ownerId], references: [id], onDelete: Cascade)
+  columns KanbanColumn[]
+
+  @@index([isGlobal])
+  @@index([ownerId])
+  @@map("kanban_boards")
+}
+
+model KanbanColumn {
+  id        String   @id @default(cuid())
+  boardId   String
+  name      String
+  order     Int
+  color     String?
+  isFinal   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  leads Lead[]
+
+  @@index([boardId])
+  @@index([order])
+  @@map("kanban_columns")
+}
+
+model KanbanPermission {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  canEditBoard   Boolean  @default(false)
+  canEditColumns Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("kanban_permissions")
+}
+
+// =============================================
 // TABELAS PRINCIPAIS
 // =============================================
 
@@ -139,8 +191,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  corretorProfile CorretorProfile?
-  admin           Admin?
+  corretorProfile  CorretorProfile?
+  admin            Admin?
+  ownedBoards      KanbanBoard[]    @relation("OwnedBoards")
+  kanbanPermission KanbanPermission?
 
   @@map("users")
 }
@@ -252,6 +306,7 @@ model Lead {
   anotacoes       String?       @db.Text
   dataContato     DateTime?     // Data do último contato
   dataAgendamento DateTime?     // Data de agendamento de visita
+  kanbanColumnId  String?       // Kanban column assignment
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -259,6 +314,7 @@ model Lead {
   imovel       Imovel?           @relation(fields: [imovelId], references: [id], onDelete: Cascade)
   corretor     CorretorProfile   @relation(fields: [corretorId], references: [id], onDelete: Cascade)
   statusConfig LeadStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
+  kanbanColumn KanbanColumn?     @relation(fields: [kanbanColumnId], references: [id], onDelete: SetNull)
   eventos      EventoCalendario[]
   timeline     LeadTimeline[]
 
@@ -269,6 +325,7 @@ model Lead {
   @@index([priority])
   @@index([createdAt])
   @@index([origem])
+  @@index([kanbanColumnId])
   @@map("leads")
 }
 
