@@ -21,7 +21,13 @@ export async function getAllCorretores() {
             name: true,
             email: true,
             active: true,
-            createdAt: true
+            createdAt: true,
+            kanbanPermission: {
+              select: {
+                canEditBoard: true,
+                canEditColumns: true
+              }
+            }
           }
         },
         _count: {
