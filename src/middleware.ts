@@ -45,12 +45,10 @@ export const config = {
     '/corretor/minha-landing/:path*',
     '/corretor/calendario',
     '/corretor/calendario/:path*',
-    '/corretor/configuracoes',
-    '/corretor/configuracoes/:path*',
-    '/corretor/relatorios',
-    '/corretor/relatorios/:path*',
-    '/corretor/analytics',
-    '/corretor/analytics/:path*'
+    '/corretor/perfil',
+    '/corretor/perfil/:path*',
+    '/corretor/kanban',
+    '/corretor/kanban/:path*'
   ]
 }
 

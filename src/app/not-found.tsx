@@ -35,24 +35,17 @@ export default function NotFound() {
           <p className="text-sm text-gray-500 mb-3">Links úteis:</p>
           <div className="flex flex-wrap gap-2 justify-center">
             <Link
-              href="/sobre"
+              href="/imoveis"
               className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Sobre
+              Ver Imóveis
             </Link>
             <span className="text-gray-300">•</span>
             <Link
-              href="/contato"
+              href="/register"
               className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Contato
-            </Link>
-            <span className="text-gray-300">•</span>
-            <Link
-              href="/ajuda"
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-            >
-              Ajuda
+              Cadastre-se
             </Link>
           </div>
         </div>
