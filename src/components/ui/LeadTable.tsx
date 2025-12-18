@@ -1,7 +1,8 @@
 import React from 'react'
 import { Mail, Phone, Calendar, Users, Edit } from 'lucide-react'
-import { StatusBadge, PriorityBadge } from '@/components/leads/StatusBadge'
-import { LeadStatus, LeadPriority } from '@prisma/client'
+import { PriorityBadge } from '@/components/leads/StatusBadge'
+import { KanbanColumnBadge } from '@/components/leads/KanbanColumnBadge'
+import { LeadPriority } from '@prisma/client'
 
 interface Lead {
   id: string
@@ -9,7 +10,6 @@ interface Lead {
   email?: string | null
   phone: string
   message?: string | null
-  status: LeadStatus
   priority: LeadPriority
   createdAt: Date | string
   updatedAt?: Date | string
@@ -24,6 +24,11 @@ interface Lead {
       name: string
     }
   }
+  kanbanColumn?: {
+    id: string
+    name: string
+    color: string | null
+  } | null
   origem?: string | null
 }
 
@@ -114,7 +119,11 @@ export function LeadTable({ leads, onLeadClick }: LeadTableProps) {
                 )}
               </td>
               <td className="py-4 px-4">
-                <StatusBadge status={lead.status} size="sm" />
+                {lead.kanbanColumn ? (
+                  <KanbanColumnBadge column={lead.kanbanColumn} size="sm" />
+                ) : (
+                  <span className="text-xs text-gray-400 italic">Sem coluna</span>
+                )}
               </td>
               <td className="py-4 px-4">
                 <PriorityBadge priority={lead.priority} size="sm" />
