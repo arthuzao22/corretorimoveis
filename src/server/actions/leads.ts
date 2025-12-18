@@ -155,7 +155,8 @@ const updateLeadSchema = z.object({
   anotacoes: z.string().optional(),
   description: z.string().optional(),
   dataContato: z.string().optional(),
-  dataAgendamento: z.string().optional()
+  dataAgendamento: z.string().optional(),
+  imovelId: z.string().optional()
 })
 
 export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
@@ -188,6 +189,7 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
       description?: string | null
       dataContato?: Date
       dataAgendamento?: Date
+      imovelId?: string | null
     }
 
     const updateData: LeadUpdateData = {
@@ -200,6 +202,7 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
     if (validatedData.description !== undefined) updateData.description = validatedData.description
     if (validatedData.dataContato) updateData.dataContato = new Date(validatedData.dataContato)
     if (validatedData.dataAgendamento) updateData.dataAgendamento = new Date(validatedData.dataAgendamento)
+    if (validatedData.imovelId !== undefined) updateData.imovelId = validatedData.imovelId || null
 
     const updatedLead = await prisma.lead.update({
       where: { id: validatedData.leadId },

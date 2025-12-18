@@ -85,6 +85,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
     priority: lead.priority,
     description: lead.description || '',
     anotacoes: lead.anotacoes || '',
+    imovelId: lead.imovel?.id || '',
   })
 
   useEffect(() => {
@@ -96,6 +97,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
         priority: lead.priority,
         description: lead.description || '',
         anotacoes: lead.anotacoes || '',
+        imovelId: lead.imovel?.id || '',
       })
       setIsEditing(false)
       setShowEventForm(false)
@@ -141,6 +143,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
         priority: editData.priority,
         description: editData.description,
         anotacoes: editData.anotacoes,
+        imovelId: editData.imovelId || undefined,
       })
 
       if (result.success) {
@@ -275,13 +278,26 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
 
             {/* Right Column - Property Info */}
             <div className="space-y-4">
-              {lead.imovel && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    Imóvel de Interesse
-                  </h3>
-                  
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  Imóvel de Interesse
+                </h3>
+                
+                {isEditing ? (
+                  <select
+                    value={editData.imovelId}
+                    onChange={(e) => setEditData({ ...editData, imovelId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Nenhum imóvel vinculado</option>
+                    {availableImoveis.map((imovel) => (
+                      <option key={imovel.id} value={imovel.id}>
+                        {imovel.titulo}
+                      </option>
+                    ))}
+                  </select>
+                ) : lead.imovel ? (
                   <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">{lead.imovel.titulo}</h4>
                     {lead.imovel.endereco && (
@@ -298,8 +314,12 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
                       </p>
                     )}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm text-gray-500">
+                    Nenhum imóvel vinculado
+                  </div>
+                )}
+              </div>
 
               {/* Priority */}
               <div>
