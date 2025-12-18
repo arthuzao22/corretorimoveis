@@ -190,6 +190,9 @@ export function KanbanEditorClient({ initialBoard }: Props) {
   const handleDragEnd = async () => {
     if (!draggedColumn) return
 
+    // Save the current state before attempting the update
+    const previousColumns = [...board.columns]
+    
     setLoading(true)
     try {
       const columnOrders = board.columns.map(col => ({ id: col.id, order: col.order }))
@@ -199,11 +202,19 @@ export function KanbanEditorClient({ initialBoard }: Props) {
         showMessage('success', 'Ordem das colunas atualizada!')
       } else {
         showMessage('error', result.error || 'Erro ao reordenar colunas')
-        // Reload to get correct order
-        window.location.reload()
+        // Revert to previous order on error
+        setBoard({
+          ...board,
+          columns: previousColumns
+        })
       }
     } catch (error) {
       showMessage('error', 'Erro ao reordenar colunas')
+      // Revert to previous order on error
+      setBoard({
+        ...board,
+        columns: previousColumns
+      })
     } finally {
       setDraggedColumn(null)
       setLoading(false)

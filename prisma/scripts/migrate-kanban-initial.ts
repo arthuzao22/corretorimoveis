@@ -89,22 +89,21 @@ async function main() {
           select: { id: true, name: true }
         })
 
-        for (const lead of migratedLeads) {
-          await prisma.leadTimeline.create({
-            data: {
+        // Use createMany for better performance with bulk inserts
+        if (migratedLeads.length > 0) {
+          await prisma.leadTimeline.createMany({
+            data: migratedLeads.map(lead => ({
               leadId: lead.id,
-              action: 'KANBAN_MOVED',
+              action: 'KANBAN_MOVED' as const,
               description: `Lead migrado automaticamente para "${initialColumn.name}"`,
               metadata: {
                 migration: true,
                 toColumn: initialColumn.name,
                 toColumnId: initialColumn.id
               }
-            }
+            }))
           })
-        }
-
-        if (migratedLeads.length > 0) {
+          
           console.log(`   📝 Created timeline entries for ${migratedLeads.length} lead(s)`)
         }
       } else {
