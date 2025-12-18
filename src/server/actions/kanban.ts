@@ -183,6 +183,42 @@ export async function getKanbanBoard(boardId?: string) {
   }
 }
 
+// Helper function to get just columns for filters
+export async function getKanbanColumns() {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    // Get global board columns
+    const board = await prisma.kanbanBoard.findFirst({
+      where: { isGlobal: true },
+      include: {
+        columns: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            order: true,
+          },
+          orderBy: { order: 'asc' }
+        }
+      }
+    })
+
+    if (!board) {
+      return { success: false, error: 'Board não encontrado' }
+    }
+
+    return { success: true, columns: board.columns }
+  } catch (error) {
+    console.error('Get kanban columns error:', error)
+    return { success: false, error: 'Erro ao buscar colunas' }
+  }
+}
+
 export async function moveLeadToColumn(data: z.infer<typeof moveLeadSchema>) {
   try {
     const session = await getServerSession(authOptions)

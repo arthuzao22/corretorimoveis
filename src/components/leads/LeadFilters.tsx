@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Filter, X } from 'lucide-react'
-import { LeadStatus, LeadPriority } from '@prisma/client'
 
 const ORIGEM_OPTIONS = [
   { value: '', label: 'Todas' },
@@ -14,19 +13,6 @@ const ORIGEM_OPTIONS = [
   { value: 'whatsapp', label: 'WhatsApp' },
 ]
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'Todos' },
-  { value: 'NOVO', label: 'Novo' },
-  { value: 'CONTATADO', label: 'Contatado' },
-  { value: 'ACOMPANHAMENTO', label: 'Follow-up' },
-  { value: 'VISITA_AGENDADA', label: 'Visita Agendada' },
-  { value: 'QUALIFICADO', label: 'Qualificado' },
-  { value: 'NEGOCIACAO', label: 'Negociando' },
-  { value: 'FECHADO', label: 'Fechado' },
-  { value: 'CONVERTIDO', label: 'Convertido' },
-  { value: 'PERDIDO', label: 'Perdido' },
-]
-
 const PRIORITY_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Todas' },
   { value: 'BAIXA', label: 'Baixa' },
@@ -35,11 +21,20 @@ const PRIORITY_OPTIONS: { value: string; label: string }[] = [
   { value: 'URGENTE', label: 'Urgente' },
 ]
 
-export function LeadFilters({ currentFilters }: { currentFilters?: any }) {
+interface LeadFiltersProps {
+  currentFilters?: any
+  kanbanColumns?: Array<{
+    id: string
+    name: string
+    color: string | null
+  }>
+}
+
+export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState({
-    status: currentFilters?.status || '',
+    kanbanColumnId: currentFilters?.kanbanColumnId || '',
     priority: currentFilters?.priority || '',
     origem: currentFilters?.origem || '',
     dateFrom: currentFilters?.dateFrom || '',
@@ -60,7 +55,7 @@ export function LeadFilters({ currentFilters }: { currentFilters?: any }) {
 
   const handleClear = () => {
     setFilters({
-      status: '',
+      kanbanColumnId: '',
       priority: '',
       origem: '',
       dateFrom: '',
@@ -88,19 +83,20 @@ export function LeadFilters({ currentFilters }: { currentFilters?: any }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Status Filter */}
+        {/* Kanban Column Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
+            Fase do Funil
           </label>
           <select
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
+            value={filters.kanbanColumnId}
+            onChange={(e) => handleFilterChange('kanbanColumnId', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
           >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            <option value="">Todas as Fases</option>
+            {kanbanColumns.map((column) => (
+              <option key={column.id} value={column.id}>
+                {column.name}
               </option>
             ))}
           </select>

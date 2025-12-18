@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic'
 // Validation schema for query parameters
 const querySchema = z.object({
   statusId: z.string().optional(),
+  kanbanColumnId: z.string().optional(), // New: filter by kanban column
   corretorId: z.string().optional(),
   origem: z.enum(['site', 'landing', 'perfil', 'imovel', 'whatsapp']).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
     // Parse and validate query parameters
     const params = querySchema.parse({
       statusId: searchParams.get('statusId') || undefined,
+      kanbanColumnId: searchParams.get('kanbanColumnId') || undefined,
       corretorId: searchParams.get('corretorId') || undefined,
       origem: searchParams.get('origem') || undefined,
       limit: searchParams.get('limit') || '20',
@@ -52,6 +54,10 @@ export async function GET(request: NextRequest) {
       where.statusConfigId = params.statusId
     }
 
+    if (params.kanbanColumnId) {
+      where.kanbanColumnId = params.kanbanColumnId
+    }
+
     if (params.origem) {
       where.origem = params.origem
     }
@@ -66,6 +72,8 @@ export async function GET(request: NextRequest) {
         email: true,
         phone: true,
         message: true,
+        description: true,
+        priority: true,
         origem: true,
         status: true,
         anotacoes: true,
@@ -94,6 +102,42 @@ export async function GET(request: NextRequest) {
             id: true,
             nome: true,
             cor: true,
+          },
+        },
+        kanbanColumn: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+        eventos: {
+          select: {
+            id: true,
+            tipo: true,
+            dataHora: true,
+            observacao: true,
+            completed: true,
+            imovel: {
+              select: {
+                titulo: true,
+              },
+            },
+          },
+          orderBy: {
+            dataHora: 'asc' as const,
           },
         },
       },
