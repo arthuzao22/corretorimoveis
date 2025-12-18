@@ -39,7 +39,7 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
     fetch('/api/cidades')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && Array.isArray(data.cidades)) {
           setCidades(data.cidades)
         }
       })
@@ -49,7 +49,7 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
     fetch('/api/imovel-status')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && Array.isArray(data.statusList)) {
           setStatusList(data.statusList)
         }
       })
@@ -128,7 +128,7 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Todos</option>
-            {statusList.map((status) => (
+            {statusList?.map((status) => (
               <option key={status.id} value={status.id}>
                 {status.nome}
               </option>
@@ -147,7 +147,7 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Todas</option>
-            {cidades.map((cidade) => (
+            {cidades?.map((cidade) => (
               <option key={cidade.id} value={cidade.id}>
                 {cidade.nome} - {cidade.uf}
               </option>

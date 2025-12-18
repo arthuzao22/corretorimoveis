@@ -146,14 +146,15 @@ model KanbanBoard {
 }
 
 model KanbanColumn {
-  id        String   @id @default(cuid())
-  boardId   String
-  name      String
-  order     Int
-  color     String?
-  isFinal   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  boardId          String
+  name             String
+  order            Int
+  color            String?
+  isFinal          Boolean  @default(false)
+  automationConfig Json?    // Config for event completion automation: { moveOnEventComplete: true, targetColumnId: "xxx" }
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   board KanbanBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
   leads Lead[]
@@ -299,6 +300,7 @@ model Lead {
   email           String?
   phone           String
   message         String?       @db.Text
+  description     String?       @db.Text // Rich description for the lead
   origem          String?       @default("site") // 'site' | 'landing' | 'perfil' | 'imovel' | 'whatsapp'
   status          LeadStatus    @default(NOVO) // Campo legado mantido
   statusConfigId  String?       // Nova FK para tabela normalizada
@@ -306,7 +308,7 @@ model Lead {
   anotacoes       String?       @db.Text
   dataContato     DateTime?     // Data do último contato
   dataAgendamento DateTime?     // Data de agendamento de visita
-  kanbanColumnId  String?       // Kanban column assignment
+  kanbanColumnId  String?       // Kanban column assignment (single source of truth)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -317,6 +319,7 @@ model Lead {
   kanbanColumn KanbanColumn?     @relation(fields: [kanbanColumnId], references: [id], onDelete: SetNull)
   eventos      EventoCalendario[]
   timeline     LeadTimeline[]
+  tags         LeadTag[]
 
   @@index([corretorId])
   @@index([imovelId])
@@ -390,4 +393,40 @@ model LeadTimeline {
   @@index([leadId])
   @@index([createdAt])
   @@map("lead_timeline")
+}
+
+// =============================================
+// TAG SYSTEM
+// =============================================
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   // Hex color code
+  userId    String?  // For user-specific tags, null for global tags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  leads LeadTag[]
+
+  @@unique([name, userId])
+  @@index([userId])
+  @@map("tags")
+}
+
+model LeadTag {
+  id        String   @id @default(cuid())
+  leadId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  // Relacionamentos
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, tagId])
+  @@index([leadId])
+  @@index([tagId])
+  @@map("lead_tags")
 }

@@ -7,11 +7,12 @@ import { TableSkeleton } from '@/components/skeletons'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { prisma } from '@/lib/prisma'
+import { getKanbanColumns } from '@/server/actions/kanban'
 
 export const dynamic = 'force-dynamic'
 
 interface SearchParams {
-  status?: string
+  kanbanColumnId?: string
   priority?: string
   origem?: string
   dateFrom?: string
@@ -33,7 +34,11 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     )
   }
 
-  const { status, priority, origem, dateFrom, dateTo } = params
+  // Get kanban columns for filter
+  const columnsResult = await getKanbanColumns()
+  const kanbanColumns = columnsResult.success ? columnsResult.columns || [] : []
+
+  const { kanbanColumnId, priority, origem, dateFrom, dateTo } = params
   const limit = 20
 
   // Build where clause
@@ -41,8 +46,8 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     corretorId: session.user.corretorId,
   }
 
-  if (status) {
-    where.status = status
+  if (kanbanColumnId) {
+    where.kanbanColumnId = kanbanColumnId
   }
 
   if (priority) {
@@ -72,6 +77,7 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
       email: true,
       phone: true,
       message: true,
+      description: true,
       origem: true,
       status: true,
       priority: true,
@@ -103,6 +109,42 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
           cor: true,
         },
       },
+      kanbanColumn: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      },
+      tags: {
+        select: {
+          id: true,
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
+      eventos: {
+        select: {
+          id: true,
+          tipo: true,
+          dataHora: true,
+          observacao: true,
+          completed: true,
+          imovel: {
+            select: {
+              titulo: true,
+            },
+          },
+        },
+        orderBy: {
+          dataHora: 'asc',
+        },
+      },
     },
     orderBy: {
       createdAt: 'desc',
@@ -121,16 +163,13 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     limit,
   }
 
-  // Calculate stats from current page
-  const stats = {
-    total: leads.length,
-    novos: leads.filter((l: any) => l.status === 'NOVO').length,
-    contatados: leads.filter((l: any) => l.status === 'CONTATADO').length,
-    acompanhamento: leads.filter((l: any) => l.status === 'ACOMPANHAMENTO').length,
-    visitaAgendada: leads.filter((l: any) => l.status === 'VISITA_AGENDADA').length,
-    negociacao: leads.filter((l: any) => l.status === 'NEGOCIACAO').length,
-    fechados: leads.filter((l: any) => l.status === 'FECHADO' || l.status === 'CONVERTIDO').length,
-  }
+  // Calculate stats from Kanban columns
+  const columnStats = kanbanColumns.map(column => ({
+    id: column.id,
+    name: column.name,
+    color: column.color,
+    count: leads.filter((l: any) => l.kanbanColumnId === column.id).length,
+  }))
 
   return (
     <div className="space-y-6">
@@ -147,36 +186,24 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Novos</p>
-          <p className="text-2xl font-bold text-blue-600">{stats.novos}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Contatados</p>
-          <p className="text-2xl font-bold text-purple-600">{stats.contatados}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Follow-up</p>
-          <p className="text-2xl font-bold text-yellow-600">{stats.acompanhamento}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Visitas</p>
-          <p className="text-2xl font-bold text-indigo-600">{stats.visitaAgendada}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Negociando</p>
-          <p className="text-2xl font-bold text-orange-600">{stats.negociacao}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-sm text-gray-600">Fechados</p>
-          <p className="text-2xl font-bold text-green-600">{stats.fechados}</p>
-        </div>
+      {/* Stats Cards - Kanban Columns */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {columnStats.map((stat) => (
+          <div
+            key={stat.id}
+            className="bg-white rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow"
+            style={{ borderLeftColor: stat.color || '#6b7280' }}
+          >
+            <p className="text-sm text-gray-600">{stat.name}</p>
+            <p className="text-2xl font-bold" style={{ color: stat.color || '#6b7280' }}>
+              {stat.count}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
-      <LeadFilters currentFilters={params} />
+      <LeadFilters currentFilters={params} kanbanColumns={kanbanColumns} />
 
       {/* Leads List */}
       <LeadsList

@@ -1,11 +1,15 @@
 'use client'
 
-import { X, Save, Loader2 } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { LeadStatus, LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
-import { StatusBadge, PriorityBadge } from './StatusBadge'
+import { StatusBadge, PriorityBadge as OldPriorityBadge } from './StatusBadge'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { LeadTimeline } from './LeadTimeline'
+import { TagManager } from './TagManager'
+import { EventCard } from '@/components/ui/EventCard'
 import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
 
@@ -16,12 +20,18 @@ interface LeadDrawerProps {
     email?: string | null
     phone: string
     message?: string | null
+    description?: string | null
     status: LeadStatus
     priority: LeadPriority
     anotacoes?: string | null
     dataContato?: Date | string | null
     dataAgendamento?: Date | string | null
     createdAt: Date | string
+    kanbanColumn?: {
+      id: string
+      name: string
+      color: string | null
+    } | null
     imovel?: {
       id: string
       titulo: string
@@ -32,6 +42,24 @@ interface LeadDrawerProps {
         name: string
       }
     }
+    tags?: Array<{
+      id: string
+      tag: {
+        id: string
+        name: string
+        color: string
+      }
+    }>
+    eventos?: Array<{
+      id: string
+      tipo: string
+      dataHora: Date | string
+      observacao?: string | null
+      completed: boolean
+      imovel: {
+        titulo: string
+      }
+    }>
   }
   isOpen: boolean
   onClose: () => void
@@ -39,19 +67,20 @@ interface LeadDrawerProps {
 }
 
 export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps) {
-  const [status, setStatus] = useState<LeadStatus>(lead.status)
+  const router = useRouter()
   const [priority, setPriority] = useState<LeadPriority>(lead.priority)
   const [anotacoes, setAnotacoes] = useState(lead.anotacoes || '')
+  const [description, setDescription] = useState(lead.description || '')
   const [loading, setLoading] = useState(false)
   const [timeline, setTimeline] = useState<any[]>([])
   const [loadingTimeline, setLoadingTimeline] = useState(false)
-  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('details')
+  const [activeTab, setActiveTab] = useState<'details' | 'tags' | 'events' | 'timeline'>('details')
 
   useEffect(() => {
     if (isOpen) {
-      setStatus(lead.status)
       setPriority(lead.priority)
       setAnotacoes(lead.anotacoes || '')
+      setDescription(lead.description || '')
       loadTimeline()
     }
   }, [isOpen, lead])
@@ -75,9 +104,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
     try {
       const result = await updateLeadStatus({
         leadId: lead.id,
-        status,
         priority,
         anotacoes,
+        description,
       })
 
       if (result.success) {
@@ -96,6 +125,9 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
 
   if (!isOpen) return null
 
+  const upcomingEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) > new Date()) || []
+  const pastEvents = lead.eventos?.filter(e => e.completed || new Date(e.dataHora) <= new Date()) || []
+
   return (
     <>
       {/* Overlay */}
@@ -112,7 +144,19 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-2">{lead.name}</h2>
               <div className="flex flex-wrap gap-2 mb-3">
-                <StatusBadge status={status} />
+                {lead.kanbanColumn ? (
+                  <span
+                    className="px-3 py-1 rounded-full text-sm font-medium"
+                    style={{
+                      backgroundColor: lead.kanbanColumn.color || '#6366f1',
+                      color: '#ffffff',
+                    }}
+                  >
+                    {lead.kanbanColumn.name}
+                  </span>
+                ) : (
+                  <StatusBadge status={lead.status} />
+                )}
                 <PriorityBadge priority={priority} />
               </div>
               {lead.imovel && (
@@ -132,10 +176,10 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
 
         {/* Tabs */}
         <div className="bg-white border-b border-gray-200 flex-shrink-0">
-          <div className="flex">
+          <div className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab('details')}
-              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'details'
                   ? 'text-purple-600 border-b-2 border-purple-600'
                   : 'text-gray-600 hover:text-gray-900'
@@ -144,8 +188,28 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
               Detalhes
             </button>
             <button
+              onClick={() => setActiveTab('tags')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'tags'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Tags {lead.tags && lead.tags.length > 0 && `(${lead.tags.length})`}
+            </button>
+            <button
+              onClick={() => setActiveTab('events')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'events'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Eventos {upcomingEvents.length > 0 && `(${upcomingEvents.length})`}
+            </button>
+            <button
               onClick={() => setActiveTab('timeline')}
-              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'timeline'
                   ? 'text-purple-600 border-b-2 border-purple-600'
                   : 'text-gray-600 hover:text-gray-900'
@@ -189,26 +253,18 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                 )}
               </div>
 
-              {/* Status Selection */}
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
+                  Descrição do Lead
                 </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as LeadStatus)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="NOVO">Novo</option>
-                  <option value="CONTATADO">Contatado</option>
-                  <option value="ACOMPANHAMENTO">Follow-up</option>
-                  <option value="VISITA_AGENDADA">Visita Agendada</option>
-                  <option value="QUALIFICADO">Qualificado</option>
-                  <option value="NEGOCIACAO">Negociando</option>
-                  <option value="FECHADO">Fechado</option>
-                  <option value="CONVERTIDO">Convertido</option>
-                  <option value="PERDIDO">Perdido</option>
-                </select>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  placeholder="Descreva as características, necessidades e observações sobre este lead..."
+                />
               </div>
 
               {/* Priority Selection */}
@@ -231,14 +287,14 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Anotações
+                  Anotações Internas
                 </label>
                 <textarea
                   value={anotacoes}
                   onChange={(e) => setAnotacoes(e.target.value)}
                   rows={6}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  placeholder="Adicione suas anotações sobre este lead..."
+                  placeholder="Adicione suas anotações privadas sobre este lead..."
                 />
               </div>
 
@@ -285,6 +341,85 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                 </div>
               )}
             </div>
+          ) : activeTab === 'tags' ? (
+            <div>
+              <TagManager
+                leadId={lead.id}
+                currentTags={lead.tags || []}
+                onTagsChange={onUpdate}
+              />
+            </div>
+          ) : activeTab === 'events' ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">Eventos</h3>
+                <Button
+                  onClick={() => {
+                    router.push(`/corretor/calendario?lead=${lead.id}`)
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Novo Evento
+                </Button>
+              </div>
+
+              {upcomingEvents.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Próximos</h4>
+                  <div className="space-y-3">
+                    {upcomingEvents.map((evento) => (
+                      <EventCard
+                        key={evento.id}
+                        tipo={evento.tipo}
+                        dataHora={evento.dataHora}
+                        imovelTitulo={evento.imovel.titulo}
+                        observacao={evento.observacao || undefined}
+                        completed={evento.completed}
+                        onClick={() => {
+                          // TODO: Open event detail
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pastEvents.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Passados</h4>
+                  <div className="space-y-3">
+                    {pastEvents.slice(0, 5).map((evento) => (
+                      <EventCard
+                        key={evento.id}
+                        tipo={evento.tipo}
+                        dataHora={evento.dataHora}
+                        imovelTitulo={evento.imovel.titulo}
+                        observacao={evento.observacao || undefined}
+                        completed={evento.completed}
+                        onClick={() => {
+                          // TODO: Open event detail
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {upcomingEvents.length === 0 && pastEvents.length === 0 && (
+                <div className="text-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-4">Nenhum evento agendado</p>
+                  <Button
+                    onClick={() => {
+                      router.push(`/corretor/calendario?lead=${lead.id}`)
+                    }}
+                  >
+                    Criar Primeiro Evento
+                  </Button>
+                </div>
+              )}
+            </div>
           ) : (
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">
@@ -302,7 +437,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
         </div>
 
         {/* Footer */}
-        {activeTab === 'details' && (
+        {(activeTab === 'details') && (
           <div className="bg-gray-50 border-t border-gray-200 p-4 flex-shrink-0">
             <div className="flex gap-3 justify-end">
               <Button

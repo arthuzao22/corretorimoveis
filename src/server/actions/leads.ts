@@ -124,6 +124,7 @@ const updateLeadSchema = z.object({
   status: z.enum(['NOVO', 'CONTATADO', 'ACOMPANHAMENTO', 'VISITA_AGENDADA', 'QUALIFICADO', 'NEGOCIACAO', 'FECHADO', 'CONVERTIDO', 'PERDIDO']).optional(),
   priority: z.enum(['BAIXA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
   anotacoes: z.string().optional(),
+  description: z.string().optional(),
   dataContato: z.string().optional(),
   dataAgendamento: z.string().optional()
 })
@@ -156,6 +157,7 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
       status?: typeof validatedData.status
       priority?: typeof validatedData.priority
       anotacoes?: string | null
+      description?: string | null
       dataContato?: Date
       dataAgendamento?: Date
     }
@@ -167,6 +169,7 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
     if (validatedData.status) updateData.status = validatedData.status
     if (validatedData.priority) updateData.priority = validatedData.priority
     if (validatedData.anotacoes !== undefined) updateData.anotacoes = validatedData.anotacoes
+    if (validatedData.description !== undefined) updateData.description = validatedData.description
     if (validatedData.dataContato) updateData.dataContato = new Date(validatedData.dataContato)
     if (validatedData.dataAgendamento) updateData.dataAgendamento = new Date(validatedData.dataAgendamento)
 

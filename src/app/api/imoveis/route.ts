@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { serializeImoveis } from '@/lib/utils/serializers'
 
 export const dynamic = 'force-dynamic'
 
@@ -133,11 +134,7 @@ export async function GET(request: NextRequest) {
     const nextCursor = hasNextPage ? results[results.length - 1].id : null
 
     // Serialize Decimal values
-    const serializedImoveis = results.map((imovel) => ({
-      ...imovel,
-      valor: Number(imovel.valor),
-      area: imovel.area ? Number(imovel.area) : null,
-    }))
+    const serializedImoveis = serializeImoveis(results)
 
     return NextResponse.json({
       success: true,

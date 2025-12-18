@@ -1,12 +1,22 @@
 'use client'
 
 import { LeadCard } from './LeadCard'
+import { LeadPriority, LeadStatus } from '@prisma/client'
 
 interface LeadData {
   id: string
   name: string
-  priority: string
+  email?: string | null
+  phone: string
+  message?: string | null
+  description?: string | null
+  priority: LeadPriority
+  status: LeadStatus
+  anotacoes?: string | null
   createdAt: Date
+  dataContato?: Date | null
+  dataAgendamento?: Date | null
+  kanbanColumnId?: string | null
   imovel?: {
     id: string
     titulo: string
@@ -17,6 +27,29 @@ interface LeadData {
       name: string
     }
   }
+  kanbanColumn?: {
+    id: string
+    name: string
+    color: string | null
+  } | null
+  tags?: Array<{
+    id: string
+    tag: {
+      id: string
+      name: string
+      color: string
+    }
+  }>
+  eventos?: Array<{
+    id: string
+    tipo: string
+    dataHora: Date | string
+    observacao?: string | null
+    completed: boolean
+    imovel: {
+      titulo: string
+    }
+  }>
 }
 
 interface ColumnData {
@@ -34,6 +67,7 @@ interface KanbanColumnProps {
   onDragStart: (lead: LeadData, columnId: string) => void
   onDragOver: (e: React.DragEvent) => void
   onDrop: (columnId: string) => void
+  onCardClick?: (lead: LeadData) => void
   isDragging: boolean
   isMoving: boolean
 }
@@ -43,6 +77,7 @@ export function KanbanColumn({
   onDragStart,
   onDragOver,
   onDrop,
+  onCardClick,
   isDragging,
   isMoving
 }: KanbanColumnProps) {
@@ -94,6 +129,7 @@ export function KanbanColumn({
               key={lead.id}
               lead={lead}
               onDragStart={() => onDragStart(lead, column.id)}
+              onClick={() => onCardClick?.(lead)}
               isDisabled={isMoving}
             />
           ))
