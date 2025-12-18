@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Building2, Clock, Calendar, AlertCircle } from 'lucide-react'
@@ -166,3 +166,16 @@ export function LeadCard({ lead, onDragStart, onClick, isDisabled }: LeadCardPro
     </div>
   )
 }
+
+// Memoize component to prevent unnecessary re-renders
+export const LeadCardMemo = memo(LeadCard, (prevProps, nextProps) => {
+  // Custom comparison function
+  return (
+    prevProps.lead.id === nextProps.lead.id &&
+    prevProps.lead.name === nextProps.lead.name &&
+    prevProps.lead.priority === nextProps.lead.priority &&
+    prevProps.isDisabled === nextProps.isDisabled &&
+    JSON.stringify(prevProps.lead.tags) === JSON.stringify(nextProps.lead.tags) &&
+    JSON.stringify(prevProps.lead.eventos) === JSON.stringify(nextProps.lead.eventos)
+  )
+})

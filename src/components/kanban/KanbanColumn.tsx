@@ -1,6 +1,7 @@
 'use client'
 
-import { LeadCard } from './LeadCard'
+import { memo, useCallback } from 'react'
+import { LeadCardMemo } from './LeadCard'
 import { LeadPriority, LeadStatus } from '@prisma/client'
 
 interface LeadData {
@@ -81,14 +82,14 @@ export function KanbanColumn({
   isDragging,
   isMoving
 }: KanbanColumnProps) {
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     onDragOver(e)
-  }
+  }, [onDragOver])
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     onDrop(column.id)
-  }
+  }, [onDrop, column.id])
 
   const bgColor = column.color || '#6B7280'
 
@@ -125,7 +126,7 @@ export function KanbanColumn({
           </div>
         ) : (
           column.leads.map(lead => (
-            <LeadCard
+            <LeadCardMemo
               key={lead.id}
               lead={lead}
               onDragStart={() => onDragStart(lead, column.id)}

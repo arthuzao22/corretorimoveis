@@ -39,6 +39,7 @@ type EventoWithRelations = {
 const createEventoSchema = z.object({
   leadId: z.string().min(1, 'Lead é obrigatório'),
   imovelId: z.string().min(1, 'Imóvel é obrigatório'),
+  tipo: z.enum(['VISITA', 'ACOMPANHAMENTO', 'REUNIAO', 'URGENTE']).default('VISITA'),
   dataHora: z.string().min(1, 'Data e hora é obrigatória').transform((val) => {
     // Accept both datetime-local format (YYYY-MM-DDTHH:mm) and ISO format
     const date = new Date(val)
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
       data: {
         leadId: validatedData.leadId,
         imovelId: validatedData.imovelId,
+        tipo: validatedData.tipo,
         dataHora: new Date(validatedData.dataHora),
         observacao: validatedData.observacao,
       },
@@ -132,6 +134,8 @@ export async function POST(request: NextRequest) {
             titulo: true,
             endereco: true,
             cidade: true,
+            estado: true,
+            valor: true,
           },
         },
       },
@@ -223,8 +227,10 @@ export async function GET(request: NextRequest) {
       where,
       select: {
         id: true,
+        tipo: true,
         dataHora: true,
         observacao: true,
+        completed: true,
         createdAt: true,
         updatedAt: true,
         lead: {

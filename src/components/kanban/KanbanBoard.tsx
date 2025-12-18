@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCardModal } from './KanbanCardModal'
 import { moveLeadToColumn } from '@/server/actions/kanban'
@@ -83,16 +83,16 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
-  const handleDragStart = (lead: LeadData, columnId: string) => {
+  const handleDragStart = useCallback((lead: LeadData, columnId: string) => {
     setDraggedLead(lead)
     setDraggedFromColumn(columnId)
-  }
+  }, [])
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-  }
+  }, [])
 
-  const handleDrop = async (targetColumnId: string) => {
+  const handleDrop = useCallback(async (targetColumnId: string) => {
     if (!draggedLead || !draggedFromColumn || targetColumnId === draggedFromColumn) {
       setDraggedLead(null)
       setDraggedFromColumn(null)
@@ -136,21 +136,21 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
     setDraggedLead(null)
     setDraggedFromColumn(null)
     setIsMoving(false)
-  }
+  }, [draggedLead, draggedFromColumn, router])
 
-  const handleCardClick = (lead: LeadData) => {
+  const handleCardClick = useCallback((lead: LeadData) => {
     setSelectedLead(lead)
     setIsModalOpen(true)
-  }
+  }, [])
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setIsModalOpen(false)
     setTimeout(() => setSelectedLead(null), 200) // Delay to allow animation
-  }
+  }, [])
 
-  const handleModalUpdate = () => {
+  const handleModalUpdate = useCallback(() => {
     router.refresh()
-  }
+  }, [router])
 
   return (
     <>

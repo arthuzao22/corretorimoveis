@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2 } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
@@ -9,8 +9,10 @@ import { TagBadge } from '@/components/ui/TagBadge'
 import { LeadTimeline } from '@/components/leads/LeadTimeline'
 import { TagManager } from '@/components/leads/TagManager'
 import { EventCard } from '@/components/ui/EventCard'
+import { QuickEventForm } from '@/components/eventos/QuickEventForm'
 import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
+import { addTimelineEntry } from '@/server/actions/timeline'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -75,25 +77,54 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
   const [saving, setSaving] = useState(false)
   const [timeline, setTimeline] = useState<any[]>([])
   const [loadingTimeline, setLoadingTimeline] = useState(true)
+  const [showEventForm, setShowEventForm] = useState(false)
+  const [availableImoveis, setAvailableImoveis] = useState<Array<{ id: string; titulo: string }>>([])
+  const [loadingImoveis, setLoadingImoveis] = useState(false)
   
   const [editData, setEditData] = useState({
     priority: lead.priority,
     description: lead.description || '',
     anotacoes: lead.anotacoes || '',
+    imovelId: lead.imovel?.id || '',
   })
 
   useEffect(() => {
     if (isOpen) {
       loadTimeline()
+      loadAvailableImoveis()
       // Reset form when opening
       setEditData({
         priority: lead.priority,
         description: lead.description || '',
         anotacoes: lead.anotacoes || '',
+        imovelId: lead.imovel?.id || '',
       })
       setIsEditing(false)
+      setShowEventForm(false)
     }
   }, [isOpen, lead])
+
+  const loadAvailableImoveis = async () => {
+    setLoadingImoveis(true)
+    try {
+      const response = await fetch('/api/imoveis')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.imoveis) {
+          setAvailableImoveis(
+            data.imoveis.map((imovel: any) => ({
+              id: imovel.id,
+              titulo: imovel.titulo,
+            }))
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Error loading imoveis:', error)
+    } finally {
+      setLoadingImoveis(false)
+    }
+  }
 
   const loadTimeline = async () => {
     setLoadingTimeline(true)
@@ -112,6 +143,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
         priority: editData.priority,
         description: editData.description,
         anotacoes: editData.anotacoes,
+        imovelId: editData.imovelId || undefined,
       })
 
       if (result.success) {
@@ -125,6 +157,36 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
       alert('Erro ao salvar alterações')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleEventSave = async (eventData: any) => {
+    try {
+      const response = await fetch('/api/eventos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Add timeline entry
+        await addTimelineEntry(
+          lead.id,
+          'EVENT_SCHEDULED',
+          `Evento agendado: ${eventData.tipo} para ${new Date(eventData.dataHora).toLocaleDateString('pt-BR')}`
+        )
+        
+        setShowEventForm(false)
+        onUpdate?.()
+        loadTimeline()
+      } else {
+        throw new Error(data.error || 'Erro ao criar evento')
+      }
+    } catch (error) {
+      console.error('Error creating event:', error)
+      throw error
     }
   }
 
@@ -216,13 +278,26 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
 
             {/* Right Column - Property Info */}
             <div className="space-y-4">
-              {lead.imovel && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    Imóvel de Interesse
-                  </h3>
-                  
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  Imóvel de Interesse
+                </h3>
+                
+                {isEditing ? (
+                  <select
+                    value={editData.imovelId}
+                    onChange={(e) => setEditData({ ...editData, imovelId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Nenhum imóvel vinculado</option>
+                    {availableImoveis.map((imovel) => (
+                      <option key={imovel.id} value={imovel.id}>
+                        {imovel.titulo}
+                      </option>
+                    ))}
+                  </select>
+                ) : lead.imovel ? (
                   <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">{lead.imovel.titulo}</h4>
                     {lead.imovel.endereco && (
@@ -239,8 +314,12 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
                       </p>
                     )}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm text-gray-500">
+                    Nenhum imóvel vinculado
+                  </div>
+                )}
+              </div>
 
               {/* Priority */}
               <div>
@@ -313,11 +392,31 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
                 <Calendar className="w-4 h-4" />
                 Eventos ({(lead.eventos?.length || 0)})
               </h3>
-              <Button size="sm" className="flex items-center gap-1">
-                <Plus className="w-4 h-4" />
-                Criar Evento
-              </Button>
+              {!showEventForm && (
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={() => setShowEventForm(true)}
+                  type="button"
+                >
+                  <Plus className="w-4 h-4" />
+                  Criar Evento
+                </Button>
+              )}
             </div>
+
+            {/* Event Creation Form */}
+            {showEventForm && (
+              <div className="mb-4">
+                <QuickEventForm
+                  leadId={lead.id}
+                  leadName={lead.name}
+                  onSave={handleEventSave}
+                  onCancel={() => setShowEventForm(false)}
+                  imoveis={availableImoveis}
+                />
+              </div>
+            )}
 
             {overdueEvents.length > 0 && (
               <div className="mb-3">
@@ -341,7 +440,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
               </div>
             )}
 
-            {lead.eventos?.length === 0 && (
+            {lead.eventos?.length === 0 && !showEventForm && (
               <p className="text-sm text-gray-500 text-center py-4">
                 Nenhum evento agendado
               </p>
