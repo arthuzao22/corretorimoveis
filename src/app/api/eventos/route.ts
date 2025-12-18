@@ -39,7 +39,14 @@ type EventoWithRelations = {
 const createEventoSchema = z.object({
   leadId: z.string().min(1, 'Lead é obrigatório'),
   imovelId: z.string().min(1, 'Imóvel é obrigatório'),
-  dataHora: z.string().datetime('Data e hora inválida'),
+  dataHora: z.string().min(1, 'Data e hora é obrigatória').transform((val) => {
+    // Accept both datetime-local format (YYYY-MM-DDTHH:mm) and ISO format
+    const date = new Date(val)
+    if (isNaN(date.getTime())) {
+      throw new Error('Data e hora inválida')
+    }
+    return date.toISOString()
+  }),
   observacao: z.string().optional(),
 })
 
