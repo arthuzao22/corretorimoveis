@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { KanbanColumn } from './KanbanColumn'
-import { LeadDrawer } from '@/components/leads/LeadDrawer'
+import { KanbanCardModal } from './KanbanCardModal'
 import { moveLeadToColumn } from '@/server/actions/kanban'
 import { useRouter } from 'next/navigation'
 import { LeadPriority, LeadStatus } from '@prisma/client'
@@ -80,7 +80,7 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [draggedFromColumn, setDraggedFromColumn] = useState<string | null>(null)
   const [isMoving, setIsMoving] = useState(false)
   const [selectedLead, setSelectedLead] = useState<LeadData | null>(null)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
   const handleDragStart = (lead: LeadData, columnId: string) => {
@@ -140,15 +140,15 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
 
   const handleCardClick = (lead: LeadData) => {
     setSelectedLead(lead)
-    setIsDrawerOpen(true)
+    setIsModalOpen(true)
   }
 
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false)
-    setSelectedLead(null)
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setTimeout(() => setSelectedLead(null), 200) // Delay to allow animation
   }
 
-  const handleDrawerUpdate = () => {
+  const handleModalUpdate = () => {
     router.refresh()
   }
 
@@ -169,13 +169,13 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
         ))}
       </div>
 
-      {/* Lead Detail Drawer */}
+      {/* Lead Detail Modal */}
       {selectedLead && (
-        <LeadDrawer
+        <KanbanCardModal
           lead={selectedLead}
-          isOpen={isDrawerOpen}
-          onClose={handleDrawerClose}
-          onUpdate={handleDrawerUpdate}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onUpdate={handleModalUpdate}
         />
       )}
     </>

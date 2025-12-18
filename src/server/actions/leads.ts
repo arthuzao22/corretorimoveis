@@ -26,10 +26,39 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
       return { success: false, error: 'Imóvel não encontrado' }
     }
 
+    // Get the initial Kanban column from the global board
+    const initialColumn = await prisma.kanbanColumn.findFirst({
+      where: {
+        board: {
+          isGlobal: true
+        },
+        isInitial: true
+      }
+    })
+
+    if (!initialColumn) {
+      return { success: false, error: 'Coluna inicial do Kanban não encontrada. Configure o sistema primeiro.' }
+    }
+
     const lead = await prisma.lead.create({
       data: {
         ...validatedData,
-        corretorId: imovel.corretorId
+        corretorId: imovel.corretorId,
+        kanbanColumnId: initialColumn.id // Auto-assign to initial column
+      }
+    })
+
+    // Create timeline entry for lead creation
+    await prisma.leadTimeline.create({
+      data: {
+        leadId: lead.id,
+        action: 'CREATED',
+        description: `Lead criado e atribuído à coluna "${initialColumn.name}"`,
+        metadata: {
+          source: 'lead_creation',
+          initialColumn: initialColumn.name,
+          columnId: initialColumn.id
+        }
       }
     })
 
@@ -121,7 +150,7 @@ export async function getAllLeads() {
 
 const updateLeadSchema = z.object({
   leadId: z.string(),
-  status: z.enum(['NOVO', 'CONTATADO', 'ACOMPANHAMENTO', 'VISITA_AGENDADA', 'QUALIFICADO', 'NEGOCIACAO', 'FECHADO', 'CONVERTIDO', 'PERDIDO']).optional(),
+  // Status is removed - should only be updated via Kanban column assignment
   priority: z.enum(['BAIXA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
   anotacoes: z.string().optional(),
   description: z.string().optional(),
@@ -154,7 +183,6 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
 
     interface LeadUpdateData {
       updatedAt: Date
-      status?: typeof validatedData.status
       priority?: typeof validatedData.priority
       anotacoes?: string | null
       description?: string | null
@@ -166,7 +194,7 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
       updatedAt: new Date()
     }
 
-    if (validatedData.status) updateData.status = validatedData.status
+    // Status is NOT updated here - only via Kanban moveLeadToColumn
     if (validatedData.priority) updateData.priority = validatedData.priority
     if (validatedData.anotacoes !== undefined) updateData.anotacoes = validatedData.anotacoes
     if (validatedData.description !== undefined) updateData.description = validatedData.description
@@ -203,13 +231,18 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
       }
     })
 
-    // Add timeline entry if status changed
-    if (validatedData.status && validatedData.status !== lead.status) {
+    // Timeline entry for status changes is now handled by moveLeadToColumn in kanban.ts
+    // Only add timeline for priority changes if needed
+    if (validatedData.priority && validatedData.priority !== lead.priority) {
       await prisma.leadTimeline.create({
         data: {
           leadId: validatedData.leadId,
           action: 'STATUS_CHANGED',
-          description: `Status alterado de ${lead.status} para ${validatedData.status}`
+          description: `Prioridade alterada de ${lead.priority} para ${validatedData.priority}`,
+          metadata: {
+            oldPriority: lead.priority,
+            newPriority: validatedData.priority
+          }
         }
       })
     }

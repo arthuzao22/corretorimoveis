@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getAllCorretores, approveCorretor, toggleUserActive } from '@/server/actions/admin'
+import { updateKanbanPermissions } from '@/server/actions/kanban'
+import { Settings } from 'lucide-react'
 
 type Corretor = {
   id: string
@@ -15,6 +17,10 @@ type Corretor = {
     email: string
     active: boolean
     createdAt: Date
+    kanbanPermission: {
+      canEditBoard: boolean
+      canEditColumns: boolean
+    } | null
   }
   _count: {
     imoveis: number
@@ -25,6 +31,7 @@ type Corretor = {
 export default function CorretoresPage() {
   const [corretores, setCorretores] = useState<Corretor[]>([])
   const [loading, setLoading] = useState(true)
+  const [savingPermissions, setSavingPermissions] = useState<string | null>(null)
 
   const loadCorretores = async () => {
     const result = await getAllCorretores()
@@ -56,6 +63,26 @@ export default function CorretoresPage() {
     }
   }
 
+  const handleToggleKanbanPermission = async (userId: string, type: 'canEditColumns') => {
+    setSavingPermissions(userId)
+    
+    const corretor = corretores.find(c => c.user.id === userId)
+    const currentValue = corretor?.user.kanbanPermission?.[type] || false
+    
+    const result = await updateKanbanPermissions({
+      userId,
+      [type]: !currentValue
+    })
+
+    if (result.success) {
+      loadCorretores()
+    } else {
+      alert(result.error)
+    }
+    
+    setSavingPermissions(null)
+  }
+
   if (loading) {
     return <div className="text-center py-8">Carregando...</div>
   }
@@ -74,66 +101,99 @@ export default function CorretoresPage() {
         <div className="space-y-4">
           {corretores.map((corretor) => (
             <Card key={corretor.id}>
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {corretor.user.name}
-                  </h3>
-                  <div className="mt-2 space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">Email:</span> {corretor.user.email}
-                    </p>
-                    <p>
-                      <span className="font-medium">Slug:</span> {corretor.slug}
-                    </p>
-                    <p>
-                      <span className="font-medium">Imóveis:</span> {corretor._count.imoveis}
-                    </p>
-                    <p>
-                      <span className="font-medium">Leads:</span> {corretor._count.leads}
-                    </p>
-                    <p>
-                      <span className="font-medium">Status:</span>{' '}
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs ${
-                          corretor.user.active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {corretor.user.active ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Aprovado:</span>{' '}
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs ${
-                          corretor.approved
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {corretor.approved ? 'Sim' : 'Pendente'}
-                      </span>
-                    </p>
+              <div className="flex flex-col gap-4">
+                {/* Main Info */}
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {corretor.user.name}
+                    </h3>
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                      <p>
+                        <span className="font-medium">Email:</span> {corretor.user.email}
+                      </p>
+                      <p>
+                        <span className="font-medium">Slug:</span> {corretor.slug}
+                      </p>
+                      <p>
+                        <span className="font-medium">Imóveis:</span> {corretor._count.imoveis}
+                      </p>
+                      <p>
+                        <span className="font-medium">Leads:</span> {corretor._count.leads}
+                      </p>
+                      <p>
+                        <span className="font-medium">Status:</span>{' '}
+                        <span
+                          className={`inline-block px-2 py-1 rounded text-xs ${
+                            corretor.user.active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {corretor.user.active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </p>
+                      <p>
+                        <span className="font-medium">Aprovado:</span>{' '}
+                        <span
+                          className={`inline-block px-2 py-1 rounded text-xs ${
+                            corretor.approved
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {corretor.approved ? 'Sim' : 'Pendente'}
+                        </span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {!corretor.approved && (
+                  <div className="flex flex-col gap-2">
+                    {!corretor.approved && (
+                      <Button
+                        onClick={() => handleApprove(corretor.id)}
+                        className="whitespace-nowrap"
+                      >
+                        Aprovar
+                      </Button>
+                    )}
                     <Button
-                      onClick={() => handleApprove(corretor.id)}
+                      variant={corretor.user.active ? 'danger' : 'secondary'}
+                      onClick={() => handleToggleActive(corretor.user.id)}
                       className="whitespace-nowrap"
                     >
-                      Aprovar
+                      {corretor.user.active ? 'Desativar' : 'Ativar'}
                     </Button>
-                  )}
-                  <Button
-                    variant={corretor.user.active ? 'danger' : 'secondary'}
-                    onClick={() => handleToggleActive(corretor.user.id)}
-                    className="whitespace-nowrap"
-                  >
-                    {corretor.user.active ? 'Desativar' : 'Ativar'}
-                  </Button>
+                  </div>
+                </div>
+
+                {/* Kanban Permissions */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Settings className="w-4 h-4 text-indigo-600" />
+                    <h4 className="font-semibold text-gray-900">Permissões do Kanban</h4>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={corretor.user.kanbanPermission?.canEditColumns || false}
+                        onChange={() => handleToggleKanbanPermission(corretor.user.id, 'canEditColumns')}
+                        disabled={savingPermissions === corretor.user.id}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Pode editar estrutura do Kanban
+                        {savingPermissions === corretor.user.id && (
+                          <span className="ml-2 text-xs text-gray-500">(salvando...)</span>
+                        )}
+                      </span>
+                    </label>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mt-2">
+                    Corretores com esta permissão podem criar, editar e excluir colunas do Kanban.
+                  </p>
                 </div>
               </div>
             </Card>
