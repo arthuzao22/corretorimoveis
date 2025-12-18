@@ -357,7 +357,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                   onClick={() => {
                     router.push(`/corretor/calendario?lead=${lead.id}`)
                   }}
-                  size="sm"
                   className="flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -415,7 +414,6 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                     onClick={() => {
                       router.push(`/corretor/calendario?lead=${lead.id}`)
                     }}
-                    size="sm"
                   >
                     Criar Primeiro Evento
                   </Button>

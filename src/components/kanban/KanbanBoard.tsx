@@ -5,6 +5,7 @@ import { KanbanColumn } from './KanbanColumn'
 import { LeadDrawer } from '@/components/leads/LeadDrawer'
 import { moveLeadToColumn } from '@/server/actions/kanban'
 import { useRouter } from 'next/navigation'
+import { LeadPriority, LeadStatus } from '@prisma/client'
 
 interface LeadData {
   id: string
@@ -13,8 +14,8 @@ interface LeadData {
   phone: string
   message?: string | null
   description?: string | null
-  priority: string
-  status: any
+  priority: LeadPriority
+  status: LeadStatus
   anotacoes?: string | null
   createdAt: Date
   dataContato?: Date | null

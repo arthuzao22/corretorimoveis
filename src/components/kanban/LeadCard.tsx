@@ -6,11 +6,12 @@ import { ptBR } from 'date-fns/locale'
 import { Building2, Clock, Calendar, AlertCircle } from 'lucide-react'
 import { TagBadge } from '@/components/ui/TagBadge'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { LeadPriority } from '@prisma/client'
 
 interface LeadData {
   id: string
   name: string
-  priority: string
+  priority: LeadPriority
   createdAt: Date
   imovel?: {
     id: string
