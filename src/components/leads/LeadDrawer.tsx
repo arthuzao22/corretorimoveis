@@ -2,6 +2,7 @@
 
 import { X, Save, Loader2, Plus, Calendar } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { LeadStatus, LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
 import { StatusBadge, PriorityBadge as OldPriorityBadge } from './StatusBadge'
@@ -66,6 +67,7 @@ interface LeadDrawerProps {
 }
 
 export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps) {
+  const router = useRouter()
   const [priority, setPriority] = useState<LeadPriority>(lead.priority)
   const [anotacoes, setAnotacoes] = useState(lead.anotacoes || '')
   const [description, setDescription] = useState(lead.description || '')
@@ -353,8 +355,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                 <h3 className="font-semibold text-gray-900">Eventos</h3>
                 <Button
                   onClick={() => {
-                    // TODO: Open event creation modal
-                    window.location.href = `/corretor/calendario?lead=${lead.id}`
+                    router.push(`/corretor/calendario?lead=${lead.id}`)
                   }}
                   size="sm"
                   className="flex items-center gap-2"
@@ -412,7 +413,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                   <p className="text-gray-500 mb-4">Nenhum evento agendado</p>
                   <Button
                     onClick={() => {
-                      window.location.href = `/corretor/calendario?lead=${lead.id}`
+                      router.push(`/corretor/calendario?lead=${lead.id}`)
                     }}
                     size="sm"
                   >

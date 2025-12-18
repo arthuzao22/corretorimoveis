@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Building2, Clock, Calendar, AlertCircle } from 'lucide-react'
@@ -44,6 +45,8 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, onDragStart, onClick, isDisabled }: LeadCardProps) {
+  const [isDragging, setIsDragging] = useState(false)
+  
   const daysSinceCreated = Math.floor(
     (new Date().getTime() - new Date(lead.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   )
@@ -60,20 +63,28 @@ export function LeadCard({ lead, onDragStart, onClick, isDisabled }: LeadCardPro
   const hasOverdueEvents = overdueEvents.length > 0
 
   const handleClick = (e: React.MouseEvent) => {
-    // Don't trigger click when dragging
-    if (e.defaultPrevented) return
-    onClick?.()
+    // Only trigger click if we're not dragging
+    if (!isDragging) {
+      onClick?.()
+    }
   }
 
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation()
+    setIsDragging(true)
     onDragStart()
+  }
+
+  const handleDragEnd = () => {
+    // Reset drag state after a short delay
+    setTimeout(() => setIsDragging(false), 100)
   }
 
   return (
     <div
       draggable={!isDisabled}
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={handleClick}
       className={`bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all ${
         isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'

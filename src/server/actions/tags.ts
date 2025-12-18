@@ -140,6 +140,21 @@ export async function updateTag(
       return { success: false, error: 'Sem permissão para editar esta tag' }
     }
 
+    // Check for duplicate name if name is being updated
+    if (validatedData.name) {
+      const existing = await prisma.tag.findFirst({
+        where: {
+          name: validatedData.name,
+          userId: tag.userId,
+          id: { not: validatedData.tagId }, // Exclude current tag
+        },
+      })
+
+      if (existing) {
+        return { success: false, error: 'Já existe uma tag com este nome' }
+      }
+    }
+
     // Update tag
     const updated = await prisma.tag.update({
       where: { id: validatedData.tagId },
@@ -228,13 +243,10 @@ export async function getTags(): Promise<ActionResult<Array<{ id: string; name: 
       return { success: false, error: 'Usuário não encontrado' }
     }
 
-    // Get user's tags and global tags
+    // Get user's tags only (no global tags in current implementation)
     const tags = await prisma.tag.findMany({
       where: {
-        OR: [
-          { userId: user.id },
-          { userId: null }, // Global tags
-        ],
+        userId: user.id,
       },
       select: {
         id: true,
