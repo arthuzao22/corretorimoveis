@@ -311,20 +311,30 @@ export async function PUT(
     // If event was marked as completed and it's a VISITA, auto-move lead to next column
     if (validatedData.completed === true && existingEvento.tipo === 'VISITA') {
       try {
-        // Find the "Acompanhamento" column
-        const acompanhamentoColumn = await prisma.kanbanColumn.findFirst({
-          where: {
-            name: 'Acompanhamento',
-            board: { isGlobal: true }
-          }
+        // Find a suitable follow-up column (order-based approach for flexibility)
+        const currentColumn = await prisma.kanbanColumn.findUnique({
+          where: { id: evento.lead.kanbanColumnId || '' },
+          include: { board: true }
         })
 
-        if (acompanhamentoColumn && evento.lead.kanbanColumnId !== acompanhamentoColumn.id) {
-          // Move lead to Acompanhamento column
+        // Find next column in the pipeline (higher order, not final)
+        const nextColumn = await prisma.kanbanColumn.findFirst({
+          where: {
+            board: currentColumn?.board ? { id: currentColumn.board.id } : { isGlobal: true },
+            order: currentColumn ? { gt: currentColumn.order } : undefined,
+            isFinal: false
+          },
+          orderBy: { order: 'asc' }
+        })
+
+        if (nextColumn && evento.lead.kanbanColumnId !== nextColumn.id) {
+          // Move lead to next column
+          const oldColumnName = currentColumn?.name || 'Sem coluna'
+          
           await prisma.lead.update({
             where: { id: evento.lead.id },
             data: {
-              kanbanColumnId: acompanhamentoColumn.id,
+              kanbanColumnId: nextColumn.id,
               updatedAt: new Date()
             }
           })
@@ -334,11 +344,13 @@ export async function PUT(
             data: {
               leadId: evento.lead.id,
               action: 'KANBAN_MOVED',
-              description: 'Lead movido automaticamente para "Acompanhamento" após visita concluída',
+              description: `Lead movido automaticamente de "${oldColumnName}" para "${nextColumn.name}" após visita concluída`,
               metadata: {
                 autoMoved: true,
                 reason: 'visit_completed',
-                eventId: evento.id
+                eventId: evento.id,
+                fromColumn: oldColumnName,
+                toColumn: nextColumn.name
               }
             }
           })

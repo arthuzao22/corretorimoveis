@@ -203,8 +203,8 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
         leadsPerColumn,
         closedCount,
         lostCount,
-        closedVsLostRatio: totalLeads > 0 
-          ? Math.round((closedCount / (closedCount + lostCount || 1)) * 100 * 10) / 10 
+        closedVsLostRatio: (closedCount + lostCount) > 0 
+          ? Math.round((closedCount / (closedCount + lostCount)) * 100 * 10) / 10 
           : 0,
         conversionRate,
         avgTimePerColumn,

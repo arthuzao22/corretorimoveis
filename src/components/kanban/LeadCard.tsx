@@ -28,14 +28,14 @@ interface LeadCardProps {
   isDisabled: boolean
 }
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   BAIXA: 'bg-gray-100 text-gray-700 border-gray-300',
   MEDIA: 'bg-blue-50 text-blue-700 border-blue-300',
   ALTA: 'bg-orange-50 text-orange-700 border-orange-300',
   URGENTE: 'bg-red-50 text-red-700 border-red-300',
 }
 
-const priorityLabels = {
+const priorityLabels: Record<string, string> = {
   BAIXA: 'Baixa',
   MEDIA: 'Média',
   ALTA: 'Alta',
@@ -48,6 +48,10 @@ export function LeadCard({ lead, onDragStart, isDisabled }: LeadCardProps) {
   )
 
   const isAging = daysSinceCreated > 7
+  
+  // Safe priority access with fallback
+  const priorityColor = priorityColors[lead.priority] || priorityColors.MEDIA
+  const priorityLabel = priorityLabels[lead.priority] || 'Média'
 
   return (
     <div
@@ -75,12 +79,8 @@ export function LeadCard({ lead, onDragStart, isDisabled }: LeadCardProps) {
 
         {/* Priority Badge */}
         <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 text-xs font-medium rounded border ${
-              priorityColors[lead.priority as keyof typeof priorityColors]
-            }`}
-          >
-            {priorityLabels[lead.priority as keyof typeof priorityLabels]}
+          <span className={`px-2 py-1 text-xs font-medium rounded border ${priorityColor}`}>
+            {priorityLabel}
           </span>
 
           {/* Aging Indicator */}
