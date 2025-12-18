@@ -44,7 +44,11 @@ export const config = {
     '/corretor/minha-landing',
     '/corretor/minha-landing/:path*',
     '/corretor/calendario',
-    '/corretor/calendario/:path*'
+    '/corretor/calendario/:path*',
+    '/corretor/perfil',
+    '/corretor/perfil/:path*',
+    '/corretor/kanban',
+    '/corretor/kanban/:path*'
   ]
 }
 
