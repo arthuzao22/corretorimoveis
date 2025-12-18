@@ -151,6 +151,7 @@ model KanbanColumn {
   name             String
   order            Int
   color            String?
+  isInitial        Boolean  @default(false) // Mark as the initial column for new leads
   isFinal          Boolean  @default(false)
   automationConfig Json?    // Config for event completion automation: { moveOnEventComplete: true, targetColumnId: "xxx" }
   createdAt        DateTime @default(now())
@@ -161,6 +162,7 @@ model KanbanColumn {
 
   @@index([boardId])
   @@index([order])
+  @@index([isInitial])
   @@map("kanban_columns")
 }
 

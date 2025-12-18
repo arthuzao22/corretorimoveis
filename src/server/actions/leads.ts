@@ -26,10 +26,39 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
       return { success: false, error: 'Imóvel não encontrado' }
     }
 
+    // Get the initial Kanban column from the global board
+    const initialColumn = await prisma.kanbanColumn.findFirst({
+      where: {
+        board: {
+          isGlobal: true
+        },
+        isInitial: true
+      }
+    })
+
+    if (!initialColumn) {
+      return { success: false, error: 'Coluna inicial do Kanban não encontrada. Configure o sistema primeiro.' }
+    }
+
     const lead = await prisma.lead.create({
       data: {
         ...validatedData,
-        corretorId: imovel.corretorId
+        corretorId: imovel.corretorId,
+        kanbanColumnId: initialColumn.id // Auto-assign to initial column
+      }
+    })
+
+    // Create timeline entry for lead creation
+    await prisma.leadTimeline.create({
+      data: {
+        leadId: lead.id,
+        action: 'CREATED',
+        description: `Lead criado e atribuído à coluna "${initialColumn.name}"`,
+        metadata: {
+          source: 'lead_creation',
+          initialColumn: initialColumn.name,
+          columnId: initialColumn.id
+        }
       }
     })
 

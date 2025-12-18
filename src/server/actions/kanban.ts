@@ -20,6 +20,7 @@ const createColumnSchema = z.object({
   name: z.string().min(1),
   order: z.number().int().min(0),
   color: z.string().optional(),
+  isInitial: z.boolean().optional(),
   isFinal: z.boolean().optional(),
 })
 
@@ -28,6 +29,7 @@ const updateColumnSchema = z.object({
   name: z.string().min(1).optional(),
   order: z.number().int().min(0).optional(),
   color: z.string().optional(),
+  isInitial: z.boolean().optional(),
   isFinal: z.boolean().optional(),
 })
 
@@ -318,11 +320,23 @@ export async function createColumn(data: z.infer<typeof createColumnSchema>) {
 
     const validatedData = createColumnSchema.parse(data)
 
+    // If setting as initial, unset other initial columns in the same board
+    if (validatedData.isInitial) {
+      await prisma.kanbanColumn.updateMany({
+        where: { 
+          boardId: validatedData.boardId,
+          isInitial: true
+        },
+        data: { isInitial: false }
+      })
+    }
+
     const column = await prisma.kanbanColumn.create({
       data: validatedData
     })
 
     revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/kanban/editor')
 
     return { success: true, column }
   } catch (error) {
@@ -347,12 +361,35 @@ export async function updateColumn(data: z.infer<typeof updateColumnSchema>) {
 
     const { columnId, ...updates } = updateColumnSchema.parse(data)
 
+    // Get the column to find its boardId
+    const existingColumn = await prisma.kanbanColumn.findUnique({
+      where: { id: columnId },
+      select: { boardId: true }
+    })
+
+    if (!existingColumn) {
+      return { success: false, error: 'Coluna não encontrada' }
+    }
+
+    // If setting as initial, unset other initial columns in the same board
+    if (updates.isInitial) {
+      await prisma.kanbanColumn.updateMany({
+        where: { 
+          boardId: existingColumn.boardId,
+          isInitial: true,
+          id: { not: columnId }
+        },
+        data: { isInitial: false }
+      })
+    }
+
     const column = await prisma.kanbanColumn.update({
       where: { id: columnId },
       data: updates
     })
 
     revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/kanban/editor')
 
     return { success: true, column }
   } catch (error) {
@@ -383,11 +420,46 @@ export async function deleteColumn(columnId: string) {
     })
 
     revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/kanban/editor')
 
     return { success: true }
   } catch (error) {
     console.error('Delete column error:', error)
     return { success: false, error: 'Erro ao deletar coluna' }
+  }
+}
+
+export async function reorderColumns(boardId: string, columnOrders: { id: string; order: number }[]) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    // Check permissions
+    const canEdit = await checkColumnEditPermission(session.user)
+    if (!canEdit) {
+      return { success: false, error: 'Sem permissão para editar colunas' }
+    }
+
+    // Update each column's order
+    await Promise.all(
+      columnOrders.map(({ id, order }) =>
+        prisma.kanbanColumn.update({
+          where: { id },
+          data: { order }
+        })
+      )
+    )
+
+    revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/kanban/editor')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Reorder columns error:', error)
+    return { success: false, error: 'Erro ao reordenar colunas' }
   }
 }
 
