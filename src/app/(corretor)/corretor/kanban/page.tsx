@@ -1,9 +1,9 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { redirect } from 'next/navigation'
-import { getKanbanBoard } from '@/server/actions/kanban'
+import { getKanbanBoard, getKanbanPermissions } from '@/server/actions/kanban'
 import { KanbanBoard } from '@/components/kanban/KanbanBoard'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -16,6 +16,7 @@ export default async function KanbanPage() {
   }
 
   const result = await getKanbanBoard()
+  const permissionsResult = await getKanbanPermissions()
 
   if (!result.success || !result.board) {
     return (
@@ -26,6 +27,8 @@ export default async function KanbanPage() {
       </div>
     )
   }
+
+  const canEditColumns = permissionsResult.success && permissionsResult.permissions?.canEditColumns
 
   return (
     <div className="space-y-6">
@@ -38,6 +41,15 @@ export default async function KanbanPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {canEditColumns && (
+            <Link
+              href="/corretor/kanban/editor"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Editar Kanban
+            </Link>
+          )}
           <Link
             href="/corretor/kanban/analytics"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
