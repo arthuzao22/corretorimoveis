@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { serializeImoveis } from '@/lib/utils/serializers'
 
 export async function getAllCorretores() {
   try {
@@ -117,10 +118,7 @@ export async function getAllImoveisAdmin() {
     })
 
     // Converter Decimal para número
-    const imoveis = imoveisRaw.map(imovel => ({
-      ...imovel,
-      valor: Number(imovel.valor)
-    }))
+    const imoveis = serializeImoveis(imoveisRaw)
 
     return { success: true, imoveis }
   } catch (error) {

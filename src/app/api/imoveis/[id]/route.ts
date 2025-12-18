@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { serializeImovel } from '@/lib/utils/serializers'
 
 export async function GET(
   request: Request,
@@ -42,10 +43,7 @@ export async function GET(
     })
 
     // Converter Decimal para número
-    const imovelSerializado = {
-      ...imovel,
-      valor: Number(imovel.valor)
-    }
+    const imovelSerializado = serializeImovel(imovel)
 
     return NextResponse.json(imovelSerializado)
   } catch (error) {
