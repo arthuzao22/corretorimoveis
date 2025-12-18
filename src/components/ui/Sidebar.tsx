@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers, Calendar } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers, Calendar, Columns } from 'lucide-react'
 
 interface SidebarProps {
   userName: string
@@ -17,6 +17,11 @@ export function Sidebar({ userName }: SidebarProps) {
       label: 'Dashboard',
       href: '/corretor/dashboard',
       icon: LayoutDashboard
+    },
+    {
+      label: 'Kanban',
+      href: '/corretor/kanban',
+      icon: Columns
     },
     {
       label: 'Meus Imóveis',

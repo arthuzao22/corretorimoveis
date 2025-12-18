@@ -8,10 +8,15 @@ async function main() {
 
   // Limpar dados existentes (ordem importante por causa das FKs)
   await prisma.landingBloco.deleteMany()
+  await prisma.leadTimeline.deleteMany()
+  await prisma.eventoCalendario.deleteMany()
   await prisma.lead.deleteMany()
   await prisma.imovel.deleteMany()
   await prisma.corretorProfile.deleteMany()
   await prisma.admin.deleteMany()
+  await prisma.kanbanPermission.deleteMany()
+  await prisma.kanbanColumn.deleteMany()
+  await prisma.kanbanBoard.deleteMany()
   await prisma.user.deleteMany()
   await prisma.cidade.deleteMany()
   await prisma.imovelStatusConfig.deleteMany()
@@ -179,6 +184,89 @@ async function main() {
   })
 
   console.log('✅ Created lead status configs')
+
+  // =============================================
+  // CRIAR KANBAN BOARD E COLUNAS
+  // =============================================
+
+  const globalBoard = await prisma.kanbanBoard.create({
+    data: {
+      name: 'Pipeline de Vendas',
+      isGlobal: true,
+    }
+  })
+
+  const colNovo = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Novo',
+      order: 0,
+      color: '#3B82F6', // blue
+      isFinal: false,
+    }
+  })
+
+  const colContatado = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Contatado',
+      order: 1,
+      color: '#8B5CF6', // purple
+      isFinal: false,
+    }
+  })
+
+  const colAcompanhamento = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Acompanhamento',
+      order: 2,
+      color: '#F59E0B', // yellow/amber
+      isFinal: false,
+    }
+  })
+
+  const colVisitaAgendada = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Visita Agendada',
+      order: 3,
+      color: '#6366F1', // indigo
+      isFinal: false,
+    }
+  })
+
+  const colNegociacao = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Negociação',
+      order: 4,
+      color: '#F97316', // orange
+      isFinal: false,
+    }
+  })
+
+  const colFechado = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Fechado',
+      order: 5,
+      color: '#10B981', // green
+      isFinal: true,
+    }
+  })
+
+  const colPerdido = await prisma.kanbanColumn.create({
+    data: {
+      boardId: globalBoard.id,
+      name: 'Perdido',
+      order: 6,
+      color: '#EF4444', // red
+      isFinal: true,
+    }
+  })
+
+  console.log('✅ Created Kanban board and columns')
 
   // =============================================
   // CRIAR USUÁRIOS E DADOS PRINCIPAIS
@@ -384,6 +472,7 @@ async function main() {
       message: 'Tenho interesse em visitar o imóvel este fim de semana.',
       origem: 'imovel',
       statusConfigId: leadNovo.id,
+      kanbanColumnId: colNovo.id,
     }
   })
 
@@ -397,6 +486,7 @@ async function main() {
       message: 'Gostaria de mais informações sobre financiamento.',
       origem: 'landing',
       statusConfigId: leadEmContato.id,
+      kanbanColumnId: colContatado.id,
     }
   })
 
@@ -411,6 +501,7 @@ async function main() {
       origem: 'perfil',
       statusConfigId: leadAgendado.id,
       dataAgendamento: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 dias no futuro
+      kanbanColumnId: colVisitaAgendada.id,
     }
   })
 
