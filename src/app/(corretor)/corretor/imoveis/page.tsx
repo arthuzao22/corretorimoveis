@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { getMyImoveis, deleteImovel } from '@/server/actions/imoveis'
+import { ShareButtons } from '@/components/imoveis/ShareButtons'
+import { QRCodeModal } from '@/components/imoveis/QRCodeModal'
 import Link from 'next/link'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Share2 } from 'lucide-react'
 
 type Imovel = {
   id: string
@@ -22,6 +24,8 @@ type Imovel = {
 export default function ImoveisPage() {
   const [imoveis, setImoveis] = useState<Imovel[]>([])
   const [loading, setLoading] = useState(true)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [selectedImovel, setSelectedImovel] = useState<Imovel | null>(null)
 
   const loadImoveis = async () => {
     const result = await getMyImoveis()
@@ -46,6 +50,11 @@ export default function ImoveisPage() {
     } else {
       alert(result.error)
     }
+  }
+
+  const handleQRCodeClick = (imovel: Imovel) => {
+    setSelectedImovel(imovel)
+    setQrModalOpen(true)
   }
 
   if (loading) {
@@ -122,6 +131,18 @@ export default function ImoveisPage() {
                   </p>
                 </div>
                 
+                {/* Share Buttons */}
+                <div className="mt-4 mb-4">
+                  <ShareButtons
+                    imovelId={imovel.id}
+                    titulo={imovel.titulo}
+                    valor={imovel.valor}
+                    cidade={imovel.cidade}
+                    estado={imovel.estado}
+                    onQRCodeClick={() => handleQRCodeClick(imovel)}
+                  />
+                </div>
+                
                 <div className="mt-4 flex gap-2">
                   <Link href={`/corretor/imoveis/${imovel.id}/editar`} className="flex-1">
                     <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
@@ -142,6 +163,19 @@ export default function ImoveisPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* QR Code Modal */}
+      {selectedImovel && (
+        <QRCodeModal
+          imovelId={selectedImovel.id}
+          titulo={selectedImovel.titulo}
+          isOpen={qrModalOpen}
+          onClose={() => {
+            setQrModalOpen(false)
+            setSelectedImovel(null)
+          }}
+        />
       )}
     </div>
   )
