@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Flame, Snowflake, ArrowRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LeadStatus, LeadPriority } from '@prisma/client'
@@ -10,8 +10,9 @@ import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { LeadTimeline } from './LeadTimeline'
 import { TagManager } from './TagManager'
 import { EventCard } from '@/components/ui/EventCard'
-import { updateLeadStatus } from '@/server/actions/leads'
+import { updateLeadStatus, updateLeadScore, updateLeadTemperatura } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
+import { getKanbanColumns, moveLeadToColumn } from '@/server/actions/kanban'
 
 interface LeadDrawerProps {
   lead: {
@@ -27,6 +28,8 @@ interface LeadDrawerProps {
     dataContato?: Date | string | null
     dataAgendamento?: Date | string | null
     createdAt: Date | string
+    score?: number
+    temperatura?: string
     kanbanColumn?: {
       id: string
       name: string
@@ -71,19 +74,37 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
   const [priority, setPriority] = useState<LeadPriority>(lead.priority)
   const [anotacoes, setAnotacoes] = useState(lead.anotacoes || '')
   const [description, setDescription] = useState(lead.description || '')
+  const [score, setScore] = useState(lead.score || 0)
+  const [temperatura, setTemperatura] = useState(lead.temperatura || 'morno')
   const [loading, setLoading] = useState(false)
   const [timeline, setTimeline] = useState<any[]>([])
   const [loadingTimeline, setLoadingTimeline] = useState(false)
   const [activeTab, setActiveTab] = useState<'details' | 'tags' | 'events' | 'timeline'>('details')
+  const [kanbanColumns, setKanbanColumns] = useState<any[]>([])
+  const [movingColumn, setMovingColumn] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setPriority(lead.priority)
       setAnotacoes(lead.anotacoes || '')
       setDescription(lead.description || '')
+      setScore(lead.score || 0)
+      setTemperatura(lead.temperatura || 'morno')
       loadTimeline()
+      loadKanbanColumns()
     }
   }, [isOpen, lead])
+
+  const loadKanbanColumns = async () => {
+    try {
+      const result = await getKanbanColumns()
+      if (result.success && result.columns) {
+        setKanbanColumns(result.columns)
+      }
+    } catch (error) {
+      console.error('Error loading kanban columns:', error)
+    }
+  }
 
   const loadTimeline = async () => {
     setLoadingTimeline(true)
@@ -102,6 +123,7 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
   const handleSave = async () => {
     setLoading(true)
     try {
+      // Update basic lead info
       const result = await updateLeadStatus({
         leadId: lead.id,
         priority,
@@ -109,17 +131,56 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
         description,
       })
 
-      if (result.success) {
-        onUpdate?.()
-        onClose()
-      } else {
+      if (!result.success) {
         alert(result.error || 'Erro ao atualizar lead')
+        return
       }
+
+      // Update score if changed
+      if (score !== lead.score) {
+        const scoreResult = await updateLeadScore(lead.id, score)
+        if (!scoreResult.success) {
+          console.error('Error updating score:', scoreResult.error)
+        }
+      }
+
+      // Update temperatura if changed
+      if (temperatura !== lead.temperatura) {
+        const tempResult = await updateLeadTemperatura(lead.id, temperatura)
+        if (!tempResult.success) {
+          console.error('Error updating temperatura:', tempResult.error)
+        }
+      }
+
+      onUpdate?.()
+      onClose()
     } catch (error) {
       console.error('Error updating lead:', error)
       alert('Erro ao atualizar lead')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleMoveColumn = async (columnId: string) => {
+    if (columnId === lead.kanbanColumn?.id) return
+    
+    setMovingColumn(true)
+    try {
+      const result = await moveLeadToColumn({
+        leadId: lead.id,
+        columnId,
+      })
+      if (result.success) {
+        onUpdate?.()
+      } else {
+        alert(result.error || 'Erro ao mover lead')
+      }
+    } catch (error) {
+      console.error('Error moving lead:', error)
+      alert('Erro ao mover lead')
+    } finally {
+      setMovingColumn(false)
     }
   }
 
@@ -284,6 +345,80 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                 </select>
               </div>
 
+              {/* Score and Temperatura */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Score Slider */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Score de Interesse
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={score}
+                      onChange={(e) => setScore(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all"
+                          style={{ width: `${score}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900 w-10 text-right">{score}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Temperatura Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Temperatura
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTemperatura('quente')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                        temperatura === 'quente'
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-200 hover:border-red-300'
+                      }`}
+                    >
+                      <span className="text-lg">🔥</span>
+                      <span className="block text-xs mt-1">Quente</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTemperatura('morno')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                        temperatura === 'morno'
+                          ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                          : 'border-gray-200 hover:border-yellow-300'
+                      }`}
+                    >
+                      <span className="text-lg">🟡</span>
+                      <span className="block text-xs mt-1">Morno</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTemperatura('frio')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 transition-colors ${
+                        temperatura === 'frio'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <span className="text-lg">❄️</span>
+                      <span className="block text-xs mt-1">Frio</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -328,6 +463,44 @@ export function LeadDrawer({ lead, isOpen, onClose, onUpdate }: LeadDrawerProps)
                   </div>
                 )}
               </div>
+
+              {/* Mini-Kanban - Mover para outra coluna */}
+              {kanbanColumns.length > 0 && (
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <ArrowRight className="w-4 h-4" />
+                    Mover para:
+                  </h4>
+                  <div className="flex gap-2 flex-wrap">
+                    {kanbanColumns.map((col: any) => {
+                      const isCurrent = lead.kanbanColumn?.id === col.id
+                      return (
+                        <button
+                          key={col.id}
+                          onClick={() => handleMoveColumn(col.id)}
+                          disabled={isCurrent || movingColumn}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                            isCurrent
+                              ? 'border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed'
+                              : 'hover:scale-105 hover:shadow-md'
+                          }`}
+                          style={{
+                            borderColor: isCurrent ? undefined : col.color || '#6b7280',
+                            color: isCurrent ? undefined : col.color || '#6b7280',
+                            backgroundColor: isCurrent ? undefined : `${col.color || '#6b7280'}10`,
+                          }}
+                        >
+                          {isCurrent && '✓ '}
+                          {col.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {movingColumn && (
+                    <p className="text-sm text-gray-500 mt-2">Movendo lead...</p>
+                  )}
+                </div>
+              )}
 
               {/* Agent Info */}
               {lead.corretor && (
