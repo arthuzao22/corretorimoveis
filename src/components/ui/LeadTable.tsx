@@ -54,6 +54,8 @@ interface Lead {
 interface LeadTableProps {
   leads: Lead[]
   onLeadClick?: (lead: Lead) => void
+  selectedLeads?: string[]
+  onSelectionChange?: (selectedIds: string[]) => void
 }
 
 // Helper to get initials from name
@@ -99,7 +101,7 @@ const TemperaturaIndicator = ({ temperatura }: { temperatura?: string }) => {
   )
 }
 
-export function LeadTable({ leads, onLeadClick }: LeadTableProps) {
+export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionChange }: LeadTableProps) {
   if (leads.length === 0) {
     return (
       <div className="text-center py-12">
@@ -108,6 +110,27 @@ export function LeadTable({ leads, onLeadClick }: LeadTableProps) {
       </div>
     )
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (!onSelectionChange) return
+    if (checked) {
+      onSelectionChange(leads.map(l => l.id))
+    } else {
+      onSelectionChange([])
+    }
+  }
+
+  const handleSelectOne = (leadId: string, checked: boolean) => {
+    if (!onSelectionChange) return
+    if (checked) {
+      onSelectionChange([...selectedLeads, leadId])
+    } else {
+      onSelectionChange(selectedLeads.filter(id => id !== leadId))
+    }
+  }
+
+  const allSelected = onSelectionChange && leads.length > 0 && selectedLeads.length === leads.length
+  const someSelected = onSelectionChange && selectedLeads.length > 0 && selectedLeads.length < leads.length
 
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return '-'
@@ -141,6 +164,19 @@ export function LeadTable({ leads, onLeadClick }: LeadTableProps) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">
+            {onSelectionChange && (
+              <th className="py-3 px-4 w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={input => {
+                    if (input) input.indeterminate = someSelected || false
+                  }}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                />
+              </th>
+            )}
             <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Cliente</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Temperatura</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Score</th>
@@ -159,8 +195,19 @@ export function LeadTable({ leads, onLeadClick }: LeadTableProps) {
             return (
               <tr 
                 key={lead.id} 
-                className={`hover:bg-gray-50 transition-colors ${attention ? 'bg-orange-50' : ''}`}
+                className={`hover:bg-gray-50 transition-colors ${attention ? 'bg-orange-50' : ''} ${selectedLeads.includes(lead.id) ? 'bg-purple-50' : ''}`}
               >
+                {onSelectionChange && (
+                  <td className="py-4 px-4 w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedLeads.includes(lead.id)}
+                      onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                )}
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
                     {/* Avatar with initials */}
