@@ -102,6 +102,9 @@ const TemperaturaIndicator = ({ temperatura }: { temperatura?: string }) => {
 }
 
 export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionChange }: LeadTableProps) {
+  // Constants
+  const ATTENTION_THRESHOLD_DAYS = 3 // Days without interaction before highlighting
+  
   if (leads.length === 0) {
     return (
       <div className="text-center py-12">
@@ -138,14 +141,14 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
   }
 
-  // Check if lead needs attention (no interaction for 3+ days)
+  // Check if lead needs attention (no interaction for ATTENTION_THRESHOLD_DAYS)
   const needsAttention = (lead: Lead) => {
     const lastInteraction = lead.ultimaInteracao || lead.dataContato || lead.createdAt
     if (!lastInteraction) return false
     
     const date = typeof lastInteraction === 'string' ? new Date(lastInteraction) : lastInteraction
     const daysSince = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
-    return daysSince >= 3
+    return daysSince >= ATTENTION_THRESHOLD_DAYS
   }
 
   // Get next upcoming event
@@ -288,22 +291,26 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
                     {/* Quick action buttons */}
-                    <a
-                      href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="WhatsApp"
-                      className="p-1.5 hover:bg-green-50 rounded transition-colors"
-                    >
-                      <MessageCircle className="w-4 h-4 text-green-600" />
-                    </a>
-                    <a
-                      href={`tel:${lead.phone}`}
-                      title="Ligar"
-                      className="p-1.5 hover:bg-blue-50 rounded transition-colors"
-                    >
-                      <Phone className="w-4 h-4 text-blue-600" />
-                    </a>
+                    {lead.phone && (
+                      <>
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="WhatsApp"
+                          className="p-1.5 hover:bg-green-50 rounded transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4 text-green-600" />
+                        </a>
+                        <a
+                          href={`tel:${lead.phone}`}
+                          title="Ligar"
+                          className="p-1.5 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Phone className="w-4 h-4 text-blue-600" />
+                        </a>
+                      </>
+                    )}
                     {lead.email && (
                       <a
                         href={`mailto:${lead.email}`}
