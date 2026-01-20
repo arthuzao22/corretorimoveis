@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon, ArrowRight } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon, ArrowRight, MapPin, Sparkles, History, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
@@ -14,7 +14,7 @@ import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
 import { addTimelineEntry } from '@/server/actions/timeline'
 import { moveLeadToColumn } from '@/server/actions/kanban'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 interface Lead {
@@ -87,7 +87,8 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
   const [availableImoveis, setAvailableImoveis] = useState<Array<{ id: string; titulo: string }>>([])
   const [loadingImoveis, setLoadingImoveis] = useState(false)
   const [movingColumn, setMovingColumn] = useState(false)
-  
+  const [activeTab, setActiveTab] = useState<'details' | 'events' | 'history'>('details')
+
   const [editData, setEditData] = useState({
     priority: lead.priority,
     description: lead.description || '',
@@ -99,7 +100,6 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
     if (isOpen) {
       loadTimeline()
       loadAvailableImoveis()
-      // Reset form when opening
       setEditData({
         priority: lead.priority,
         description: lead.description || '',
@@ -108,6 +108,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
       })
       setIsEditing(false)
       setShowEventForm(false)
+      setActiveTab('details')
     }
   }, [isOpen, lead])
 
@@ -176,15 +177,14 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
       })
 
       const data = await response.json()
-      
+
       if (data.success) {
-        // Add timeline entry
         await addTimelineEntry(
           lead.id,
           'EVENT_SCHEDULED',
           `Evento agendado: ${eventData.tipo} para ${new Date(eventData.dataHora).toLocaleDateString('pt-BR')}`
         )
-        
+
         setShowEventForm(false)
         onUpdate?.()
         loadTimeline()
@@ -225,311 +225,376 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
 
   const upcomingEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) > new Date()) || []
   const overdueEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) <= new Date()) || []
+  const completedEvents = lead.eventos?.filter(e => e.completed) || []
+
+  const priorityColors: Record<LeadPriority, string> = {
+    BAIXA: 'bg-blue-500',
+    MEDIA: 'bg-yellow-500',
+    ALTA: 'bg-orange-500',
+    URGENTE: 'bg-red-500',
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
-      {/* Modal Container - Trello Style */}
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-gray-200">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <User className="w-6 h-6 text-indigo-600" />
-              <h2 className="text-2xl font-bold text-gray-900">{lead.name}</h2>
-            </div>
-            
-            {/* Status Badge and Column Mover */}
-            {lead.kanbanColumn && columns && columns.length > 0 && (
-              <div className="mt-2">
-                <span className="text-sm text-gray-600 block mb-2">Coluna atual:</span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {columns.map(column => (
-                    <button
-                      key={column.id}
-                      onClick={() => handleColumnMove(column.id)}
-                      disabled={movingColumn || column.id === lead.kanbanColumn?.id}
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                        column.id === lead.kanbanColumn?.id
-                          ? 'text-white ring-2 ring-offset-2'
-                          : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-                      } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                      style={
-                        column.id === lead.kanbanColumn?.id
-                          ? { backgroundColor: column.color || '#6b7280', '--tw-ring-color': column.color || '#6b7280' } as React.CSSProperties
-                          : {}
-                      }
-                    >
-                      {column.name}
-                      {column.id !== lead.kanbanColumn?.id && !movingColumn && (
-                        <ArrowRight className="w-3 h-3 ml-1" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                {movingColumn && (
-                  <p className="text-xs text-gray-500 mt-1">Movendo lead...</p>
-                )}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      {/* Modal Container */}
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+
+        {/* Left Sidebar - Lead Info */}
+        <div className="w-80 bg-gradient-to-br from-slate-50 to-slate-100 border-r border-slate-200 flex flex-col">
+          {/* Header with Priority Indicator */}
+          <div className="p-6 border-b border-slate-200/60">
+            <div className="flex items-start gap-3">
+              <div className={`w-12 h-12 rounded-xl ${priorityColors[lead.priority]} flex items-center justify-center shadow-lg`}>
+                <User className="w-6 h-6 text-white" />
               </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold text-slate-800 truncate">{lead.name}</h2>
+                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                  <Clock className="w-3 h-3" />
+                  {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true, locale: ptBR })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Info */}
+          <div className="p-4 space-y-2">
+            <a
+              href={`tel:${lead.phone}`}
+              className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200/60 hover:border-indigo-300 hover:shadow-sm transition-all group"
+            >
+              <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+                <Phone className="w-4 h-4 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-500">Telefone</p>
+                <p className="text-sm font-medium text-slate-700 truncate group-hover:text-indigo-600 transition-colors">{lead.phone}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400" />
+            </a>
+
+            {lead.email && (
+              <a
+                href={`mailto:${lead.email}`}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200/60 hover:border-indigo-300 hover:shadow-sm transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Mail className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-500">Email</p>
+                  <p className="text-sm font-medium text-slate-700 truncate group-hover:text-indigo-600 transition-colors">{lead.email}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400" />
+              </a>
             )}
           </div>
-          
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
 
-        {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Main Info Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column - Contact Info */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Informações de Contato
-                </h3>
-                
-                <div className="space-y-2 bg-gray-50 rounded-lg p-4">
-                  {lead.email && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">
-                        {lead.email}
-                      </a>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <a href={`tel:${lead.phone}`} className="text-blue-600 hover:underline">
-                      {lead.phone}
-                    </a>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4 text-gray-500" />
-                    Criado {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true, locale: ptBR })}
+          {/* Property Card */}
+          {lead.imovel && (
+            <div className="px-4 pb-4">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+                <div className="flex items-start gap-2 mb-2">
+                  <Building2 className="w-4 h-4 mt-0.5 opacity-80" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs opacity-80">Interesse em</p>
+                    <p className="font-semibold truncate">{lead.imovel.titulo}</p>
                   </div>
                 </div>
+                {(lead.imovel.cidade || lead.imovel.endereco) && (
+                  <p className="text-xs opacity-80 flex items-center gap-1 mt-2">
+                    <MapPin className="w-3 h-3" />
+                    {lead.imovel.cidade || lead.imovel.endereco}
+                  </p>
+                )}
+                {lead.imovel.valor && (
+                  <p className="text-xl font-bold mt-3">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(lead.imovel.valor)}
+                  </p>
+                )}
               </div>
+            </div>
+          )}
 
-              {/* Initial Message */}
-              {lead.message && (
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Mensagem Inicial</h4>
-                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-gray-700">
-                    {lead.message}
-                  </div>
-                </div>
+          {/* Column Selector */}
+          {columns && columns.length > 0 && (
+            <div className="px-4 pb-4">
+              <p className="text-xs font-medium text-slate-500 mb-2 px-1">Mover para:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {columns.map(column => (
+                  <button
+                    key={column.id}
+                    onClick={() => handleColumnMove(column.id)}
+                    disabled={movingColumn || column.id === lead.kanbanColumn?.id}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${column.id === lead.kanbanColumn?.id
+                      ? 'text-white shadow-md scale-105'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
+                      } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    style={
+                      column.id === lead.kanbanColumn?.id
+                        ? { backgroundColor: column.color || '#6b7280' }
+                        : {}
+                    }
+                  >
+                    {column.name}
+                  </button>
+                ))}
+              </div>
+              {movingColumn && (
+                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Movendo...
+                </p>
               )}
             </div>
-
-            {/* Right Column - Property Info */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  Imóvel de Interesse
-                </h3>
-                
-                {isEditing ? (
-                  <select
-                    value={editData.imovelId}
-                    onChange={(e) => setEditData({ ...editData, imovelId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Nenhum imóvel vinculado</option>
-                    {availableImoveis.map((imovel) => (
-                      <option key={imovel.id} value={imovel.id}>
-                        {imovel.titulo}
-                      </option>
-                    ))}
-                  </select>
-                ) : lead.imovel ? (
-                  <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">{lead.imovel.titulo}</h4>
-                    {lead.imovel.endereco && (
-                      <p className="text-sm text-gray-600 mb-1">{lead.imovel.endereco}</p>
-                    )}
-                    {(lead.imovel.cidade || lead.imovel.estado) && (
-                      <p className="text-sm text-gray-600">
-                        {lead.imovel.cidade}{lead.imovel.cidade && lead.imovel.estado && ' - '}{lead.imovel.estado}
-                      </p>
-                    )}
-                    {lead.imovel.valor && (
-                      <p className="text-lg font-bold text-green-600 mt-2">
-                        R$ {lead.imovel.valor.toLocaleString('pt-BR')}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-sm text-gray-500">
-                    Nenhum imóvel vinculado
-                  </div>
-                )}
-              </div>
-
-              {/* Priority */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Prioridade</h4>
-                {isEditing ? (
-                  <select
-                    value={editData.priority}
-                    onChange={(e) => setEditData({ ...editData, priority: e.target.value as LeadPriority })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="BAIXA">Baixa</option>
-                    <option value="MEDIA">Média</option>
-                    <option value="ALTA">Alta</option>
-                    <option value="URGENTE">Urgente</option>
-                  </select>
-                ) : (
-                  <PriorityBadge priority={lead.priority} />
-                )}
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Tags */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              Tags
-            </h3>
+          <div className="px-4 pb-4 mt-auto">
+            <p className="text-xs font-medium text-slate-500 mb-2 px-1 flex items-center gap-1">
+              <Tag className="w-3 h-3" /> Tags
+            </p>
             <TagManager leadId={lead.id} currentTags={lead.tags || []} onUpdate={onUpdate} />
           </div>
 
-          {/* Description */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Descrição</h3>
-            {isEditing ? (
-              <textarea
-                value={editData.description}
-                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
-                placeholder="Adicione detalhes sobre o lead..."
-              />
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 min-h-[100px]">
-                {lead.description || <span className="text-gray-400">Nenhuma descrição</span>}
-              </div>
-            )}
-          </div>
-
-          {/* Notes */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Anotações</h3>
-            {isEditing ? (
-              <textarea
-                value={editData.anotacoes}
-                onChange={(e) => setEditData({ ...editData, anotacoes: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[80px]"
-                placeholder="Anotações internas..."
-              />
-            ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-gray-700 min-h-[80px]">
-                {lead.anotacoes || <span className="text-gray-400">Nenhuma anotação</span>}
-              </div>
-            )}
-          </div>
-
-          {/* Events */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Eventos ({(lead.eventos?.length || 0)})
-              </h3>
-              {!showEventForm && (
-                <Button 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => setShowEventForm(true)}
-                  type="button"
-                >
-                  <Plus className="w-4 h-4" />
-                  Criar Evento
-                </Button>
-              )}
+          {/* Footer */}
+          {lead.corretor && (
+            <div className="p-4 border-t border-slate-200/60 bg-white/50">
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Corretor</p>
+              <p className="text-sm font-medium text-slate-700">{lead.corretor.user.name}</p>
             </div>
-
-            {/* Event Creation Form */}
-            {showEventForm && (
-              <div className="mb-4">
-                <QuickEventForm
-                  leadId={lead.id}
-                  leadName={lead.name}
-                  onSave={handleEventSave}
-                  onCancel={() => setShowEventForm(false)}
-                  imoveis={availableImoveis}
-                />
-              </div>
-            )}
-
-            {overdueEvents.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-red-600 mb-2">Atrasados</p>
-                <div className="space-y-2">
-                  {overdueEvents.map(evento => (
-                    <EventCard key={evento.id} evento={evento as any} variant="compact" />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {upcomingEvents.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-blue-600 mb-2">Próximos</p>
-                <div className="space-y-2">
-                  {upcomingEvents.map(evento => (
-                    <EventCard key={evento.id} evento={evento as any} variant="compact" />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {lead.eventos?.length === 0 && !showEventForm && (
-              <p className="text-sm text-gray-500 text-center py-4">
-                Nenhum evento agendado
-              </p>
-            )}
-          </div>
-
-          {/* Timeline */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Histórico</h3>
-            <LeadTimeline timeline={timeline} loading={loadingTimeline} />
-          </div>
+          )}
         </div>
 
-        {/* Footer - Actions */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-          <div>
-            {lead.corretor && (
-              <p className="text-xs text-gray-500">
-                Corretor: <span className="font-medium">{lead.corretor.user.name}</span>
-              </p>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Bar with Tabs and Close */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+              {[
+                { id: 'details', label: 'Detalhes', icon: Sparkles },
+                { id: 'events', label: `Eventos (${(lead.eventos?.length || 0)})`, icon: Calendar },
+                { id: 'history', label: 'Histórico', icon: History },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {activeTab === 'details' && (
+              <div className="space-y-6">
+                {/* Initial Message */}
+                {lead.message && (
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="w-4 h-4 text-blue-500" />
+                      <h4 className="text-sm font-semibold text-blue-800">Mensagem Inicial</h4>
+                    </div>
+                    <p className="text-sm text-slate-700 leading-relaxed">{lead.message}</p>
+                  </div>
+                )}
+
+                {/* Priority */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Prioridade</label>
+                  {isEditing ? (
+                    <div className="flex gap-2">
+                      {(['BAIXA', 'MEDIA', 'ALTA', 'URGENTE'] as LeadPriority[]).map(p => (
+                        <button
+                          key={p}
+                          onClick={() => setEditData({ ...editData, priority: p })}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${editData.priority === p
+                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          {p === 'BAIXA' && 'Baixa'}
+                          {p === 'MEDIA' && 'Média'}
+                          {p === 'ALTA' && 'Alta'}
+                          {p === 'URGENTE' && 'Urgente'}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <PriorityBadge priority={lead.priority} />
+                  )}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Descrição</label>
+                  {isEditing ? (
+                    <textarea
+                      value={editData.description}
+                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[120px] text-sm resize-none transition-all"
+                      placeholder="Adicione detalhes sobre o lead..."
+                    />
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-xl text-sm text-slate-700 min-h-[80px] border border-slate-100">
+                      {lead.description || <span className="text-slate-400 italic">Nenhuma descrição</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Anotações Internas</label>
+                  {isEditing ? (
+                    <textarea
+                      value={editData.anotacoes}
+                      onChange={(e) => setEditData({ ...editData, anotacoes: e.target.value })}
+                      className="w-full px-4 py-3 border border-amber-200 bg-amber-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent min-h-[100px] text-sm resize-none transition-all"
+                      placeholder="Anotações privadas..."
+                    />
+                  ) : (
+                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-sm text-slate-700 min-h-[60px]">
+                      {lead.anotacoes || <span className="text-slate-400 italic">Nenhuma anotação</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Property Selection (Edit Mode) */}
+                {isEditing && (
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Imóvel de Interesse</label>
+                    <select
+                      value={editData.imovelId}
+                      onChange={(e) => setEditData({ ...editData, imovelId: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white"
+                    >
+                      <option value="">Nenhum imóvel vinculado</option>
+                      {availableImoveis.map((imovel) => (
+                        <option key={imovel.id} value={imovel.id}>
+                          {imovel.titulo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'events' && (
+              <div className="space-y-6">
+                {/* Create Event Button / Form */}
+                {!showEventForm ? (
+                  <button
+                    onClick={() => setShowEventForm(true)}
+                    className="w-full p-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-indigo-300 hover:text-indigo-500 transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Agendar Novo Evento
+                  </button>
+                ) : (
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <QuickEventForm
+                      leadId={lead.id}
+                      leadName={lead.name}
+                      onSave={handleEventSave}
+                      onCancel={() => setShowEventForm(false)}
+                      imoveis={availableImoveis}
+                      defaultImovel={lead.imovel ? { id: lead.imovel.id, titulo: lead.imovel.titulo } : null}
+                    />
+                  </div>
+                )}
+
+                {/* Overdue Events */}
+                {overdueEvents.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      Atrasados ({overdueEvents.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {overdueEvents.map(evento => (
+                        <EventCard key={evento.id} evento={evento as any} variant="compact" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upcoming Events */}
+                {upcomingEvents.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Próximos ({upcomingEvents.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {upcomingEvents.map(evento => (
+                        <EventCard key={evento.id} evento={evento as any} variant="compact" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Completed Events */}
+                {completedEvents.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Concluídos ({completedEvents.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {completedEvents.map(evento => (
+                        <EventCard key={evento.id} evento={evento as any} variant="compact" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {lead.eventos?.length === 0 && !showEventForm && (
+                  <div className="text-center py-12 text-slate-400">
+                    <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">Nenhum evento agendado</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'history' && (
+              <LeadTimeline timeline={timeline} loading={loadingTimeline} />
             )}
           </div>
-          
-          <div className="flex gap-3">
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50">
             {isEditing ? (
               <>
                 <Button
                   variant="secondary"
                   onClick={() => setIsEditing(false)}
                   disabled={saving}
+                  className="px-5"
                 >
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                 >
                   {saving ? (
                     <>
@@ -539,7 +604,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Salvar
+                      Salvar Alterações
                     </>
                   )}
                 </Button>
@@ -547,10 +612,10 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
             ) : (
               <Button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-5"
               >
                 <Edit2 className="w-4 h-4" />
-                Editar
+                Editar Lead
               </Button>
             )}
           </div>
@@ -559,3 +624,4 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
     </div>
   )
 }
+

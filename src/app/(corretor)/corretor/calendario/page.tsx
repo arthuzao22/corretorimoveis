@@ -130,14 +130,14 @@ export default function CalendarioPage() {
         prev.map((e) => (e.id === viewingEvento.id ? updated : e))
       )
       setViewingEvento(null)
-      
+
       // Add timeline entry
       await addTimelineEntry(
         viewingEvento.lead.id,
         'EVENT_COMPLETED',
         `Evento concluído: ${viewingEvento.tipo}`
       )
-      
+
       showFeedback('success', 'Evento marcado como concluído')
     } else {
       showFeedback('error', 'Erro ao marcar evento como concluído')
@@ -170,14 +170,14 @@ export default function CalendarioPage() {
       if (created) {
         setEventos((prev) => [...prev, created])
         setIsModalOpen(false)
-        
+
         // Add timeline entry
         await addTimelineEntry(
           data.leadId,
           'EVENT_SCHEDULED',
           `Evento agendado: ${data.tipo} para ${new Date(data.dataHora).toLocaleDateString('pt-BR')}`
         )
-        
+
         showFeedback('success', 'Evento criado com sucesso')
       } else {
         showFeedback('error', 'Erro ao criar evento')
@@ -237,11 +237,10 @@ export default function CalendarioPage() {
       {/* Feedback Messages */}
       {feedbackMessage && (
         <div
-          className={`mb-6 p-4 rounded-lg ${
-            feedbackMessage.type === 'success'
+          className={`mb-6 p-4 rounded-lg ${feedbackMessage.type === 'success'
               ? 'bg-green-50 text-green-800 border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+            }`}
         >
           {feedbackMessage.message}
         </div>
@@ -286,87 +285,122 @@ export default function CalendarioPage() {
 
       {/* Event Details Modal */}
       {viewingEvento && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={(e) => e.target === e.currentTarget && handleCloseViewing()}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 overflow-hidden">
+            {/* Header with Event Type */}
+            <div className={`p-6 ${viewingEvento.tipo === 'URGENTE' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+                viewingEvento.tipo === 'VISITA' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                  viewingEvento.tipo === 'REUNIAO' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                    'bg-gradient-to-r from-amber-500 to-orange-500'
+              } text-white`}>
+              <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Detalhes do Evento</h2>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getEventTypeColor(viewingEvento.tipo)} text-white`}>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm mb-3">
                     {getEventTypeLabel(viewingEvento.tipo)}
                   </span>
-                </div>
-                <button
-                  onClick={handleCloseViewing}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Data e Hora</label>
-                  <p className="text-lg text-gray-900">
+                  <h2 className="text-2xl font-bold">Detalhes do Evento</h2>
+                  <p className="text-white/80 mt-1">
                     {new Date(viewingEvento.dataHora).toLocaleString('pt-BR', {
                       dateStyle: 'long',
                       timeStyle: 'short',
                     })}
                   </p>
                 </div>
+                <button
+                  onClick={handleCloseViewing}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <Plus className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
+            </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Lead</label>
-                  <p className="text-lg text-gray-900">{viewingEvento.lead.name}</p>
-                  {viewingEvento.lead.phone && (
-                    <p className="text-sm text-gray-600">{viewingEvento.lead.phone}</p>
-                  )}
-                  {viewingEvento.lead.email && (
-                    <p className="text-sm text-gray-600">{viewingEvento.lead.email}</p>
-                  )}
+            {/* Content */}
+            <div className="p-6 space-y-5">
+              {/* Lead Info */}
+              <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                  <CalendarIcon className="w-6 h-6 text-indigo-600" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Lead</p>
+                  <p className="text-lg font-bold text-slate-800">{viewingEvento.lead.name}</p>
+                  <div className="flex flex-wrap gap-3 mt-2">
+                    {viewingEvento.lead.phone && (
+                      <a href={`tel:${viewingEvento.lead.phone}`} className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                        📞 {viewingEvento.lead.phone}
+                      </a>
+                    )}
+                    {viewingEvento.lead.email && (
+                      <a href={`mailto:${viewingEvento.lead.email}`} className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                        ✉️ {viewingEvento.lead.email}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Imóvel</label>
-                  <p className="text-lg text-gray-900">{viewingEvento.imovel?.titulo ?? 'Sem título'}</p>
-                  <p className="text-sm text-gray-600">
+              {/* Property Info */}
+              <div className="p-4 border border-slate-200 rounded-xl">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Imóvel</p>
+                <p className="text-lg font-semibold text-slate-800">{viewingEvento.imovel?.titulo ?? 'Sem título'}</p>
+                {(viewingEvento.imovel?.endereco || viewingEvento.imovel?.cidade) && (
+                  <p className="text-sm text-slate-500 mt-1">
                     {viewingEvento.imovel?.endereco ?? ''}{viewingEvento.imovel?.cidade ? `, ${viewingEvento.imovel.cidade}` : ''}{viewingEvento.imovel?.estado ? ` - ${viewingEvento.imovel.estado}` : ''}
                   </p>
-                  {viewingEvento.imovel?.valor != null && (
-                    <p className="text-sm font-medium text-green-600 mt-1">
-                      R$ {Number(viewingEvento.imovel.valor).toLocaleString('pt-BR')}
-                    </p>
-                  )}
+                )}
+                {viewingEvento.imovel?.valor != null && (
+                  <p className="text-lg font-bold text-emerald-600 mt-2">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(Number(viewingEvento.imovel.valor))}
+                  </p>
+                )}
+              </div>
+
+              {/* Observation */}
+              {viewingEvento.observacao && (
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                  <p className="text-xs font-medium text-amber-700 uppercase tracking-wider mb-2">Observação</p>
+                  <p className="text-slate-700">{viewingEvento.observacao}</p>
                 </div>
+              )}
 
-                {viewingEvento.observacao && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Observação</label>
-                    <p className="text-gray-900">{viewingEvento.observacao}</p>
-                  </div>
-                )}
+              {/* Completed Badge */}
+              {viewingEvento.completed && (
+                <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <CheckCircle className="w-6 h-6 text-emerald-600" />
+                  <span className="text-emerald-800 font-semibold">Evento concluído</span>
+                </div>
+              )}
+            </div>
 
-                {viewingEvento.completed && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-green-700 font-medium">Evento concluído</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end mt-6 pt-6 border-t">
-                <Button variant="danger" onClick={handleDeleteClick} className="flex items-center gap-2">
-                  <Trash2 size={16} />
-                  Excluir
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50">
+              <Button
+                variant="danger"
+                onClick={handleDeleteClick}
+                className="flex items-center gap-2"
+              >
+                <Trash2 size={16} />
+                Excluir
+              </Button>
+              {!viewingEvento.completed && (
+                <Button
+                  onClick={handleCompleteEvent}
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <CheckCircle size={16} />
+                  Marcar Concluído
                 </Button>
-                {!viewingEvento.completed && (
-                  <Button onClick={handleCompleteEvent} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-                    <CheckCircle size={16} />
-                    Marcar como Concluído
-                  </Button>
-                )}
-                <Button onClick={handleEditClick}>Editar</Button>
-              </div>
+              )}
+              <Button
+                onClick={handleEditClick}
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              >
+                Editar
+              </Button>
             </div>
           </div>
         </div>

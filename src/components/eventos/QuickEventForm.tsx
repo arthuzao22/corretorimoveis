@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Save, Loader2, Calendar as CalendarIcon, Clock } from 'lucide-react'
+import { X, Save, Loader2, Calendar as CalendarIcon, Clock, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { EventoTipo } from '@prisma/client'
 
@@ -17,6 +17,8 @@ interface QuickEventFormProps {
   }) => Promise<void>
   onCancel: () => void
   imoveis: Array<{ id: string; titulo: string }>
+  /** If the lead already has an associated property, pass it here to skip the selection */
+  defaultImovel?: { id: string; titulo: string } | null
 }
 
 const EVENT_TYPES: Array<{
@@ -24,17 +26,21 @@ const EVENT_TYPES: Array<{
   label: string
   color: string
 }> = [
-  { value: 'VISITA', label: 'Visita', color: 'bg-blue-500' },
-  { value: 'ACOMPANHAMENTO', label: 'Follow-up', color: 'bg-yellow-500' },
-  { value: 'REUNIAO', label: 'Reunião', color: 'bg-green-500' },
-  { value: 'URGENTE', label: 'Urgente', color: 'bg-red-500' },
-]
+    { value: 'VISITA', label: 'Visita', color: 'bg-blue-500' },
+    { value: 'ACOMPANHAMENTO', label: 'Follow-up', color: 'bg-yellow-500' },
+    { value: 'REUNIAO', label: 'Reunião', color: 'bg-green-500' },
+    { value: 'URGENTE', label: 'Urgente', color: 'bg-red-500' },
+  ]
 
-export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: QuickEventFormProps) {
+export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis, defaultImovel }: QuickEventFormProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // If lead has an associated property, use it as default
+  const hasDefaultImovel = !!defaultImovel?.id
+
   const [formData, setFormData] = useState({
-    imovelId: '',
+    imovelId: defaultImovel?.id || '',
     tipo: 'VISITA' as EventoTipo,
     dataHora: '',
     observacao: '',
@@ -42,7 +48,7 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.imovelId || !formData.dataHora) {
       setError('Preencha todos os campos obrigatórios')
       return
@@ -59,10 +65,10 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: 
         dataHora: formData.dataHora,
         observacao: formData.observacao,
       })
-      
+
       // Reset form
       setFormData({
-        imovelId: '',
+        imovelId: defaultImovel?.id || '',
         tipo: 'VISITA',
         dataHora: '',
         observacao: '',
@@ -109,11 +115,10 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: 
                 key={eventType.value}
                 type="button"
                 onClick={() => setFormData({ ...formData, tipo: eventType.value })}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  formData.tipo === eventType.value
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${formData.tipo === eventType.value
                     ? `${eventType.color} text-white shadow-md`
                     : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
-                }`}
+                  }`}
               >
                 {eventType.label}
               </button>
@@ -121,25 +126,35 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: 
           </div>
         </div>
 
-        {/* Property */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
-            Imóvel *
-          </label>
-          <select
-            value={formData.imovelId}
-            onChange={(e) => setFormData({ ...formData, imovelId: e.target.value })}
-            required
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          >
-            <option value="">Selecione um imóvel</option>
-            {imoveis.map((imovel) => (
-              <option key={imovel.id} value={imovel.id}>
-                {imovel.titulo}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Property - Show only if lead doesn't have a default property */}
+        {hasDefaultImovel ? (
+          <div className="flex items-center gap-2 p-3 bg-white border border-indigo-100 rounded-lg">
+            <Building2 className="w-4 h-4 text-indigo-500" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Imóvel</p>
+              <p className="text-sm font-medium text-gray-800 truncate">{defaultImovel.titulo}</p>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              Imóvel *
+            </label>
+            <select
+              value={formData.imovelId}
+              onChange={(e) => setFormData({ ...formData, imovelId: e.target.value })}
+              required
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Selecione um imóvel</option>
+              {imoveis.map((imovel) => (
+                <option key={imovel.id} value={imovel.id}>
+                  {imovel.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Date/Time */}
         <div>
@@ -206,3 +221,4 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis }: 
     </div>
   )
 }
+
