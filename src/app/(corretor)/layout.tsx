@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/ui/Sidebar'
+import { GlobalSearchProvider } from '@/components/search/GlobalSearchProvider'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,11 +18,13 @@ export default async function CorretorLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar userName={session.user.name || 'Usuário'} />
-      <main className="ml-64 p-8">
-        {children}
-      </main>
-    </div>
+    <GlobalSearchProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Sidebar userName={session.user.name || 'Usuário'} />
+        <main className="ml-64 p-8">
+          {children}
+        </main>
+      </div>
+    </GlobalSearchProvider>
   )
 }

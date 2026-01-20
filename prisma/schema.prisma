@@ -218,11 +218,12 @@ model CorretorProfile {
   updatedAt    DateTime @updatedAt
 
   // Relacionamentos
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cidadeRef     Cidade?        @relation(fields: [cidadeId], references: [id], onDelete: SetNull)
-  imoveis       Imovel[]
-  leads         Lead[]
-  landingBlocos LandingBloco[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cidadeRef        Cidade?           @relation(fields: [cidadeId], references: [id], onDelete: SetNull)
+  imoveis          Imovel[]
+  leads            Lead[]
+  landingBlocos    LandingBloco[]
+  messageTemplates MessageTemplate[]
 
   @@index([slug])
   @@index([cidadeId])
@@ -432,3 +433,33 @@ model LeadTag {
   @@index([tagId])
   @@map("lead_tags")
 }
+
+// =============================================
+// MESSAGE TEMPLATES
+// =============================================
+
+enum MessageTemplateCategoria {
+  BOAS_VINDAS
+  ACOMPANHAMENTO
+  AGENDAMENTO
+  POS_VISITA
+  OUTRO
+}
+
+model MessageTemplate {
+  id         String                     @id @default(cuid())
+  corretorId String
+  nome       String
+  mensagem   String                     @db.Text
+  categoria  MessageTemplateCategoria   @default(OUTRO)
+  createdAt  DateTime                   @default(now())
+  updatedAt  DateTime                   @updatedAt
+
+  // Relacionamentos
+  corretor CorretorProfile @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+
+  @@index([corretorId])
+  @@index([categoria])
+  @@map("message_templates")
+}
+
