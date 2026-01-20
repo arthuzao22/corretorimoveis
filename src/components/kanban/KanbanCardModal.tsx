@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon, ArrowRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
@@ -13,6 +13,7 @@ import { QuickEventForm } from '@/components/eventos/QuickEventForm'
 import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
 import { addTimelineEntry } from '@/server/actions/timeline'
+import { moveLeadToColumn } from '@/server/actions/kanban'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -70,9 +71,14 @@ interface KanbanCardModalProps {
   isOpen: boolean
   onClose: () => void
   onUpdate?: () => void
+  columns?: Array<{
+    id: string
+    name: string
+    color: string | null
+  }>
 }
 
-export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardModalProps) {
+export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: KanbanCardModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [timeline, setTimeline] = useState<any[]>([])
@@ -80,6 +86,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
   const [showEventForm, setShowEventForm] = useState(false)
   const [availableImoveis, setAvailableImoveis] = useState<Array<{ id: string; titulo: string }>>([])
   const [loadingImoveis, setLoadingImoveis] = useState(false)
+  const [movingColumn, setMovingColumn] = useState(false)
   
   const [editData, setEditData] = useState({
     priority: lead.priority,
@@ -190,6 +197,30 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
     }
   }
 
+  const handleColumnMove = async (targetColumnId: string) => {
+    if (targetColumnId === lead.kanbanColumn?.id || !targetColumnId) return
+
+    setMovingColumn(true)
+    try {
+      const result = await moveLeadToColumn({
+        leadId: lead.id,
+        columnId: targetColumnId
+      })
+
+      if (result.success) {
+        await loadTimeline()
+        onUpdate?.()
+      } else {
+        alert(result.error || 'Erro ao mover lead')
+      }
+    } catch (error) {
+      console.error('Error moving lead:', error)
+      alert('Erro ao mover lead')
+    } finally {
+      setMovingColumn(false)
+    }
+  }
+
   if (!isOpen) return null
 
   const upcomingEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) > new Date()) || []
@@ -207,16 +238,37 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate }: KanbanCardM
               <h2 className="text-2xl font-bold text-gray-900">{lead.name}</h2>
             </div>
             
-            {/* Status Badge */}
-            {lead.kanbanColumn && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-sm text-gray-600">Coluna:</span>
-                <span
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-                  style={{ backgroundColor: lead.kanbanColumn.color || '#6b7280' }}
-                >
-                  {lead.kanbanColumn.name}
-                </span>
+            {/* Status Badge and Column Mover */}
+            {lead.kanbanColumn && columns && columns.length > 0 && (
+              <div className="mt-2">
+                <span className="text-sm text-gray-600 block mb-2">Coluna atual:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {columns.map(column => (
+                    <button
+                      key={column.id}
+                      onClick={() => handleColumnMove(column.id)}
+                      disabled={movingColumn || column.id === lead.kanbanColumn?.id}
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                        column.id === lead.kanbanColumn?.id
+                          ? 'text-white ring-2 ring-offset-2'
+                          : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                      } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      style={
+                        column.id === lead.kanbanColumn?.id
+                          ? { backgroundColor: column.color || '#6b7280', '--tw-ring-color': column.color || '#6b7280' } as React.CSSProperties
+                          : {}
+                      }
+                    >
+                      {column.name}
+                      {column.id !== lead.kanbanColumn?.id && !movingColumn && (
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {movingColumn && (
+                  <p className="text-xs text-gray-500 mt-1">Movendo lead...</p>
+                )}
               </div>
             )}
           </div>

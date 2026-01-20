@@ -112,6 +112,7 @@ export async function getKanbanBoard(boardId?: string) {
               select: {
                 id: true,
                 titulo: true,
+                valor: true,
               }
             },
             corretor: {
