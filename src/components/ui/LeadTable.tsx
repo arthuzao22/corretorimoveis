@@ -224,7 +224,7 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
                           <span className="truncate">{lead.phone}</span>
                         )}
                         {attention && (
-                          <span className="text-orange-600 font-medium whitespace-nowrap">⚠️ Sem contato há 3+ dias</span>
+                          <span className="text-orange-600 font-medium whitespace-nowrap">⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias</span>
                         )}
                       </div>
                     </div>
