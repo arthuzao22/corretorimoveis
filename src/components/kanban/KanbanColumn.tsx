@@ -3,6 +3,8 @@
 import { memo, useCallback } from 'react'
 import { LeadCardMemo } from './LeadCard'
 import { LeadPriority, LeadStatus } from '@prisma/client'
+import { Droppable } from '@hello-pangea/dnd'
+import { MoreHorizontal, Plus } from 'lucide-react'
 
 interface LeadData {
   id: string
@@ -21,7 +23,7 @@ interface LeadData {
   imovel?: {
     id: string
     titulo: string
-    valor: any
+    valor: number
   } | null
   corretor: {
     id: string
@@ -29,11 +31,6 @@ interface LeadData {
       name: string
     }
   }
-  kanbanColumn?: {
-    id: string
-    name: string
-    color: string | null
-  } | null
   tags?: Array<{
     id: string
     tag: {
@@ -66,9 +63,6 @@ interface ColumnData {
 
 interface KanbanColumnProps {
   column: ColumnData
-  onDragStart: (lead: LeadData, columnId: string) => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: (columnId: string) => void
   onCardClick?: (lead: LeadData) => void
   isDragging: boolean
   isMoving: boolean
@@ -76,21 +70,10 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({
   column,
-  onDragStart,
-  onDragOver,
-  onDrop,
   onCardClick,
   isDragging,
   isMoving
 }: KanbanColumnProps) {
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    onDragOver(e)
-  }, [onDragOver])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    onDrop(column.id)
-  }, [onDrop, column.id])
 
   const bgColor = column.color || '#6B7280'
 
@@ -100,61 +83,77 @@ export function KanbanColumn({
   }, 0)
 
   return (
-    <div
-      className="flex-shrink-0 w-80 bg-gray-50 rounded-lg flex flex-col max-h-[calc(100vh-250px)]"
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
+    <div className="flex-shrink-0 w-80 flex flex-col h-full max-h-full">
       {/* Column Header */}
-      <div
-        className="px-4 py-3 rounded-t-lg"
-        style={{ backgroundColor: bgColor + '20', borderLeft: `4px solid ${bgColor}` }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{column.name}</h3>
-            <span
-              className="px-2 py-1 text-xs font-medium rounded-full"
-              style={{ backgroundColor: bgColor + '30', color: bgColor }}
-            >
-              {column.leadCount}
+      <div className="flex items-center justify-between p-3 mb-2 rounded-xl bg-white/50 backdrop-blur-sm border border-gray-100/50 shadow-sm group hover:bg-white/80 transition-colors">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-3 h-3 rounded-full shadow-sm ring-2 ring-white"
+            style={{ backgroundColor: bgColor }}
+          />
+          <div className="flex flex-col">
+            <h3 className="font-bold text-gray-800 text-sm">{column.name}</h3>
+            <span className="text-[10px] text-gray-500 font-medium">
+              {column.leadCount} {column.leadCount === 1 ? 'lead' : 'leads'}
+              {totalValue > 0 && (
+                <span className="ml-1 text-gray-400">
+                  • {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    notation: 'compact',
+                    compactDisplay: 'short'
+                  }).format(totalValue)}
+                </span>
+              )}
             </span>
           </div>
-          {column.isFinal && (
-            <span className="text-xs text-gray-500 font-medium">Final</span>
-          )}
         </div>
-        {/* Total Value */}
-        {totalValue > 0 && (
-          <div className="text-xs text-gray-600 font-medium">
-            Total: {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            }).format(totalValue)}
-          </div>
-        )}
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+            <Plus className="w-4 h-4" />
+          </button>
+          <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Leads Container */}
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto">
-        {column.leads.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 text-sm">
-            Nenhum lead nesta coluna
+      <Droppable droppableId={column.id}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`
+              flex-1 space-y-3 overflow-y-auto px-1 pb-4
+              transition-colors duration-200 rounded-xl
+              ${snapshot.isDraggingOver ? 'bg-indigo-50/50 ring-2 ring-indigo-100/50' : ''}
+            `}
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#CBD5E1 transparent'
+            }}
+          >
+            {column.leads.map((lead, index) => (
+              <LeadCardMemo
+                key={lead.id}
+                lead={lead}
+                index={index}
+                onClick={() => onCardClick?.(lead)}
+                isDisabled={isMoving}
+              />
+            ))}
+            {provided.placeholder}
+
+            {column.leads.length === 0 && !snapshot.isDraggingOver && (
+              <div className="h-24 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 text-xs font-medium bg-gray-50/50">
+                Solte um cartão aqui
+              </div>
+            )}
           </div>
-        ) : (
-          column.leads.map(lead => (
-            <LeadCardMemo
-              key={lead.id}
-              lead={lead}
-              onDragStart={() => onDragStart(lead, column.id)}
-              onClick={() => onCardClick?.(lead)}
-              isDisabled={isMoving}
-            />
-          ))
         )}
-      </div>
+      </Droppable>
     </div>
   )
 }

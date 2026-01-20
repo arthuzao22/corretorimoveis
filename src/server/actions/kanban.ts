@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { revalidatePath } from 'next/cache'
+import { serializeImovel } from '@/lib/utils/serializers'
 
 // =============================================
 // VALIDATION SCHEMAS
@@ -165,10 +166,16 @@ export async function getKanbanBoard(boardId?: string) {
           orderBy: { updatedAt: 'desc' }
         })
 
+        // Serialize leads to convert Decimal values
+        const serializedLeads = leads.map(lead => ({
+          ...lead,
+          imovel: lead.imovel ? serializeImovel(lead.imovel) : null
+        }))
+
         return {
           ...column,
-          leads,
-          leadCount: leads.length
+          leads: serializedLeads,
+          leadCount: serializedLeads.length
         }
       })
     )

@@ -6,6 +6,8 @@ import { KanbanCardModal } from './KanbanCardModal'
 import { moveLeadToColumn } from '@/server/actions/kanban'
 import { useRouter } from 'next/navigation'
 import { LeadPriority, LeadStatus } from '@prisma/client'
+import { DragDropContext, DropResult } from '@hello-pangea/dnd'
+import { Settings2, Search, Filter, X } from 'lucide-react'
 
 interface LeadData {
   id: string
@@ -24,7 +26,7 @@ interface LeadData {
   imovel?: {
     id: string
     titulo: string
-    valor: any
+    valor: number
   } | null
   corretor: {
     id: string
@@ -77,8 +79,6 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [board, setBoard] = useState(initialBoard)
-  const [draggedLead, setDraggedLead] = useState<LeadData | null>(null)
-  const [draggedFromColumn, setDraggedFromColumn] = useState<string | null>(null)
   const [isMoving, setIsMoving] = useState(false)
   const [selectedLead, setSelectedLead] = useState<LeadData | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -88,61 +88,60 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<LeadPriority | 'ALL'>('ALL')
   const [corretorFilter, setCorretorFilter] = useState<string>('ALL')
+  const [isFiltersVisible, setIsFiltersVisible] = useState(true)
 
-  const handleDragStart = useCallback((lead: LeadData, columnId: string) => {
-    setDraggedLead(lead)
-    setDraggedFromColumn(columnId)
-  }, [])
+  const onDragEnd = useCallback(async (result: DropResult) => {
+    const { destination, source, draggableId } = result
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const handleDrop = useCallback(async (targetColumnId: string) => {
-    if (!draggedLead || !draggedFromColumn || targetColumnId === draggedFromColumn) {
-      setDraggedLead(null)
-      setDraggedFromColumn(null)
+    // Dropped outside or no change
+    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
       return
     }
 
-    setIsMoving(true)
+    const sourceColumn = board.columns.find(col => col.id === source.droppableId)
+    const destColumn = board.columns.find(col => col.id === destination.droppableId)
 
-    const result = await moveLeadToColumn({
-      leadId: draggedLead.id,
-      columnId: targetColumnId
+    if (!sourceColumn || !destColumn) return
+
+    // Optimistically update UI
+    const sourceLeads = Array.from(sourceColumn.leads)
+    const [movedLead] = sourceLeads.splice(source.index, 1)
+
+    // Add to destination
+    const destLeads = Array.from(destColumn.leads)
+    destLeads.splice(destination.index, 0, movedLead)
+
+    // Update board state
+    const newColumns = board.columns.map(col => {
+      if (col.id === source.droppableId) {
+        return { ...col, leads: sourceLeads, leadCount: sourceLeads.length }
+      }
+      if (col.id === destination.droppableId) {
+        return { ...col, leads: destLeads, leadCount: destLeads.length }
+      }
+      return col
     })
 
-    if (result.success) {
-      // Optimistically update UI
-      setBoard(prev => {
-        const newColumns = prev.columns.map(col => {
-          if (col.id === draggedFromColumn) {
-            return {
-              ...col,
-              leads: col.leads.filter(l => l.id !== draggedLead.id),
-              leadCount: col.leadCount - 1
-            }
-          }
-          if (col.id === targetColumnId) {
-            return {
-              ...col,
-              leads: [draggedLead, ...col.leads],
-              leadCount: col.leadCount + 1
-            }
-          }
-          return col
-        })
+    setBoard(prev => ({ ...prev, columns: newColumns }))
 
-        return { ...prev, columns: newColumns }
+    // If columns are different, call server action
+    if (source.droppableId !== destination.droppableId) {
+      setIsMoving(true)
+      const result = await moveLeadToColumn({
+        leadId: draggableId,
+        columnId: destination.droppableId
       })
 
-      router.refresh()
+      if (result.success) {
+        router.refresh()
+      } else {
+        // Revert on failure (could be implemented better but keeping simple for now)
+        console.error("Failed to move lead")
+        router.refresh()
+      }
+      setIsMoving(false)
     }
-
-    setDraggedLead(null)
-    setDraggedFromColumn(null)
-    setIsMoving(false)
-  }, [draggedLead, draggedFromColumn, router])
+  }, [board, router])
 
   const handleCardClick = useCallback((lead: LeadData) => {
     setSelectedLead(lead)
@@ -151,7 +150,7 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
 
   const handleModalClose = useCallback(() => {
     setIsModalOpen(false)
-    setTimeout(() => setSelectedLead(null), 200) // Delay to allow animation
+    setTimeout(() => setSelectedLead(null), 200)
   }, [])
 
   const handleModalUpdate = useCallback(() => {
@@ -164,7 +163,7 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
       // Search filter (name, email, phone)
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
-        const matchesSearch = 
+        const matchesSearch =
           lead.name.toLowerCase().includes(query) ||
           lead.email?.toLowerCase().includes(query) ||
           lead.phone.toLowerCase().includes(query)
@@ -188,7 +187,7 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   // Get unique corretores for filter
   const uniqueCorretores = Array.from(
     new Map(
-      initialBoard.columns.flatMap(col => 
+      initialBoard.columns.flatMap(col =>
         col.leads.map(lead => [lead.corretor.id, lead.corretor])
       )
     ).values()
@@ -205,27 +204,49 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   }
 
   return (
-    <>
-      {/* Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Buscar por nome, email ou telefone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+    <div className="flex flex-col h-[calc(100vh-140px)] bg-gray-50/50 rounded-xl overflow-hidden shadow-inner border border-gray-200/60">
+      {/* Header & Filters */}
+      <div className="bg-white border-b border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">{initialBoard.name}</h2>
+            <p className="text-sm text-gray-500">Gerencie leads e oportunidades</p>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsFiltersVisible(!isFiltersVisible)}
+              className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${isFiltersVisible ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+            >
+              <Filter className="w-4 h-4" />
+              Filtros
+            </button>
+            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <Settings2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
 
-          {/* Priority Filter */}
-          <div className="w-full md:w-48">
+        {/* Filter Bar */}
+        {isFiltersVisible && (
+          <div className="flex flex-col md:flex-row gap-3 animate-in slide-in-from-top-2 duration-200">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar leads..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Priority Filter */}
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value as LeadPriority | 'ALL')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer hover:bg-white transition-colors"
             >
               <option value="ALL">Todas as prioridades</option>
               <option value="BAIXA">Baixa</option>
@@ -233,15 +254,13 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
               <option value="ALTA">Alta</option>
               <option value="URGENTE">Urgente</option>
             </select>
-          </div>
 
-          {/* Corretor Filter */}
-          {uniqueCorretores.length > 1 && (
-            <div className="w-full md:w-48">
+            {/* Corretor Filter */}
+            {uniqueCorretores.length > 1 && (
               <select
                 value={corretorFilter}
                 onChange={(e) => setCorretorFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer hover:bg-white transition-colors"
               >
                 <option value="ALL">Todos os corretores</option>
                 {uniqueCorretores.map(corretor => (
@@ -250,39 +269,41 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
                   </option>
                 ))}
               </select>
-            </div>
-          )}
+            )}
 
-          {/* Clear Filters Button */}
-          {(searchQuery || priorityFilter !== 'ALL' || corretorFilter !== 'ALL') && (
-            <button
-              onClick={() => {
-                setSearchQuery('')
-                setPriorityFilter('ALL')
-                setCorretorFilter('ALL')
-              }}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Limpar filtros
-            </button>
-          )}
+            {/* Clear Filters Button */}
+            {(searchQuery || priorityFilter !== 'ALL' || corretorFilter !== 'ALL') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setPriorityFilter('ALL')
+                  setCorretorFilter('ALL')
+                }}
+                className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
+              >
+                <X className="w-3.5 h-3.5" />
+                Limpar
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="h-full flex px-4 pt-4 pb-2 gap-4 min-w-max">
+            {filteredBoard.columns.map(column => (
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                onCardClick={handleCardClick}
+                isDragging={false}
+                isMoving={isMoving}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-4 px-2">
-        {filteredBoard.columns.map(column => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onCardClick={handleCardClick}
-            isDragging={draggedFromColumn === column.id}
-            isMoving={isMoving}
-          />
-        ))}
-      </div>
+      </DragDropContext>
 
       {/* Lead Detail Modal */}
       {selectedLead && (
@@ -298,6 +319,6 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
           }))}
         />
       )}
-    </>
+    </div>
   )
 }
