@@ -18,6 +18,7 @@ interface SearchParams {
   dateFrom?: string
   dateTo?: string
   cursor?: string
+  search?: string // Busca textual
 }
 
 async function LeadsContent({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -38,7 +39,7 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
   const columnsResult = await getKanbanColumns()
   const kanbanColumns = columnsResult.success ? columnsResult.columns || [] : []
 
-  const { kanbanColumnId, priority, origem, dateFrom, dateTo } = params
+  const { kanbanColumnId, priority, origem, dateFrom, dateTo, search } = params
   const limit = 20
 
   // Build where clause
@@ -68,6 +69,15 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     }
   }
 
+  // Add text search support
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } }
+    ]
+  }
+
   // Fetch leads directly from database (server-side)
   const leadsQuery = await prisma.lead.findMany({
     where,
@@ -86,6 +96,12 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
       dataAgendamento: true,
       createdAt: true,
       updatedAt: true,
+      // Novos campos CRM
+      score: true,
+      temperatura: true,
+      ultimaInteracao: true,
+      proximoContato: true,
+      valorInteresse: true,
       imovel: {
         select: {
           id: true,
