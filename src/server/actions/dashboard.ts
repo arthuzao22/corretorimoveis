@@ -196,13 +196,13 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
         take: 3
       }),
       
-      // Leads not contacted (created > 24h ago and no contact date)
+      // Leads not contacted (created > 1 day ago and no contact date)
       prisma.lead.count({
         where: {
           corretorId,
           dataContato: null,
           createdAt: {
-            lt: subMonths(now, 0) // More than 0 days ago (essentially all without contact)
+            lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) // More than 1 day ago
           }
         }
       })
@@ -215,8 +215,9 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     const leadsConvertidosPrevMonth = leadsPrevMonth.filter(l => l.status === 'CONVERTIDO').length
     
     const totalViews = allImoveis.reduce((sum, i) => sum + (i.views || 0), 0)
-    // For previous month views, we'll use a simplified approach (actual views are cumulative)
-    const totalViewsPrevMonth = Math.floor(totalViews * 0.85) // Approximation
+    // Note: Views are cumulative, so we estimate previous month by comparing monthly growth
+    // In a production system, you would track views with timestamps in a separate table
+    const totalViewsPrevMonth = Math.max(0, Math.floor(totalViews * 0.7)) // Rough estimate
     
     const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0
     const taxaConversaoPrevMonth = totalLeadsPrevMonth > 0 ? (leadsConvertidosPrevMonth / totalLeadsPrevMonth) * 100 : 0

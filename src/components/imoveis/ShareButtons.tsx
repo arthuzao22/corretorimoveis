@@ -54,7 +54,19 @@ _Enviado via CorretorImóveis_`
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
       console.error('Error copying link:', error)
-      alert('Erro ao copiar link. Por favor, tente novamente.')
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      document.body.appendChild(textarea)
+      textarea.select()
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (e) {
+        console.error('Fallback copy failed:', e)
+      }
+      document.body.removeChild(textarea)
     }
   }
 

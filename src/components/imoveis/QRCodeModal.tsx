@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { QrCode, Download, Share2, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import QRCode from 'qrcode'
@@ -17,11 +17,11 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
   const [loading, setLoading] = useState(false)
 
   // Generate QR code when modal opens
-  useState(() => {
+  useEffect(() => {
     if (isOpen && !qrCodeUrl) {
       generateQRCode()
     }
-  })
+  }, [isOpen, qrCodeUrl])
 
   const getImovelUrl = () => {
     // Get the full URL for the property
