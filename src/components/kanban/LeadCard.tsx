@@ -16,6 +16,7 @@ interface LeadData {
   imovel?: {
     id: string
     titulo: string
+    valor: any
   } | null
   corretor: {
     id: string
@@ -103,7 +104,17 @@ export function LeadCard({ lead, onDragStart, onClick, isDisabled }: LeadCardPro
         {lead.imovel && (
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <Building2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span className="line-clamp-1">{lead.imovel.titulo}</span>
+            <div className="flex-1">
+              <span className="line-clamp-1">{lead.imovel.titulo}</span>
+              {lead.imovel.valor && (
+                <div className="text-xs text-green-600 font-medium mt-0.5">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(Number(lead.imovel.valor))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

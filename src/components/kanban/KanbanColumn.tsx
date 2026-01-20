@@ -21,6 +21,7 @@ interface LeadData {
   imovel?: {
     id: string
     titulo: string
+    valor: any
   } | null
   corretor: {
     id: string
@@ -93,6 +94,11 @@ export function KanbanColumn({
 
   const bgColor = column.color || '#6B7280'
 
+  // Calculate total property value in this column
+  const totalValue = column.leads.reduce((sum, lead) => {
+    return sum + (lead.imovel?.valor ? Number(lead.imovel.valor) : 0)
+  }, 0)
+
   return (
     <div
       className="flex-shrink-0 w-80 bg-gray-50 rounded-lg flex flex-col max-h-[calc(100vh-250px)]"
@@ -101,20 +107,33 @@ export function KanbanColumn({
     >
       {/* Column Header */}
       <div
-        className="px-4 py-3 rounded-t-lg flex items-center justify-between"
+        className="px-4 py-3 rounded-t-lg"
         style={{ backgroundColor: bgColor + '20', borderLeft: `4px solid ${bgColor}` }}
       >
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">{column.name}</h3>
-          <span
-            className="px-2 py-1 text-xs font-medium rounded-full"
-            style={{ backgroundColor: bgColor + '30', color: bgColor }}
-          >
-            {column.leadCount}
-          </span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{column.name}</h3>
+            <span
+              className="px-2 py-1 text-xs font-medium rounded-full"
+              style={{ backgroundColor: bgColor + '30', color: bgColor }}
+            >
+              {column.leadCount}
+            </span>
+          </div>
+          {column.isFinal && (
+            <span className="text-xs text-gray-500 font-medium">Final</span>
+          )}
         </div>
-        {column.isFinal && (
-          <span className="text-xs text-gray-500 font-medium">Final</span>
+        {/* Total Value */}
+        {totalValue > 0 && (
+          <div className="text-xs text-gray-600 font-medium">
+            Total: {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(totalValue)}
+          </div>
         )}
       </div>
 
