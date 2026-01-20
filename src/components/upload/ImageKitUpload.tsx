@@ -23,16 +23,15 @@ if (!PUBLIC_KEY || !URL_ENDPOINT) {
 const imagekit = PUBLIC_KEY && URL_ENDPOINT ? new ImageKit({
   publicKey: PUBLIC_KEY,
   urlEndpoint: URL_ENDPOINT,
-  authenticationEndpoint: '/api/imagekit-auth',
 }) : null
 
 // Validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
-export function ImageKitUpload({ 
-  onUploadComplete, 
-  maxFiles = 10, 
+export function ImageKitUpload({
+  onUploadComplete,
+  maxFiles = 10,
   existingImages = [],
   folder = 'imoveis'
 }: ImageKitUploadProps) {
@@ -46,24 +45,24 @@ export function ImageKitUpload({
     if (!ALLOWED_TYPES.includes(file.type)) {
       return `Tipo de arquivo não permitido: ${file.type}. Use JPEG, PNG ou WebP.`
     }
-    
+
     if (file.size > MAX_FILE_SIZE) {
       return `Arquivo muito grande: ${(file.size / 1024 / 1024).toFixed(2)}MB. Máximo permitido: 10MB.`
     }
-    
+
     return null
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    
+
     if (files.length === 0) return
-    
+
     if (!imagekit) {
       setError('ImageKit não está configurado. Por favor, configure as variáveis de ambiente.')
       return
     }
-    
+
     if (preview.length + files.length > maxFiles) {
       setError(`Você pode fazer upload de no máximo ${maxFiles} imagens`)
       return
@@ -77,9 +76,23 @@ export function ImageKitUpload({
     const tempPreviews: string[] = []
 
     try {
+      // Fetch authentication parameters before uploading
+      const authResponse = await fetch('/api/imagekit-auth')
+
+      if (!authResponse.ok) {
+        const errorText = await authResponse.text()
+        throw new Error(`Failed to get auth params: ${authResponse.status} - ${errorText}`)
+      }
+
+      const authParams = await authResponse.json()
+
+      if (!authParams.token || !authParams.signature || !authParams.expire) {
+        throw new Error('Invalid auth params received: missing token, signature or expire')
+      }
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        
+
         // Validate file
         const validationError = validateFile(file)
         if (validationError) {
@@ -103,21 +116,117 @@ export function ImageKitUpload({
           const timestamp = Date.now()
           const randomSuffix = Math.random().toString(36).substring(2, 9)
           const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-          
-          const result = await imagekit.upload({
-            file: file,
-            fileName: `${folder}_${timestamp}_${randomSuffix}_${safeName}`,
-            folder: `/${folder}`,
-            useUniqueFileName: true,
-            tags: [folder, 'property'],
-          })
+          const uploadFileName = `${folder}_${timestamp}_${randomSuffix}_${safeName}`
 
-          if (result && result.url) {
-            uploadedUrls.push(result.url)
+          // First attempt using the SDK (simple path)
+          try {
+            const sdkResult = await imagekit.upload({
+              file: file,
+              fileName: uploadFileName,
+              folder: `/${folder}`,
+              useUniqueFileName: true,
+              tags: [folder, 'property'],
+              token: authParams.token,
+              signature: authParams.signature,
+              expire: authParams.expire,
+            })
+
+            if (sdkResult && sdkResult.url) {
+              uploadedUrls.push(sdkResult.url)
+              continue
+            }
+
+            console.warn('SDK upload did not return URL, falling back to manual upload', sdkResult)
+          } catch (sdkError) {
+            console.warn('SDK upload failed, falling back to manual upload', sdkError)
           }
-        } catch (uploadError) {
-          console.error('Upload error:', uploadError)
-          setError(`Erro ao fazer upload de ${file.name}`)
+
+          // Fallback: upload manually via fetch to ImageKit REST API with retry on invalid signature
+          const manualUpload = async (params: any) => {
+            const folderPath = folder.replace(/^\//, '') // remove leading slash if any
+            const form = new FormData()
+            form.append('file', file)
+            form.append('fileName', uploadFileName)
+            form.append('folder', folderPath)
+            form.append('useUniqueFileName', 'true')
+            form.append('tags', `${folderPath},property`)
+            form.append('publicKey', PUBLIC_KEY || '')
+            form.append('token', String(params.token))
+            form.append('signature', String(params.signature))
+            form.append('expire', String(params.expire))
+
+            const res = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+              method: 'POST',
+              body: form,
+            })
+
+            const json = await res.json().catch(() => null)
+            return { res, json }
+          }
+
+          try {
+            // Try manual upload, and if signature invalid, fetch new auth params and retry once
+            let attempt = 0
+            let lastError: any = null
+            let currentAuth = authParams
+
+            while (attempt < 2) {
+              const { res, json } = await manualUpload(currentAuth)
+
+              if (res.ok && json && json.url) {
+                uploadedUrls.push(json.url)
+                break
+              }
+
+              const msg = json?.message || json?.error || `status ${res?.status}`
+
+              if (msg && /invalid signature/i.test(msg) && attempt === 0) {
+                console.warn('Invalid signature received, fetching new auth params and retrying...')
+                try {
+                  const authResponseRetry = await fetch('/api/imagekit-auth')
+                  const newAuth = await authResponseRetry.json()
+                  if (newAuth.token && newAuth.signature && newAuth.expire) {
+                    currentAuth = newAuth
+                    attempt++
+                    continue
+                  } else {
+                    lastError = new Error(`Retry auth params invalid: ${JSON.stringify(newAuth)}`)
+                    break
+                  }
+                } catch (e) {
+                  lastError = e
+                  break
+                }
+              }
+
+              lastError = new Error(`Manual upload failed: ${msg} - ${JSON.stringify(json)}`)
+              break
+            }
+
+            if (lastError) {
+              throw lastError
+            }
+          } catch (manualError: any) {
+            const errorMessage = manualError?.message || JSON.stringify(manualError)
+            console.error('Manual upload error details:', {
+              error: manualError,
+              message: errorMessage,
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type,
+            })
+            setError(`Erro ao fazer upload de ${file.name}: ${errorMessage}`)
+          }
+        } catch (uploadError: any) {
+          const errorMessage = uploadError?.message || uploadError?.error || JSON.stringify(uploadError)
+          console.error('Upload error details:', {
+            error: uploadError,
+            message: errorMessage,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type
+          })
+          setError(`Erro ao fazer upload de ${file.name}: ${errorMessage}`)
         }
 
         // Update progress
@@ -127,9 +236,9 @@ export function ImageKitUpload({
       if (uploadedUrls.length > 0) {
         onUploadComplete(uploadedUrls)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload process error:', err)
-      setError('Erro durante o processo de upload')
+      setError(err.message || 'Erro durante o processo de upload')
     } finally {
       setUploading(false)
       setProgress(0)
@@ -142,7 +251,7 @@ export function ImageKitUpload({
   const removeImage = (index: number) => {
     const newPreview = preview.filter((_, i) => i !== index)
     setPreview(newPreview)
-    
+
     // Notify parent component about the updated image list
     onUploadComplete(newPreview)
   }
@@ -169,7 +278,7 @@ export function ImageKitUpload({
           className="hidden"
           disabled={uploading || preview.length >= maxFiles}
         />
-        
+
         <Button
           type="button"
           onClick={() => fileInputRef.current?.click()}
@@ -216,7 +325,7 @@ export function ImageKitUpload({
                   className="w-full h-full object-cover"
                 />
               </div>
-              
+
               <button
                 type="button"
                 onClick={() => removeImage(index)}

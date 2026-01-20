@@ -28,7 +28,7 @@ export function PropertyMap({
   const mapRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const mapInstanceRef = useRef<google.maps.Map | null>(null)
 
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -48,16 +48,17 @@ export function PropertyMap({
         const loader = new Loader({
           apiKey: GOOGLE_MAPS_API_KEY,
           version: 'weekly',
-          libraries: ['places', 'marker'],
         })
 
-        await loader.load()
+        // Use dynamic import for the maps library
+        const mapsLibrary = await (loader as any).importLibrary('maps')
+        const markerLibrary = await (loader as any).importLibrary('marker')
 
         if (!mapRef.current) return
 
         const position = { lat: Number(latitude), lng: Number(longitude) }
 
-        const mapInstance = new google.maps.Map(mapRef.current, {
+        const mapInstance = new mapsLibrary.Map(mapRef.current, {
           center: position,
           zoom: zoom,
           mapTypeControl: true,
@@ -74,7 +75,7 @@ export function PropertyMap({
         })
 
         // Add marker
-        const marker = new google.maps.Marker({
+        const marker = new markerLibrary.Marker({
           position: position,
           map: mapInstance,
           title: title,
@@ -100,7 +101,7 @@ export function PropertyMap({
           infoWindow.open(mapInstance, marker)
         }
 
-        setMap(mapInstance)
+        mapInstanceRef.current = mapInstance
         setLoading(false)
       } catch (err) {
         console.error('Error loading Google Maps:', err)
@@ -114,7 +115,7 @@ export function PropertyMap({
 
   if (error) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
         style={{ height }}
       >
@@ -133,7 +134,7 @@ export function PropertyMap({
 
   if (loading) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
         style={{ height }}
       >
@@ -148,7 +149,7 @@ export function PropertyMap({
   return (
     <div className={`relative rounded-lg overflow-hidden shadow-lg ${className}`}>
       <div ref={mapRef} style={{ height, width: '100%' }} />
-      
+
       {/* Map overlay with address */}
       {address && (
         <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg px-4 py-2 max-w-xs">

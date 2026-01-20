@@ -25,6 +25,7 @@ interface TimelineEntry {
 
 interface LeadTimelineProps {
   timeline: TimelineEntry[]
+  loading?: boolean
 }
 
 const actionConfig: Record<
@@ -78,7 +79,22 @@ const actionConfig: Record<
   },
 }
 
-export function LeadTimeline({ timeline }: LeadTimelineProps) {
+export function LeadTimeline({ timeline, loading }: LeadTimelineProps) {
+  if (loading) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-3">
+              <div className="w-10 h-10 rounded-full bg-gray-200" />
+              <div className="flex-1 h-20 bg-gray-200 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (timeline.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">

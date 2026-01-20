@@ -192,7 +192,7 @@ export function KanbanEditorClient({ initialBoard }: Props) {
 
     // Save the current state before attempting the update
     const previousColumns = [...board.columns]
-    
+
     setLoading(true)
     try {
       const columnOrders = board.columns.map(col => ({ id: col.id, order: col.order }))
@@ -237,11 +237,10 @@ export function KanbanEditorClient({ initialBoard }: Props) {
       {/* Messages */}
       {message && (
         <div
-          className={`p-4 rounded-lg ${
-            message.type === 'success'
+          className={`p-4 rounded-lg ${message.type === 'success'
               ? 'bg-green-50 text-green-800 border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+            }`}
         >
           {message.text}
         </div>
@@ -253,7 +252,7 @@ export function KanbanEditorClient({ initialBoard }: Props) {
           <h3 className="text-xl font-semibold text-gray-900 mb-4">
             {editingColumn ? 'Editar Coluna' : 'Nova Coluna'}
           </h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -278,9 +277,8 @@ export function KanbanEditorClient({ initialBoard }: Props) {
                   <button
                     key={color.value}
                     onClick={() => setFormData({ ...formData, color: color.value })}
-                    className={`w-12 h-12 rounded-lg border-2 ${
-                      formData.color === color.value ? 'border-gray-900 ring-2 ring-offset-2 ring-indigo-500' : 'border-gray-300'
-                    }`}
+                    className={`w-12 h-12 rounded-lg border-2 ${formData.color === color.value ? 'border-gray-900 ring-2 ring-offset-2 ring-indigo-500' : 'border-gray-300'
+                      }`}
                     style={{ backgroundColor: color.value }}
                     title={color.label}
                     disabled={loading}
@@ -356,7 +354,7 @@ export function KanbanEditorClient({ initialBoard }: Props) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Colunas do Kanban ({board.columns.length})
         </h3>
-        
+
         {board.columns.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>Nenhuma coluna criada ainda. Adicione sua primeira coluna!</p>
@@ -370,18 +368,17 @@ export function KanbanEditorClient({ initialBoard }: Props) {
                 onDragStart={() => handleDragStart(column)}
                 onDragOver={(e) => handleDragOver(e, column)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 transition-all ${
-                  draggedColumn?.id === column.id ? 'opacity-50 border-indigo-400' : 'border-gray-200'
-                } hover:border-gray-300 cursor-move`}
+                className={`flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 transition-all ${draggedColumn?.id === column.id ? 'opacity-50 border-indigo-400' : 'border-gray-200'
+                  } hover:border-gray-300 cursor-move`}
               >
                 <div className="flex items-center gap-4 flex-1">
                   <GripVertical className="w-5 h-5 text-gray-400" />
-                  
+
                   <div
                     className="w-4 h-4 rounded"
                     style={{ backgroundColor: column.color || '#6b7280' }}
                   />
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-gray-900">{column.name}</span>
@@ -417,7 +414,7 @@ export function KanbanEditorClient({ initialBoard }: Props) {
                   <Button
                     onClick={() => handleDelete(column)}
                     variant="danger"
-                    disabled={loading || (column.leadCount && column.leadCount > 0)}
+                    disabled={loading || !!(column.leadCount && column.leadCount > 0)}
                     className="flex items-center gap-1"
                   >
                     <Trash2 className="w-4 h-4" />

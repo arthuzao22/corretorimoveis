@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { serializeImovel, serializeImoveis } from '@/lib/utils/serializers'
 
 const imovelSchema = z.object({
   // Campos obrigatórios
@@ -15,17 +16,17 @@ const imovelSchema = z.object({
   cidade: z.string().min(2, 'Cidade é obrigatória'),
   estado: z.string().length(2, 'Estado deve ter 2 letras'),
   images: z.array(z.string().url()).min(1, 'Pelo menos uma imagem é obrigatória'),
-  
+
   // Campos opcionais - relacionamentos
   statusConfigId: z.string().optional(),
   cidadeId: z.string().optional(),
-  
+
   // Campos opcionais - localização
   cep: z.string().optional(),
   bairro: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  
+
   // Campos opcionais - características
   quartos: z.number().int().nonnegative().optional(),
   banheiros: z.number().int().nonnegative().optional(),
@@ -33,11 +34,11 @@ const imovelSchema = z.object({
   area: z.number().positive().optional(),
   areaTerreno: z.number().positive().optional(),
   garagem: z.number().int().nonnegative().optional(),
-  
+
   // Campos opcionais - valores
   condominio: z.number().nonnegative().optional(),
   iptu: z.number().nonnegative().optional(),
-  
+
   // Campos opcionais - extras
   destaque: z.boolean().default(false),
 })
@@ -45,7 +46,7 @@ const imovelSchema = z.object({
 export async function createImovel(data: z.infer<typeof imovelSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -73,7 +74,7 @@ export async function createImovel(data: z.infer<typeof imovelSchema>) {
 export async function updateImovel(id: string, data: Partial<z.infer<typeof imovelSchema>>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -109,19 +110,7 @@ export async function updateImovel(id: string, data: Partial<z.infer<typeof imov
       }
     })
 
-    // Converter Decimal para número
-    const imovelSerializado = {
-      ...updatedImovel,
-      valor: Number(updatedImovel.valor),
-      area: updatedImovel.area ? Number(updatedImovel.area) : null,
-      areaTerreno: updatedImovel.areaTerreno ? Number(updatedImovel.areaTerreno) : null,
-      condominio: updatedImovel.condominio ? Number(updatedImovel.condominio) : null,
-      iptu: updatedImovel.iptu ? Number(updatedImovel.iptu) : null,
-      latitude: updatedImovel.latitude ? Number(updatedImovel.latitude) : null,
-      longitude: updatedImovel.longitude ? Number(updatedImovel.longitude) : null,
-    }
-
-    return { success: true, imovel: imovelSerializado }
+    return { success: true, imovel: serializeImovel(updatedImovel) }
   } catch (error) {
     console.error('Update imovel error:', error)
     return { success: false, error: 'Erro ao atualizar imóvel' }
@@ -131,7 +120,7 @@ export async function updateImovel(id: string, data: Partial<z.infer<typeof imov
 export async function deleteImovel(id: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -159,7 +148,7 @@ export async function deleteImovel(id: string) {
 export async function getMyImoveis() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -189,19 +178,7 @@ export async function getMyImoveis() {
       }
     })
 
-    // Converter Decimal para número
-    const imoveisSerializados = imoveis.map(imovel => ({
-      ...imovel,
-      valor: Number(imovel.valor),
-      area: imovel.area ? Number(imovel.area) : null,
-      areaTerreno: imovel.areaTerreno ? Number(imovel.areaTerreno) : null,
-      condominio: imovel.condominio ? Number(imovel.condominio) : null,
-      iptu: imovel.iptu ? Number(imovel.iptu) : null,
-      latitude: imovel.latitude ? Number(imovel.latitude) : null,
-      longitude: imovel.longitude ? Number(imovel.longitude) : null,
-    }))
-
-    return { success: true, imoveis: imoveisSerializados }
+    return { success: true, imoveis: serializeImoveis(imoveis) }
   } catch (error) {
     console.error('Get imoveis error:', error)
     return { success: false, error: 'Erro ao buscar imóveis' }
@@ -211,7 +188,7 @@ export async function getMyImoveis() {
 export async function getImovelById(id: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -240,19 +217,7 @@ export async function getImovelById(id: string) {
       return { success: false, error: 'Imóvel não encontrado' }
     }
 
-    // Converter Decimal para número
-    const imovelSerializado = {
-      ...imovel,
-      valor: Number(imovel.valor),
-      area: imovel.area ? Number(imovel.area) : null,
-      areaTerreno: imovel.areaTerreno ? Number(imovel.areaTerreno) : null,
-      condominio: imovel.condominio ? Number(imovel.condominio) : null,
-      iptu: imovel.iptu ? Number(imovel.iptu) : null,
-      latitude: imovel.latitude ? Number(imovel.latitude) : null,
-      longitude: imovel.longitude ? Number(imovel.longitude) : null,
-    }
-
-    return { success: true, imovel: imovelSerializado }
+    return { success: true, imovel: serializeImovel(imovel) }
   } catch (error) {
     console.error('Get imovel error:', error)
     return { success: false, error: 'Erro ao buscar imóvel' }

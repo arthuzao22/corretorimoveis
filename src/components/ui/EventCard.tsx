@@ -2,25 +2,49 @@ import { Calendar, Clock, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-interface EventCardProps {
+interface EventoData {
+  id?: string
   tipo: string
   dataHora: Date | string
+  observacao?: string | null
+  completed?: boolean
+  imovel?: {
+    titulo: string
+  }
+}
+
+interface EventCardProps {
+  tipo?: string
+  dataHora?: Date | string
   imovelTitulo?: string
   observacao?: string
   completed?: boolean
   onClick?: () => void
   className?: string
+  evento?: EventoData
+  variant?: 'default' | 'compact'
 }
 
 export function EventCard({
-  tipo,
-  dataHora,
-  imovelTitulo,
-  observacao,
-  completed,
+  tipo: propTipo,
+  dataHora: propDataHora,
+  imovelTitulo: propImovelTitulo,
+  observacao: propObservacao,
+  completed: propCompleted,
   onClick,
   className = '',
+  evento,
+  variant = 'default',
 }: EventCardProps) {
+  // Support both direct props and evento object
+  const tipo = evento?.tipo ?? propTipo ?? ''
+  const dataHora = evento?.dataHora ?? propDataHora
+  const imovelTitulo = evento?.imovel?.titulo ?? propImovelTitulo
+  const observacao = evento?.observacao ?? propObservacao
+  const completed = evento?.completed ?? propCompleted
+
+  if (!dataHora) return null
+
   const date = typeof dataHora === 'string' ? new Date(dataHora) : dataHora
 
   const getTypeConfig = () => {
@@ -63,9 +87,8 @@ export function EventCard({
   return (
     <div
       onClick={onClick}
-      className={`border rounded-lg p-3 hover:shadow-md transition-shadow ${
-        onClick ? 'cursor-pointer' : ''
-      } ${completed ? 'opacity-60' : ''} ${className}`}
+      className={`border rounded-lg p-3 hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''
+        } ${completed ? 'opacity-60' : ''} ${className}`}
     >
       <div className="flex items-start gap-3">
         <div className={`w-1 h-full ${config.color} rounded-full`} />

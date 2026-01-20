@@ -20,9 +20,16 @@ interface TagManagerProps {
   leadId: string
   currentTags: LeadTag[]
   onTagsChange?: () => void
+  onUpdate?: () => void
 }
 
-export function TagManager({ leadId, currentTags, onTagsChange }: TagManagerProps) {
+export function TagManager({ leadId, currentTags, onTagsChange, onUpdate }: TagManagerProps) {
+  // Support both onTagsChange and onUpdate for backwards compatibility
+  const handleChange = () => {
+    onTagsChange?.()
+    onUpdate?.()
+  }
+
   const [availableTags, setAvailableTags] = useState<Tag[]>([])
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -45,37 +52,37 @@ export function TagManager({ leadId, currentTags, onTagsChange }: TagManagerProp
   const handleAddTag = async (tagId: string) => {
     setLoading(true)
     setError(null)
-    
+
     const result = await addTagToLead({ leadId, tagId })
-    
+
     if (result.success) {
       setShowAddMenu(false)
-      onTagsChange?.()
+      handleChange()
     } else {
       setError(result.error || 'Erro ao adicionar tag')
     }
-    
+
     setLoading(false)
   }
 
   const handleRemoveTag = async (tagId: string) => {
     setLoading(true)
     setError(null)
-    
+
     const result = await removeTagFromLead({ leadId, tagId })
-    
+
     if (result.success) {
-      onTagsChange?.()
+      handleChange()
     } else {
       setError(result.error || 'Erro ao remover tag')
     }
-    
+
     setLoading(false)
   }
 
   const handleCreateTag = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!newTagName.trim()) {
       setError('Nome da tag é obrigatório')
       return
@@ -94,7 +101,7 @@ export function TagManager({ leadId, currentTags, onTagsChange }: TagManagerProp
       setNewTagName('')
       setNewTagColor('#3b82f6')
       setShowCreateForm(false)
-      
+
       // Automatically add the new tag to the lead
       await handleAddTag(result.data.id)
     } else {
@@ -214,9 +221,8 @@ export function TagManager({ leadId, currentTags, onTagsChange }: TagManagerProp
                       key={color}
                       type="button"
                       onClick={() => setNewTagColor(color)}
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        newTagColor === color ? 'border-gray-900' : 'border-gray-300'
-                      }`}
+                      className={`w-8 h-8 rounded-full border-2 ${newTagColor === color ? 'border-gray-900' : 'border-gray-300'
+                        }`}
                       style={{ backgroundColor: color }}
                       disabled={loading}
                     />
