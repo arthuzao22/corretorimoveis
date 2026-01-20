@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Filter, X } from 'lucide-react'
+import { Filter, X, Search } from 'lucide-react'
 
 const ORIGEM_OPTIONS = [
   { value: '', label: 'Todas' },
@@ -34,6 +34,7 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
   const router = useRouter()
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState({
+    search: currentFilters?.search || '',
     kanbanColumnId: currentFilters?.kanbanColumnId || '',
     priority: currentFilters?.priority || '',
     origem: currentFilters?.origem || '',
@@ -55,6 +56,7 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
 
   const handleClear = () => {
     setFilters({
+      search: '',
       kanbanColumnId: '',
       priority: '',
       origem: '',
@@ -80,6 +82,20 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
             Limpar Filtros
           </button>
         )}
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome, email ou telefone..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

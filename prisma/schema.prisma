@@ -312,6 +312,17 @@ model Lead {
   dataContato     DateTime?     // Data do último contato
   dataAgendamento DateTime?     // Data de agendamento de visita
   kanbanColumnId  String?       // Kanban column assignment (single source of truth)
+  
+  // NOVOS CAMPOS - CRM Avançado
+  score           Int           @default(0) // Score 0-100
+  temperatura     String        @default("morno") // 'quente' | 'morno' | 'frio'
+  ultimaInteracao DateTime?     // Última interação
+  proximoContato  DateTime?     // Lembrete follow-up
+  valorInteresse  Decimal?      @db.Decimal(12, 2) // Budget do cliente
+  cpf             String?       // Identificação
+  dataNascimento  DateTime?     // Aniversário
+  preferencias    Json?         // { tipo, regiao, faixa }
+  
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -332,6 +343,9 @@ model Lead {
   @@index([createdAt])
   @@index([origem])
   @@index([kanbanColumnId])
+  @@index([temperatura])
+  @@index([score])
+  @@index([ultimaInteracao])
   @@map("leads")
 }
 
