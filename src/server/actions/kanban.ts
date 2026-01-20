@@ -301,6 +301,75 @@ export async function moveLeadToColumn(data: z.infer<typeof moveLeadSchema>) {
   }
 }
 
+// Bulk move leads to a column
+const bulkMoveLeadsSchema = z.object({
+  leadIds: z.array(z.string()),
+  columnId: z.string(),
+})
+
+export async function bulkMoveLeads(data: z.infer<typeof bulkMoveLeadsSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || (session.user.role !== 'CORRETOR' && session.user.role !== 'ADMIN')) {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const validatedData = bulkMoveLeadsSchema.parse(data)
+
+    // Get target column
+    const targetColumn = await prisma.kanbanColumn.findUnique({
+      where: { id: validatedData.columnId }
+    })
+
+    if (!targetColumn) {
+      return { success: false, error: 'Coluna não encontrada' }
+    }
+
+    // Update all leads that belong to this corretor
+    const where = session.user.role === 'ADMIN' 
+      ? { id: { in: validatedData.leadIds } }
+      : { id: { in: validatedData.leadIds }, corretorId: session.user.corretorId }
+
+    const updateResult = await prisma.lead.updateMany({
+      where,
+      data: {
+        kanbanColumnId: validatedData.columnId,
+        updatedAt: new Date()
+      }
+    })
+
+    // Add timeline entries for each lead
+    const leads = await prisma.lead.findMany({
+      where,
+      include: { kanbanColumn: true }
+    })
+
+    for (const lead of leads) {
+      await prisma.leadTimeline.create({
+        data: {
+          leadId: lead.id,
+          action: 'KANBAN_MOVED',
+          description: `Lead movido para "${targetColumn.name}" (ação em lote)`,
+          metadata: {
+            toColumn: targetColumn.name,
+            toColumnId: targetColumn.id,
+            bulkAction: true
+          }
+        }
+      })
+    }
+
+    revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/leads')
+
+    return { success: true, count: updateResult.count }
+  } catch (error) {
+    console.error('Bulk move leads error:', error)
+    return { success: false, error: 'Erro ao mover leads em lote' }
+  }
+}
+
 // =============================================
 // COLUMN MANAGEMENT
 // =============================================

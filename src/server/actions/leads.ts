@@ -256,3 +256,172 @@ export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
     return { success: false, error: 'Erro ao atualizar lead' }
   }
 }
+
+// =============================================
+// NOVOS SERVER ACTIONS - CRM AVANÇADO
+// =============================================
+
+const updateTemperaturaSchema = z.object({
+  leadId: z.string(),
+  temperatura: z.enum(['quente', 'morno', 'frio'])
+})
+
+export async function updateLeadTemperatura(leadId: string, temperatura: string) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const result = updateTemperaturaSchema.safeParse({ leadId, temperatura })
+    if (!result.success) {
+      return { success: false, error: 'Dados inválidos' }
+    }
+
+    // Verify lead belongs to this corretor
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId }
+    })
+
+    if (!lead || lead.corretorId !== session.user.corretorId) {
+      return { success: false, error: 'Lead não encontrado' }
+    }
+
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: { temperatura }
+    })
+
+    // Add timeline entry
+    await prisma.leadTimeline.create({
+      data: {
+        leadId,
+        action: 'STATUS_CHANGED',
+        description: `Temperatura alterada para ${temperatura}`,
+        metadata: {
+          oldTemperatura: lead.temperatura,
+          newTemperatura: temperatura
+        }
+      }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update temperatura error:', error)
+    return { success: false, error: 'Erro ao atualizar temperatura' }
+  }
+}
+
+const updateScoreSchema = z.object({
+  leadId: z.string(),
+  score: z.number().min(0).max(100)
+})
+
+export async function updateLeadScore(leadId: string, score: number) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const result = updateScoreSchema.safeParse({ leadId, score })
+    if (!result.success) {
+      return { success: false, error: 'Score deve estar entre 0 e 100' }
+    }
+
+    // Verify lead belongs to this corretor
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId }
+    })
+
+    if (!lead || lead.corretorId !== session.user.corretorId) {
+      return { success: false, error: 'Lead não encontrado' }
+    }
+
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: { score }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update score error:', error)
+    return { success: false, error: 'Erro ao atualizar score' }
+  }
+}
+
+// =============================================
+// BULK OPERATIONS
+// =============================================
+
+const bulkUpdateTemperaturaSchema = z.object({
+  leadIds: z.array(z.string()),
+  temperatura: z.enum(['quente', 'morno', 'frio'])
+})
+
+export async function bulkUpdateTemperatura(data: z.infer<typeof bulkUpdateTemperaturaSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const result = bulkUpdateTemperaturaSchema.safeParse(data)
+    if (!result.success) {
+      return { success: false, error: 'Dados inválidos' }
+    }
+
+    const { leadIds, temperatura } = result.data
+
+    // Update all leads that belong to this corretor
+    await prisma.lead.updateMany({
+      where: {
+        id: { in: leadIds },
+        corretorId: session.user.corretorId
+      },
+      data: { temperatura }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Bulk update temperatura error:', error)
+    return { success: false, error: 'Erro ao atualizar temperatura em lote' }
+  }
+}
+
+const bulkDeleteLeadsSchema = z.object({
+  leadIds: z.array(z.string())
+})
+
+export async function bulkDeleteLeads(data: z.infer<typeof bulkDeleteLeadsSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || session.user.role !== 'CORRETOR') {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const result = bulkDeleteLeadsSchema.safeParse(data)
+    if (!result.success) {
+      return { success: false, error: 'Dados inválidos' }
+    }
+
+    const { leadIds } = result.data
+
+    // Delete all leads that belong to this corretor
+    await prisma.lead.deleteMany({
+      where: {
+        id: { in: leadIds },
+        corretorId: session.user.corretorId
+      }
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Bulk delete leads error:', error)
+    return { success: false, error: 'Erro ao excluir leads em lote' }
+  }
+}

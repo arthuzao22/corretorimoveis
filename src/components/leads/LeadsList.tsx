@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LeadTable } from '@/components/ui/LeadTable'
 import { LeadDrawer } from './LeadDrawer'
+import { BulkActionsBar } from './BulkActionsBar'
 import { Users, Loader2 } from 'lucide-react'
 
 interface LeadsListProps {
@@ -21,11 +22,13 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
   const [loading, setLoading] = useState(false)
   const [selectedLead, setSelectedLead] = useState<any | null>(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([])
 
   // Reset state when filters change
   useEffect(() => {
     setLeads(initialLeads)
     setPagination(initialPagination)
+    setSelectedLeads([]) // Clear selection on filter change
   }, [initialLeads, initialPagination])
 
   const loadMore = async () => {
@@ -84,6 +87,11 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
     window.location.href = `${window.location.pathname}?${params.toString()}&t=${Date.now()}`
   }
 
+  const handleBulkActionComplete = () => {
+    setSelectedLeads([])
+    handleLeadUpdate()
+  }
+
   if (leads.length === 0) {
     return (
       <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
@@ -102,8 +110,23 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
 
   return (
     <div className="space-y-6">
+      {/* Bulk Actions Bar */}
+      {selectedLeads.length > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedLeads.length}
+          selectedLeadIds={selectedLeads}
+          onClear={() => setSelectedLeads([])}
+          onComplete={handleBulkActionComplete}
+        />
+      )}
+
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <LeadTable leads={leads} onLeadClick={handleLeadClick} />
+        <LeadTable 
+          leads={leads} 
+          onLeadClick={handleLeadClick}
+          selectedLeads={selectedLeads}
+          onSelectionChange={setSelectedLeads}
+        />
       </div>
 
       {/* Load More Button */}
