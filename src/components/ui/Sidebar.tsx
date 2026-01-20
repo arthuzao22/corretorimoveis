@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers, Calendar, Columns } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, UserCircle, LogOut, Layers, Calendar, Columns, Search } from 'lucide-react'
 
 interface SidebarProps {
   userName: string
@@ -55,6 +55,17 @@ export function Sidebar({ userName }: SidebarProps) {
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-blue-600">Portal Corretor</h1>
+      </div>
+
+      {/* Search Hint */}
+      <div className="px-4 pt-4 pb-2">
+        <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-600">
+          <Search className="w-4 h-4" />
+          <span className="text-sm">Buscar...</span>
+          <kbd className="ml-auto px-2 py-0.5 text-xs font-semibold bg-white border border-gray-300 rounded">
+            ⌘K
+          </kbd>
+        </button>
       </div>
 
       {/* Navigation */}
