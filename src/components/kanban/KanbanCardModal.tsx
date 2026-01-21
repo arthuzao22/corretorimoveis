@@ -1,11 +1,10 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, Link as LinkIcon, ArrowRight, MapPin, Sparkles, History, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, MapPin, Sparkles, History, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
-import { TagBadge } from '@/components/ui/TagBadge'
 import { LeadTimeline } from '@/components/leads/LeadTimeline'
 import { TagManager } from '@/components/leads/TagManager'
 import { EventCard } from '@/components/ui/EventCard'
@@ -14,8 +13,9 @@ import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
 import { addTimelineEntry } from '@/server/actions/timeline'
 import { moveLeadToColumn } from '@/server/actions/kanban'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+
 
 interface Lead {
   id: string

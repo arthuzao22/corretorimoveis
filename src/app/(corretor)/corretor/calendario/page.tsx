@@ -194,16 +194,6 @@ export default function CalendarioPage() {
     setViewingEvento(null)
   }
 
-  const getEventTypeColor = (tipo: string) => {
-    const colors: Record<string, string> = {
-      VISITA: 'bg-blue-500',
-      ACOMPANHAMENTO: 'bg-yellow-500',
-      REUNIAO: 'bg-green-500',
-      URGENTE: 'bg-red-500',
-    }
-    return colors[tipo] || 'bg-gray-500'
-  }
-
   const getEventTypeLabel = (tipo: string) => {
     const labels: Record<string, string> = {
       VISITA: 'Visita',
@@ -238,8 +228,8 @@ export default function CalendarioPage() {
       {feedbackMessage && (
         <div
           className={`mb-6 p-4 rounded-lg ${feedbackMessage.type === 'success'
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
+            ? 'bg-green-50 text-green-800 border border-green-200'
+            : 'bg-red-50 text-red-800 border border-red-200'
             }`}
         >
           {feedbackMessage.message}
@@ -292,9 +282,9 @@ export default function CalendarioPage() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 overflow-hidden">
             {/* Header with Event Type */}
             <div className={`p-6 ${viewingEvento.tipo === 'URGENTE' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
-                viewingEvento.tipo === 'VISITA' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                  viewingEvento.tipo === 'REUNIAO' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
-                    'bg-gradient-to-r from-amber-500 to-orange-500'
+              viewingEvento.tipo === 'VISITA' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                viewingEvento.tipo === 'REUNIAO' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                  'bg-gradient-to-r from-amber-500 to-orange-500'
               } text-white`}>
               <div className="flex items-start justify-between">
                 <div>

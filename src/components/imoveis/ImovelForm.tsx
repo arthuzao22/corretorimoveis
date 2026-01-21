@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { ImageKitUpload } from '@/components/upload/ImageKitUpload'
+import { BlobUpload } from '@/components/upload/BlobUpload'
 import { PropertyMap } from '@/components/maps/PropertyMap'
 import { z } from 'zod'
 
@@ -489,7 +489,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-900 border-b pb-3">📸 Fotos do Imóvel</h3>
 
-          <ImageKitUpload
+          <BlobUpload
             onUploadComplete={handleImageUpload}
             existingImages={formData.images}
             maxFiles={20}

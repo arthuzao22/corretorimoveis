@@ -57,7 +57,7 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
   // Check for upcoming events
   const now = new Date()
   const upcomingEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) > now) || []
-  
+
   // Check for overdue events
   const overdueEvents = lead.eventos?.filter(e => !e.completed && new Date(e.dataHora) <= now) || []
   const hasOverdueEvents = overdueEvents.length > 0
@@ -81,13 +81,12 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
           `}
         >
           {/* Priority Stripe */}
-          <div 
-            className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${
-              lead.priority === 'URGENTE' ? 'bg-red-500' :
-              lead.priority === 'ALTA' ? 'bg-orange-500' :
-              lead.priority === 'MEDIA' ? 'bg-yellow-500' :
-              'bg-blue-400'
-            }`} 
+          <div
+            className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${lead.priority === 'URGENTE' ? 'bg-red-500' :
+                lead.priority === 'ALTA' ? 'bg-orange-500' :
+                  lead.priority === 'MEDIA' ? 'bg-yellow-500' :
+                    'bg-blue-400'
+              }`}
           />
 
           <div className="pl-3 space-y-3">
@@ -130,7 +129,7 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
                   <span>Atenção</span>
                 </div>
               )}
-              
+
               {upcomingEvents.length > 0 && !hasOverdueEvents && (
                 <div title="Próximas Atividades" className="flex items-center gap-1 text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
                   <Calendar className="w-3 h-3" />
@@ -138,7 +137,7 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
                 </div>
               )}
 
-               {isAging && !hasOverdueEvents && (
+              {isAging && !hasOverdueEvents && (
                 <div title="Lead Sem Atividade Recente" className="flex items-center gap-1 text-[10px] font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
                   <Clock className="w-3 h-3" />
                   <span>+7 dias</span>
@@ -147,11 +146,11 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
 
               {/* Tags */}
               {lead.tags?.slice(0, 2).map((lt) => (
-                <span 
+                <span
                   key={lt.id}
                   className="px-2 py-0.5 rounded-full text-[10px] font-medium border"
-                  style={{ 
-                    backgroundColor: lt.tag.color + '15', 
+                  style={{
+                    backgroundColor: lt.tag.color + '15',
                     color: lt.tag.color,
                     borderColor: lt.tag.color + '30'
                   }}
@@ -172,7 +171,7 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
                 </div>
                 <span className="max-w-[100px] truncate">{lead.corretor.user.name.split(' ')[0]}</span>
               </div>
-              
+
               {/* Quick Actions (Visible on Hover could go here, but kept simple for now) */}
               <button className="text-gray-300 hover:text-blue-500 transition-colors">
                 <Phone className="w-3.5 h-3.5" />
@@ -187,13 +186,33 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
 
 // Memoize component to prevent unnecessary re-renders
 export const LeadCardMemo = memo(LeadCard, (prevProps, nextProps) => {
-  return (
-    prevProps.lead.id === nextProps.lead.id &&
-    prevProps.lead.name === nextProps.lead.name &&
-    prevProps.lead.priority === nextProps.lead.priority &&
-    prevProps.isDisabled === nextProps.isDisabled &&
-    prevProps.index === nextProps.index &&
-    JSON.stringify(prevProps.lead.tags) === JSON.stringify(nextProps.lead.tags) &&
-    JSON.stringify(prevProps.lead.eventos) === JSON.stringify(nextProps.lead.eventos)
-  )
+  // Fast path: check primitive values and lengths first
+  if (
+    prevProps.lead.id !== nextProps.lead.id ||
+    prevProps.lead.name !== nextProps.lead.name ||
+    prevProps.lead.priority !== nextProps.lead.priority ||
+    prevProps.isDisabled !== nextProps.isDisabled ||
+    prevProps.index !== nextProps.index
+  ) {
+    return false
+  }
+
+  // Check tags by length and first tag id (lightweight comparison)
+  const prevTagsLen = prevProps.lead.tags?.length ?? 0
+  const nextTagsLen = nextProps.lead.tags?.length ?? 0
+  if (prevTagsLen !== nextTagsLen) return false
+  if (prevTagsLen > 0 && prevProps.lead.tags![0].id !== nextProps.lead.tags![0].id) return false
+
+  // Check eventos by length and first event completed status
+  const prevEventosLen = prevProps.lead.eventos?.length ?? 0
+  const nextEventosLen = nextProps.lead.eventos?.length ?? 0
+  if (prevEventosLen !== nextEventosLen) return false
+  if (prevEventosLen > 0) {
+    const prevFirst = prevProps.lead.eventos![0]
+    const nextFirst = nextProps.lead.eventos![0]
+    if (prevFirst.id !== nextFirst.id || prevFirst.completed !== nextFirst.completed) return false
+  }
+
+  return true
 })
+
