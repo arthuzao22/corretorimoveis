@@ -198,6 +198,7 @@ model User {
   admin            Admin?
   ownedBoards      KanbanBoard[]    @relation("OwnedBoards")
   kanbanPermission KanbanPermission?
+  leadComments     LeadComment[]
 
   @@map("users")
 }
@@ -334,6 +335,7 @@ model Lead {
   eventos      EventoCalendario[]
   timeline     LeadTimeline[]
   tags         LeadTag[]
+  comments     LeadComment[]
 
   @@index([corretorId])
   @@index([imovelId])
@@ -475,5 +477,28 @@ model MessageTemplate {
   @@index([corretorId])
   @@index([categoria])
   @@map("message_templates")
+}
+
+// =============================================
+// LEAD COMMENTS (Kanban Card Comments)
+// =============================================
+
+model LeadComment {
+  id        String   @id @default(cuid())
+  leadId    String
+  authorId  String
+  content   String   @db.Text
+  images    String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("lead_comments")
 }
 

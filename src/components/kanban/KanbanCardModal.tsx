@@ -9,6 +9,7 @@ import { LeadTimeline } from '@/components/leads/LeadTimeline'
 import { TagManager } from '@/components/leads/TagManager'
 import { EventCard } from '@/components/ui/EventCard'
 import { QuickEventForm } from '@/components/eventos/QuickEventForm'
+import { CommentSection } from '@/components/kanban/CommentSection'
 import { updateLeadStatus } from '@/server/actions/leads'
 import { getLeadTimeline } from '@/server/actions/timeline'
 import { addTimelineEntry } from '@/server/actions/timeline'
@@ -87,7 +88,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
   const [availableImoveis, setAvailableImoveis] = useState<Array<{ id: string; titulo: string }>>([])
   const [loadingImoveis, setLoadingImoveis] = useState(false)
   const [movingColumn, setMovingColumn] = useState(false)
-  const [activeTab, setActiveTab] = useState<'details' | 'events' | 'history'>('details')
+  const [activeTab, setActiveTab] = useState<'details' | 'events' | 'comments' | 'history'>('details')
 
   const [editData, setEditData] = useState({
     priority: lead.priority,
@@ -376,6 +377,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
               {[
                 { id: 'details', label: 'Detalhes', icon: Sparkles },
                 { id: 'events', label: `Eventos (${(lead.eventos?.length || 0)})`, icon: Calendar },
+                { id: 'comments', label: 'Comentários', icon: MessageSquare },
                 { id: 'history', label: 'Histórico', icon: History },
               ].map(tab => (
                 <button
@@ -571,6 +573,16 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                     <p className="text-sm">Nenhum evento agendado</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'comments' && (
+              <div className="h-[500px]">
+                <CommentSection
+                  leadId={lead.id}
+                  currentUserId={lead.corretor?.id || ''}
+                  isAdmin={false}
+                />
               </div>
             )}
 
