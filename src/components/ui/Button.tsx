@@ -1,39 +1,60 @@
 import React from 'react'
+import { cn, getButtonClasses, tailwindClasses } from '@/lib/design-system'
+import { Loader2 } from 'lucide-react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline'
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost' | 'success'
   size?: 'sm' | 'md' | 'lg'
+  isLoading?: boolean
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
   children: React.ReactNode
 }
 
 export function Button({
   variant = 'primary',
   size = 'md',
+  isLoading = false,
+  leftIcon,
+  rightIcon,
   children,
   className = '',
+  disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+  // Mapear variantes para o design system
+  const variantMap: Record<string, keyof typeof tailwindClasses.button.variants> = {
+    primary: 'primary',
+    secondary: 'secondary',
+    danger: 'danger',
+    outline: 'outline',
+    ghost: 'ghost',
+    success: 'success',
   }
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+  const sizeMap: Record<string, keyof typeof tailwindClasses.button.sizes> = {
+    sm: 'sm',
+    md: 'md',
+    lg: 'lg',
   }
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={cn(
+        getButtonClasses(variantMap[variant], sizeMap[size]),
+        isLoading && 'opacity-70 cursor-wait',
+        className
+      )}
+      disabled={disabled || isLoading}
       {...props}
     >
-      {children}
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : leftIcon}
+      
+      <span className={cn(isLoading && 'ml-0')}>{children}</span>
+      
+      {!isLoading && rightIcon}
     </button>
   )
 }

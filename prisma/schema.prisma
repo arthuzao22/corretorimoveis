@@ -215,6 +215,7 @@ model CorretorProfile {
   cidadeId     String?  // Nova FK para tabela normalizada
   approved     Boolean  @default(false)
   landingAtiva Boolean  @default(true)
+  landingTheme Json?    // Tema personalizado: cores, tipografia, estilo
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
