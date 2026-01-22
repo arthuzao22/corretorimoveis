@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { LoadingProvider } from "@/context/LoadingContext";
 import { GlobalLoading, PageTransitionHandler } from "@/components/loading";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { PWAStatus } from "@/components/pwa/PWAStatus";
 
 export const metadata: Metadata = {
   title: "Portal Imobiliário - Corretores",
@@ -83,6 +85,12 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <LoadingProvider>
+          {/* Service Worker Registration */}
+          <ServiceWorkerRegistration />
+          
+          {/* PWA Status Indicator (apenas em desenvolvimento) */}
+          {process.env.NODE_ENV === 'development' && <PWAStatus />}
+          
           {/* Loading Global - Aparece em toda navegação */}
           <GlobalLoading 
             variant="spinner" 
