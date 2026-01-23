@@ -237,14 +237,62 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* Modal Container */}
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      {/* Modal Container - Fullscreen on mobile, centered on desktop */}
+      <div className="bg-white md:rounded-2xl shadow-2xl w-full h-full md:max-w-5xl md:h-auto md:max-h-[90vh] overflow-hidden flex flex-col md:flex-row animate-in zoom-in-95 md:slide-in-from-bottom-4 duration-300">
 
-        {/* Left Sidebar - Lead Info */}
-        <div className="w-80 bg-gradient-to-br from-slate-50 to-slate-100 border-r border-slate-200 flex flex-col">
+        {/* Mobile Header - Only visible on mobile */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg ${priorityColors[lead.priority]} flex items-center justify-center shadow-md`}>
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-800 truncate max-w-[180px]">{lead.name}</h2>
+              <p className="text-xs text-slate-500">
+                {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true, locale: ptBR })}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Mobile Tabs - Only visible on mobile */}
+        <div className="md:hidden flex gap-1 px-2 py-2 border-b border-slate-200 bg-slate-50 overflow-x-auto">
+          {[
+            { id: 'details', label: 'Detalhes', icon: Sparkles },
+            { id: 'events', label: 'Eventos', icon: Calendar, badge: lead.eventos?.length },
+            { id: 'comments', label: 'Chat', icon: MessageSquare },
+            { id: 'history', label: 'Histórico', icon: History },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap relative ${activeTab === tab.id
+                ? 'bg-white text-slate-800 shadow-sm'
+                : 'text-slate-500'
+                }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              {tab.badge && tab.badge > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Left Sidebar - Lead Info (Hidden on mobile, shown in tabs) */}
+        <div className="hidden md:flex md:w-80 bg-gradient-to-br from-slate-50 to-slate-100 border-r border-slate-200 flex-col">
           {/* Header with Priority Indicator */}
           <div className="p-6 border-b border-slate-200/60">
             <div className="flex items-start gap-3">
@@ -370,10 +418,10 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Top Bar with Tabs and Close */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Top Bar with Tabs and Close - Desktop only */}
+          <div className="hidden md:flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-slate-200">
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-lg overflow-x-auto">
               {[
                 { id: 'details', label: 'Detalhes', icon: Sparkles },
                 { id: 'events', label: `Eventos (${(lead.eventos?.length || 0)})`, icon: Calendar },
@@ -383,13 +431,13 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
+                  className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
                     ? 'bg-white text-slate-800 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                     }`}
                 >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
+                  <tab.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -403,7 +451,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6">
             {activeTab === 'details' && (
               <div className="space-y-6">
                 {/* Initial Message */}
