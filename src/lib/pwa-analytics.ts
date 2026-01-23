@@ -64,8 +64,7 @@ class PWAAnalytics {
           : 0,
         caches: sizes
       }
-    } catch (error) {
-      console.error('❌ Error getting cache metrics:', error)
+    } catch {
       return null
     }
   }
@@ -76,7 +75,7 @@ class PWAAnalytics {
   isAppInstalled(): boolean {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
-      // @ts-ignore
+      // @ts-expect-error - iOS standalone mode
       window.navigator.standalone === true ||
       document.referrer.includes('android-app://') ||
       new URLSearchParams(window.location.search).get('source') === 'pwa'
@@ -110,9 +109,9 @@ class PWAAnalytics {
       serviceWorkerActive: await this.isServiceWorkerActive(),
       cacheMetrics: await this.getCacheMetrics(),
       userAgent: navigator.userAgent,
-      // @ts-ignore - NetworkInformation API
+      // @ts-expect-error - NetworkInformation API
       networkType: navigator.connection?.type,
-      // @ts-ignore
+      // @ts-expect-error - NetworkInformation API
       effectiveType: navigator.connection?.effectiveType
     }
   }

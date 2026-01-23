@@ -25,17 +25,21 @@ export function OfflineIndicator() {
   }, [])
 
   useEffect(() => {
-    if (isOffline) {
-      setShowIndicator(true)
-    } else {
-      setShowIndicator(false)
-      
-      // Show reconnected banner briefly if was offline
-      if (wasOffline) {
-        setShowReconnectedBanner(true)
-        setTimeout(() => setShowReconnectedBanner(false), 3000)
+    const updateIndicator = () => {
+      if (isOffline) {
+        setShowIndicator(true)
+      } else {
+        setShowIndicator(false)
+        
+        // Show reconnected banner briefly if was offline
+        if (wasOffline) {
+          setShowReconnectedBanner(true)
+          setTimeout(() => setShowReconnectedBanner(false), 3000)
+        }
       }
     }
+
+    updateIndicator()
   }, [isOnline, isOffline, wasOffline])
 
   // Reconnected banner

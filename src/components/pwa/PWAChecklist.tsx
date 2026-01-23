@@ -54,7 +54,7 @@ export function PWAChecklist() {
         try {
           const registrations = await navigator.serviceWorker.getRegistrations()
           swActive = registrations.length > 0 && registrations.some(r => r.active)
-        } catch (e) {
+        } catch {
           swActive = false
         }
       }
@@ -132,7 +132,7 @@ export function PWAChecklist() {
               break
             }
           }
-        } catch (e) {
+        } catch {
           hasOfflinePage = false
         }
       }

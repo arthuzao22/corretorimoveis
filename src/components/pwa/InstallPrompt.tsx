@@ -11,15 +11,20 @@ export function InstallPrompt() {
 
   useEffect(() => {
     // Check if already dismissed
-    const wasDismissed = localStorage.getItem('pwa-install-dismissed')
-    if (wasDismissed) {
-      const dismissedTime = parseInt(wasDismissed, 10)
-      // Show again after 7 days
-      if (Date.now() - dismissedTime < 7 * 24 * 60 * 60 * 1000) {
-        setDismissed(true)
-        return
+    const checkDismissed = () => {
+      const wasDismissed = localStorage.getItem('pwa-install-dismissed')
+      if (wasDismissed) {
+        const dismissedTime = parseInt(wasDismissed, 10)
+        // Show again after 7 days
+        if (Date.now() - dismissedTime < 7 * 24 * 60 * 60 * 1000) {
+          setDismissed(true)
+          return true
+        }
       }
+      return false
     }
+
+    if (checkDismissed()) return
 
     // Show prompt after 3 seconds if installable and not already installed
     if ((isInstallable || isIOS) && !isStandalone) {

@@ -29,11 +29,11 @@ export function useOffline() {
         isOnline,
         isOffline: !isOnline,
         wasOffline: prev.isOffline,
-        // @ts-ignore - NetworkInformation API
+        // @ts-expect-error - NetworkInformation API
         effectiveType: navigator.connection?.effectiveType,
-        // @ts-ignore
+        // @ts-expect-error - NetworkInformation API
         downlink: navigator.connection?.downlink,
-        // @ts-ignore
+        // @ts-expect-error - NetworkInformation API
         rtt: navigator.connection?.rtt
       }))
 
@@ -50,9 +50,9 @@ export function useOffline() {
     window.addEventListener('offline', updateOnlineStatus)
 
     // Listen to connection changes (if available)
-    // @ts-ignore - NetworkInformation API
+    // @ts-expect-error - NetworkInformation API
     if (navigator.connection) {
-      // @ts-ignore
+      // @ts-expect-error - NetworkInformation API
       navigator.connection.addEventListener('change', updateOnlineStatus)
     }
 
@@ -62,9 +62,9 @@ export function useOffline() {
     return () => {
       window.removeEventListener('online', updateOnlineStatus)
       window.removeEventListener('offline', updateOnlineStatus)
-      // @ts-ignore
+      // @ts-expect-error - NetworkInformation API
       if (navigator.connection) {
-        // @ts-ignore
+        // @ts-expect-error - NetworkInformation API
         navigator.connection.removeEventListener('change', updateOnlineStatus)
       }
     }
