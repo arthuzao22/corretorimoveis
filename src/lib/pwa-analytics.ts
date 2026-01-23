@@ -195,10 +195,14 @@ class PWAAnalytics {
           resolve(event.data.version || null)
         }
         
-        navigator.serviceWorker.controller.postMessage(
-          { type: 'GET_VERSION' },
-          [messageChannel.port2]
-        )
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'GET_VERSION' },
+            [messageChannel.port2]
+          )
+        } else {
+          resolve(null)
+        }
 
         // Timeout after 1 second
         setTimeout(() => resolve(null), 1000)

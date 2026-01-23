@@ -11,7 +11,11 @@ export interface NotificationOptions {
   tag?: string
   requireInteraction?: boolean
   data?: any
-  actions?: NotificationAction[]
+  actions?: Array<{
+    action: string
+    title: string
+    icon?: string
+  }>
   vibrate?: number[]
 }
 
@@ -85,7 +89,7 @@ class PushNotificationManager {
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
+          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey) as any
         })
 
         console.log('✅ Push subscription created')
@@ -145,9 +149,9 @@ class PushNotificationManager {
         tag: options.tag || 'default',
         requireInteraction: options.requireInteraction || false,
         data: options.data || {},
-        actions: options.actions,
+        ...(options.actions && { actions: options.actions }),
         vibrate: options.vibrate || [200, 100, 200]
-      })
+      } as any)
 
       console.log('✅ Notification shown:', options.title)
     } catch (error) {
@@ -211,7 +215,7 @@ class PushNotificationManager {
       outputArray[i] = rawData.charCodeAt(i)
     }
 
-    return outputArray
+    return outputArray as Uint8Array
   }
 }
 
