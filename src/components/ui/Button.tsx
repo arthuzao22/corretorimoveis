@@ -2,21 +2,18 @@ import React from 'react'
 import { cn, getButtonClasses, tailwindClasses } from '@/lib/design-system'
 import { Loader2 } from 'lucide-react'
 
+type ButtonSize = 'sm' | 'md' | 'lg'
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost' | 'success'
-  size?: 'sm' | 'md' | 'lg' | {
-    xs?: 'sm' | 'md'
-    sm?: 'sm' | 'md'
-    md?: 'md' | 'lg'
-    lg?: 'md' | 'lg'
-  }
+  size?: ButtonSize
   isLoading?: boolean
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   children: React.ReactNode
   /** Make button full width (100%) */
   fullWidth?: boolean
-  /** Enable responsive sizing automatically */
+  /** Enable responsive sizing - smaller on mobile, larger on desktop */
   responsive?: boolean
 }
 
@@ -43,41 +40,31 @@ export function Button({
     success: 'success',
   }
 
-  // Handle responsive sizing
-  let responsiveClasses = ''
-  if (responsive || typeof size === 'object') {
-    const sizeConfig = typeof size === 'object' ? size : { xs: 'sm', md: 'md', lg: 'lg' }
-    
-    // Build responsive size classes
-    const sizeClasses = []
-    if (sizeConfig.xs) {
-      sizeClasses.push(getButtonClasses(variantMap[variant], sizeConfig.xs))
-    }
-    if (sizeConfig.sm) {
-      sizeClasses.push(`sm:${getButtonClasses(variantMap[variant], sizeConfig.sm)}`)
-    }
-    if (sizeConfig.md) {
-      sizeClasses.push(`md:${getButtonClasses(variantMap[variant], sizeConfig.md)}`)
-    }
-    if (sizeConfig.lg) {
-      sizeClasses.push(`lg:${getButtonClasses(variantMap[variant], sizeConfig.lg)}`)
-    }
-    
-    responsiveClasses = sizeClasses.join(' ')
-  }
-
   const sizeMap: Record<string, keyof typeof tailwindClasses.button.sizes> = {
     sm: 'sm',
     md: 'md',
     lg: 'lg',
   }
 
-  const baseSize = typeof size === 'string' ? size : 'md'
+  // Add responsive classes if enabled
+  let responsiveClasses = ''
+  if (responsive) {
+    // Mobile: smaller, Desktop: normal or larger
+    if (size === 'lg') {
+      responsiveClasses = 'text-sm px-3 py-2 md:text-base md:px-6 md:py-3'
+    } else if (size === 'md') {
+      responsiveClasses = 'text-xs px-3 py-1.5 md:text-sm md:px-4 md:py-2'
+    } else {
+      responsiveClasses = 'text-xs px-2 py-1 md:text-sm md:px-3 md:py-1.5'
+    }
+  }
 
   return (
     <button
       className={cn(
-        responsiveClasses || getButtonClasses(variantMap[variant], sizeMap[baseSize]),
+        !responsive && getButtonClasses(variantMap[variant], sizeMap[size]),
+        responsive && responsiveClasses,
+        responsive && `rounded-lg font-medium transition-all`,
         isLoading && 'opacity-70 cursor-wait',
         fullWidth && 'w-full',
         className
