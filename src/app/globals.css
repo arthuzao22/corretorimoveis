@@ -35,6 +35,20 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  
+  /* Breakpoints */
+  --bp-xs: 0px;
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+  
+  /* Responsive Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
 }
 
 @theme inline {
@@ -72,6 +86,7 @@ textarea,
 select {
   color: #000 !important;
   background-color: #fff;
+  font-size: 16px; /* Previne zoom em iOS */
 }
 
 input::placeholder,
@@ -134,6 +149,17 @@ select:-webkit-autofill:focus {
 * {
   scrollbar-width: thin;
   scrollbar-color: #CBD5E1 transparent;
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ========================================
