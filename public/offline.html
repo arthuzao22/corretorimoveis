@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Corretor Imobiliário</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 24px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      color: #1a202c;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #718096;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #1a202c;
+    }
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+    .cached-pages {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .cached-pages h3 {
+      color: #1a202c;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .cached-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cached-item {
+      padding: 12px;
+      background: #f7fafc;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #667eea;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .cached-item:hover {
+      background: #e2e8f0;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-offline {
+      background-color: #f56565;
+      animation: pulse 2s infinite;
+    }
+    .status-online {
+      background-color: #48bb78;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .connection-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      z-index: 9999;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+    }
+    .connection-banner.show {
+      transform: translateY(0);
+    }
+    .connection-banner.online {
+      background: #48bb78;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>Sem Conexão</h1>
+    <p>
+      <span class="status-indicator status-offline" id="status-indicator"></span>
+      Parece que você está offline. Conecte-se à internet para continuar usando o app.
+    </p>
+    
+    <div class="actions">
+      <button class="btn-primary" onclick="location.reload()">Tentar Conectar</button>
+      <button class="btn-secondary" onclick="history.back()">Voltar</button>
+    </div>
+    
+    <div class="cached-pages">
+      <h3>📄 Páginas em Cache</h3>
+      <div class="cached-list" id="cached-list">
+        <p style="color: #a0aec0; font-size: 12px;">Carregando...</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="connection-banner online" id="connection-banner">
+    ✅ Conectado! Recarregando...
+  </div>
+  
+  <script>
+    // Listar páginas em cache
+    if ('caches' in window) {
+      caches.keys().then(cacheNames => {
+        Promise.all(
+          cacheNames.map(cacheName =>
+            caches.open(cacheName).then(cache =>
+              cache.keys().then(requests =>
+                requests
+                  .filter(r => r.method === 'GET' && r.url.includes('/corretor/'))
+                  .map(r => ({ url: r.url, cache: cacheName }))
+              )
+            )
+          )
+        ).then(results => {
+          const cached = results.flat().slice(0, 5)
+          const list = document.getElementById('cached-list')
+          
+          if (cached.length > 0) {
+            list.innerHTML = cached.map(item => {
+              const url = new URL(item.url)
+              const path = url.pathname
+              const label = path.split('/').filter(Boolean).pop() || 'Home'
+              return `<a href="${path}" class="cached-item">${label}</a>`
+            }).join('')
+          } else {
+            list.innerHTML = '<p style="color: #a0aec0; font-size: 12px;">Nenhuma página em cache</p>'
+          }
+        })
+      })
+    }
+    
+    // Verificar conexão
+    const statusIndicator = document.getElementById('status-indicator')
+    const banner = document.getElementById('connection-banner')
+    
+    function updateConnectionStatus() {
+      if (navigator.onLine) {
+        statusIndicator.className = 'status-indicator status-online'
+        banner.classList.add('show')
+        setTimeout(() => {
+          location.reload()
+        }, 1500)
+      } else {
+        statusIndicator.className = 'status-indicator status-offline'
+        banner.classList.remove('show')
+      }
+    }
+    
+    window.addEventListener('online', updateConnectionStatus)
+    window.addEventListener('offline', updateConnectionStatus)
+    
+    // Tentar reconectar a cada 5 segundos
+    setInterval(() => {
+      if (navigator.onLine) {
+        updateConnectionStatus()
+      }
+    }, 5000)
+  </script>
+</body>
+</html>
