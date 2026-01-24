@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { ImageGallery } from '@/components/ui/ImageGallery'
 import { ContactForm } from '@/components/property/ContactForm'
 import { PropertyDetails } from '@/components/property/PropertyDetails'
-import { PropertyMap } from '@/components/property/PropertyMap'
+import { GoogleMapsIframe } from '@/components/maps/GoogleMapsIframe'
 import Link from 'next/link'
 import { Building2, MapPin, Phone, MessageCircle, User } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -94,6 +94,14 @@ async function PropertyContent({ id }: { id: string }) {
     ? `https://wa.me/55${imovel.corretor.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`
     : null
 
+  // Verificar se deve exibir o mapa (validação server-side)
+  const shouldShowMap = Boolean(
+    imovel.endereco && 
+    imovel.endereco.trim().length >= 5 && 
+    imovel.cidade && 
+    imovel.cidade.trim().length >= 2
+  )
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -149,13 +157,39 @@ async function PropertyContent({ id }: { id: string }) {
               <p className="text-gray-700 whitespace-pre-line leading-relaxed">{imovel.descricao}</p>
             </div>
 
-            {/* Map */}
-            {imovel.latitude && imovel.longitude && (
-              <PropertyMap
-                latitude={imovel.latitude}
-                longitude={imovel.longitude}
-                title={imovel.titulo}
-              />
+            {/* Localização com Google Maps Iframe */}
+            {shouldShowMap && (
+              <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-2xl font-semibold text-gray-900">Localização</h2>
+                </div>
+                
+                <GoogleMapsIframe
+                  endereco={imovel.endereco}
+                  bairro={imovel.bairro || undefined}
+                  cidade={imovel.cidade}
+                  estado={imovel.estado}
+                  cep={imovel.cep || undefined}
+                  height="450px"
+                  className="rounded-lg shadow-sm"
+                />
+                
+                <div className="mt-4">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      [imovel.endereco, imovel.bairro, imovel.cidade, imovel.estado]
+                        .filter(Boolean)
+                        .join(', ')
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center w-full"
+                  >
+                    Abrir no Google Maps
+                  </a>
+                </div>
+              </div>
             )}
           </div>
 

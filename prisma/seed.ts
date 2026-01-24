@@ -28,46 +28,81 @@ async function main() {
   // CRIAR DADOS NORMALIZADOS
   // =============================================
 
-  // Criar Cidades
-  const cidadeSP = await prisma.cidade.create({
-    data: {
-      nome: 'São Paulo',
-      uf: 'SP',
-      slug: 'sao-paulo-sp',
-    }
-  })
+  // Criar Cidades (principais cidades brasileiras)
+  const cidadesSeed = [
+    { nome: 'São Paulo', uf: 'SP' },
+    { nome: 'Rio de Janeiro', uf: 'RJ' },
+    { nome: 'Belo Horizonte', uf: 'MG' },
+    { nome: 'Curitiba', uf: 'PR' },
+    { nome: 'Porto Alegre', uf: 'RS' },
+    { nome: 'Brasília', uf: 'DF' },
+    { nome: 'Salvador', uf: 'BA' },
+    { nome: 'Fortaleza', uf: 'CE' },
+    { nome: 'Recife', uf: 'PE' },
+    { nome: 'Manaus', uf: 'AM' },
+    { nome: 'Belém', uf: 'PA' },
+    { nome: 'Goiânia', uf: 'GO' },
+    { nome: 'Campinas', uf: 'SP' },
+    { nome: 'Santos', uf: 'SP' },
+    { nome: 'Guarulhos', uf: 'SP' },
+    { nome: 'São Bernardo do Campo', uf: 'SP' },
+    { nome: 'Santo André', uf: 'SP' },
+    { nome: 'Osasco', uf: 'SP' },
+    { nome: 'Ribeirão Preto', uf: 'SP' },
+    { nome: 'Sorocaba', uf: 'SP' },
+    { nome: 'Niterói', uf: 'RJ' },
+    { nome: 'Nova Iguaçu', uf: 'RJ' },
+    { nome: 'Duque de Caxias', uf: 'RJ' },
+    { nome: 'São Gonçalo', uf: 'RJ' },
+    { nome: 'Contagem', uf: 'MG' },
+    { nome: 'Uberlândia', uf: 'MG' },
+    { nome: 'Juiz de Fora', uf: 'MG' },
+    { nome: 'Londrina', uf: 'PR' },
+    { nome: 'Maringá', uf: 'PR' },
+    { nome: 'Canoas', uf: 'RS' },
+    { nome: 'Caxias do Sul', uf: 'RS' },
+    { nome: 'Pelotas', uf: 'RS' },
+    { nome: 'Feira de Santana', uf: 'BA' },
+    { nome: 'Vitória da Conquista', uf: 'BA' },
+    { nome: 'Aracaju', uf: 'SE' },
+    { nome: 'Maceió', uf: 'AL' },
+    { nome: 'João Pessoa', uf: 'PB' },
+    { nome: 'Natal', uf: 'RN' },
+    { nome: 'Teresina', uf: 'PI' },
+    { nome: 'São Luís', uf: 'MA' },
+    { nome: 'Palmas', uf: 'TO' },
+    { nome: 'Campo Grande', uf: 'MS' },
+    { nome: 'Cuiabá', uf: 'MT' },
+    { nome: 'Florianópolis', uf: 'SC' },
+    { nome: 'Joinville', uf: 'SC' },
+    { nome: 'Blumenau', uf: 'SC' },
+    { nome: 'Vitória', uf: 'ES' },
+    { nome: 'Vila Velha', uf: 'ES' },
+    { nome: 'Cariacica', uf: 'ES' },
+    { nome: 'Macapá', uf: 'AP' },
+    { nome: 'Boa Vista', uf: 'RR' },
+    { nome: 'Rio Branco', uf: 'AC' },
+    { nome: 'Porto Velho', uf: 'RO' }
+  ]
 
-  const cidadeRJ = await prisma.cidade.create({
-    data: {
-      nome: 'Rio de Janeiro',
-      uf: 'RJ',
-      slug: 'rio-de-janeiro-rj',
-    }
-  })
+  const cidadesCriadas = await Promise.all(
+    cidadesSeed.map(({ nome, uf }) =>
+      prisma.cidade.create({
+        data: {
+          nome,
+          uf,
+          slug: `${nome.toLowerCase().replace(/\s+/g, '-').replace(/[çã]/g, 'c').replace(/[ñ]/g, 'n')}-${uf.toLowerCase()}`,
+        }
+      })
+    )
+  )
 
-  const cidadeBH = await prisma.cidade.create({
-    data: {
-      nome: 'Belo Horizonte',
-      uf: 'MG',
-      slug: 'belo-horizonte-mg',
-    }
-  })
-
-  const cidadeCuritiba = await prisma.cidade.create({
-    data: {
-      nome: 'Curitiba',
-      uf: 'PR',
-      slug: 'curitiba-pr',
-    }
-  })
-
-  const cidadePOA = await prisma.cidade.create({
-    data: {
-      nome: 'Porto Alegre',
-      uf: 'RS',
-      slug: 'porto-alegre-rs',
-    }
-  })
+  // Referências para as principais cidades (compatibilidade com código existente)
+  const cidadeSP = cidadesCriadas.find(c => c.nome === 'São Paulo' && c.uf === 'SP')!
+  const cidadeRJ = cidadesCriadas.find(c => c.nome === 'Rio de Janeiro' && c.uf === 'RJ')!
+  const cidadeBH = cidadesCriadas.find(c => c.nome === 'Belo Horizonte' && c.uf === 'MG')!
+  const cidadeCuritiba = cidadesCriadas.find(c => c.nome === 'Curitiba' && c.uf === 'PR')!
+  const cidadePOA = cidadesCriadas.find(c => c.nome === 'Porto Alegre' && c.uf === 'RS')!
 
   console.log('✅ Created cidades')
 

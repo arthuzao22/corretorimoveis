@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { BlobUpload } from '@/components/upload/BlobUpload'
-import { PropertyMap } from '@/components/maps/PropertyMap'
+import { GoogleMapsIframe, shouldShowMap } from '@/components/maps/GoogleMapsIframe'
 import { z } from 'zod'
 
 // =============================================
@@ -19,6 +19,7 @@ const imovelFormSchema = z.object({
   statusConfigId: z.string().optional().nullable(),
   valor: z.string().min(1, 'Valor é obrigatório'),
   endereco: z.string().min(5, 'Endereço é obrigatório'),
+  numero: z.string().optional(),
   cidade: z.string().min(2, 'Cidade é obrigatória'),
   cidadeId: z.string().optional().nullable(),
   estado: z.string().length(2, 'Estado deve ter 2 letras (UF)'),
@@ -60,6 +61,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
     statusConfigId: imovel?.statusConfigId || null,
     valor: imovel?.valor?.toString() || '',
     endereco: imovel?.endereco || '',
+    numero: imovel?.numero || '',
     cidade: imovel?.cidade || '',
     cidadeId: imovel?.cidadeId || null,
     estado: imovel?.estado || '',
@@ -131,6 +133,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         statusConfigId: validatedData.statusConfigId || undefined,
         valor: parseFloat(validatedData.valor),
         endereco: validatedData.endereco,
+        numero: validatedData.numero || undefined,
         cidade: validatedData.cidade,
         cidadeId: validatedData.cidadeId || undefined,
         estado: validatedData.estado.toUpperCase(),
@@ -298,14 +301,25 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-900 border-b pb-3">📍 Localização</h3>
 
-          <Input
-            label="Endereço Completo *"
-            value={formData.endereco}
-            onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-            required
-            disabled={loading}
-            placeholder="Rua, número, complemento"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-3">
+              <Input
+                label="Logradouro *"
+                value={formData.endereco}
+                onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                required
+                disabled={loading}
+                placeholder="Rua das Flores, Avenida Paulista..."
+              />
+            </div>
+            <Input
+              label="Número"
+              value={formData.numero}
+              onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+              disabled={loading}
+              placeholder="123"
+            />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -313,7 +327,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
               value={formData.bairro}
               onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
               disabled={loading}
-              placeholder="Centro"
+              placeholder="Centro, Vila Madalena..."
             />
 
             <Input
@@ -373,41 +387,25 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Latitude (para mapas)"
-              type="number"
-              step="0.00000001"
-              value={formData.latitude}
-              onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-              disabled={loading}
-              placeholder="-23.5505199"
-            />
-
-            <Input
-              label="Longitude (para mapas)"
-              type="number"
-              step="0.00000001"
-              value={formData.longitude}
-              onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-              disabled={loading}
-              placeholder="-46.6333094"
-            />
-          </div>
-
-          {/* Map Preview */}
-          {formData.latitude && formData.longitude && (
-            <div className="mt-4">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Preview do Mapa
+          {/* Preview do Mapa via Google Maps Iframe */}
+          {shouldShowMap(formData.endereco, formData.cidade) && (
+            <div className="mt-6">
+              <label className="text-sm font-medium text-gray-700 mb-3 block">
+                🗺️ Preview da Localização
               </label>
-              <PropertyMap
-                latitude={parseFloat(formData.latitude)}
-                longitude={parseFloat(formData.longitude)}
-                title={formData.titulo || 'Localização do Imóvel'}
-                address={`${formData.endereco}, ${formData.cidade} - ${formData.estado}`}
-                height="300px"
+              <GoogleMapsIframe
+                endereco={formData.endereco}
+                numero={formData.numero}
+                bairro={formData.bairro}
+                cidade={formData.cidade}
+                estado={formData.estado}
+                cep={formData.cep}
+                height="350px"
+                className="shadow-sm"
               />
+              <p className="text-xs text-gray-500 mt-2">
+                💡 O mapa será exibido automaticamente nos anúncios do imóvel usando este endereço.
+              </p>
             </div>
           )}
         </div>
