@@ -11,6 +11,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-mg": "tsx prisma/scripts/seed-cidades-mg.ts",
+    "db:seed-principais": "tsx prisma/scripts/seed-cidades-principais.ts",
     "db:studio": "prisma studio",
     "db:migrate-kanban": "tsx prisma/scripts/migrate-kanban-initial.ts"
   },
@@ -25,6 +27,7 @@
     "@prisma/client": "^5.22.0",
     "@types/bcryptjs": "^2.4.6",
     "@vercel/blob": "^2.0.0",
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
@@ -41,6 +44,7 @@
     "react-hook-form": "^7.68.0",
     "recharts": "^3.5.1",
     "sharp": "^0.34.5",
+    "slugify": "^1.6.6",
     "zod": "^4.1.13"
   },
   "devDependencies": {

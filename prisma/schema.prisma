@@ -254,6 +254,7 @@ model Imovel {
   statusConfigId String?       // Nova FK para tabela normalizada
   valor          Decimal       @db.Decimal(12, 2)
   endereco       String
+  numero         String?       // Número do endereço
   cidade         String        // Campo legado mantido
   cidadeId       String?       // Nova FK para tabela normalizada
   estado         String
