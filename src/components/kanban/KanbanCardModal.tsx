@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, MapPin, Sparkles, History, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
+import { X, Save, Loader2, Plus, Calendar, Building2, Mail, Phone, MessageSquare, User, Clock, Tag, Edit2, MapPin, Sparkles, History, CheckCircle2, AlertCircle, ChevronRight, ArrowRight, User as UserIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LeadPriority } from '@prisma/client'
 import { Button } from '@/components/ui/Button'
@@ -88,7 +88,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
   const [availableImoveis, setAvailableImoveis] = useState<Array<{ id: string; titulo: string }>>([])
   const [loadingImoveis, setLoadingImoveis] = useState(false)
   const [movingColumn, setMovingColumn] = useState(false)
-  const [activeTab, setActiveTab] = useState<'details' | 'events' | 'comments' | 'history'>('details')
+  const [activeTab, setActiveTab] = useState<'details' | 'info' | 'events' | 'comments' | 'history'>('details')
 
   const [editData, setEditData] = useState({
     priority: lead.priority,
@@ -268,6 +268,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
         <div className="md:hidden flex gap-1 px-2 py-2 border-b border-slate-200 bg-slate-50 overflow-x-auto">
           {[
             { id: 'details', label: 'Detalhes', icon: Sparkles },
+            { id: 'info', label: 'Dados', icon: User },
             { id: 'events', label: 'Eventos', icon: Calendar, badge: lead.eventos?.length },
             { id: 'comments', label: 'Chat', icon: MessageSquare },
             { id: 'history', label: 'Histórico', icon: History },
@@ -541,6 +542,144 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                         </option>
                       ))}
                     </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'info' && (
+              <div className="space-y-6 md:hidden">
+                {/* Contact Info */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Informações de Contato
+                  </h4>
+                  
+                  <a
+                    href={`tel:${lead.phone}`}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-green-50 border border-green-100 hover:border-green-200 transition-all group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-green-600 font-medium">Telefone</p>
+                      <p className="text-sm font-semibold text-slate-700 truncate group-hover:text-green-600 transition-colors">{lead.phone}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-green-400 group-hover:text-green-600" />
+                  </a>
+
+                  {lead.email && (
+                    <a
+                      href={`mailto:${lead.email}`}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 hover:border-blue-200 transition-all group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <Mail className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-blue-600 font-medium">Email</p>
+                        <p className="text-sm font-semibold text-slate-700 truncate group-hover:text-blue-600 transition-colors">{lead.email}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-blue-400 group-hover:text-blue-600" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Property Card */}
+                {lead.imovel && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+                      <Building2 className="w-4 h-4" />
+                      Interesse
+                    </h4>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+                      <div className="flex items-start gap-2 mb-3">
+                        <Building2 className="w-5 h-5 mt-0.5 opacity-80" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs opacity-80">Imóvel de interesse</p>
+                          <p className="font-semibold text-base truncate">{lead.imovel.titulo}</p>
+                        </div>
+                      </div>
+                      {(lead.imovel.cidade || lead.imovel.endereco) && (
+                        <p className="text-xs opacity-90 flex items-center gap-1 mb-3">
+                          <MapPin className="w-3 h-3" />
+                          {lead.imovel.cidade || lead.imovel.endereco}
+                        </p>
+                      )}
+                      {lead.imovel.valor && (
+                        <p className="text-2xl font-bold">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(lead.imovel.valor)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tags */}
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+                    <Tag className="w-4 h-4" />
+                    Tags
+                  </h4>
+                  <TagManager leadId={lead.id} currentTags={lead.tags || []} onUpdate={onUpdate} />
+                </div>
+
+                {/* Column Selector */}
+                {columns && columns.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+                      <ArrowRight className="w-4 h-4" />
+                      Mover Lead
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {columns.map(column => (
+                        <button
+                          key={column.id}
+                          onClick={() => handleColumnMove(column.id)}
+                          disabled={movingColumn || column.id === lead.kanbanColumn?.id}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            column.id === lead.kanbanColumn?.id
+                              ? 'text-white shadow-md scale-105'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
+                          } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          style={
+                            column.id === lead.kanbanColumn?.id
+                              ? { backgroundColor: column.color || '#6b7280' }
+                              : {}
+                          }
+                        >
+                          {column.name}
+                        </button>
+                      ))}
+                    </div>
+                    {movingColumn && (
+                      <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Movendo...
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Corretor Info */}
+                {lead.corretor && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+                      <UserIcon className="w-4 h-4" />
+                      Corretor Responsável
+                    </h4>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+                          <UserIcon className="w-5 h-5 text-slate-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700">{lead.corretor.user.name}</p>
+                          <p className="text-xs text-slate-500">Responsável pelo lead</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

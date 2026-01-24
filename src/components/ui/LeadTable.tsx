@@ -163,179 +163,326 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
-            {onSelectionChange && (
-              <th className="py-3 px-4 w-12">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={input => {
-                    if (input) input.indeterminate = someSelected || false
-                  }}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
-                />
-              </th>
-            )}
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Cliente</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Temperatura</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Score</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Tags</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Próximo Evento</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Prioridade</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Ações</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {leads.map((lead) => {
-            const attention = needsAttention(lead)
-            const nextEvent = getNextEvent(lead)
-            
-            return (
-              <tr 
-                key={lead.id} 
-                className={`hover:bg-gray-50 transition-colors ${attention ? 'bg-orange-50' : ''} ${selectedLeads.includes(lead.id) ? 'bg-purple-50' : ''}`}
-              >
+    <>
+      {/* Mobile Layout */}
+      <div className="block md:hidden space-y-3">
+        {leads.map((lead) => {
+          const attention = needsAttention(lead)
+          const nextEvent = getNextEvent(lead)
+          
+          return (
+            <div 
+              key={lead.id} 
+              className={`bg-white rounded-lg border p-4 transition-all ${
+                attention ? 'border-orange-200 bg-orange-50/50' : 'border-gray-200 hover:border-gray-300'
+              } ${selectedLeads.includes(lead.id) ? 'ring-2 ring-purple-200 border-purple-300' : ''}`}
+            >
+              {/* Mobile Header - Checkbox + Avatar + Name */}
+              <div className="flex items-center gap-3 mb-3">
                 {onSelectionChange && (
-                  <td className="py-4 px-4 w-12">
-                    <input
-                      type="checkbox"
-                      checked={selectedLeads.includes(lead.id)}
-                      onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </td>
+                  <input
+                    type="checkbox"
+                    checked={selectedLeads.includes(lead.id)}
+                    onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 flex-shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 )}
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-3">
-                    {/* Avatar with initials */}
-                    <div className={`w-10 h-10 rounded-full ${getAvatarColor(lead.name)} flex items-center justify-center text-white font-semibold text-sm flex-shrink-0`}>
-                      {getInitials(lead.name)}
+                <div className={`w-8 h-8 rounded-full ${getAvatarColor(lead.name)} flex items-center justify-center text-white font-semibold text-xs flex-shrink-0`}>
+                  {getInitials(lead.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{lead.name}</p>
+                  <p className="text-xs text-gray-600 truncate">{lead.phone}</p>
+                </div>
+              </div>
+
+              {/* Mobile Content Grid */}
+              <div className="space-y-2">
+                {/* Row 1: Priority + Temperature */}
+                <div className="flex items-center justify-between gap-2">
+                  <PriorityBadge priority={lead.priority} size="sm" />
+                  <TemperaturaIndicator temperatura={lead.temperatura} />
+                </div>
+
+                {/* Row 2: Score + Status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-xs text-gray-500">Score:</span>
+                    <div className="flex items-center gap-1 flex-1">
+                      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-[60px]">
+                        <div 
+                          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${lead.score || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-gray-700">{lead.score || 0}</span>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 truncate">{lead.name}</p>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                        {lead.phone && (
-                          <span className="truncate">{lead.phone}</span>
-                        )}
-                        {attention && (
-                          <span className="text-orange-600 font-medium whitespace-nowrap">⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias</span>
-                        )}
+                  </div>
+                  {lead.kanbanColumn && (
+                    <KanbanColumnBadge column={lead.kanbanColumn} size="sm" />
+                  )}
+                </div>
+
+                {/* Row 3: Tags */}
+                {lead.tags && lead.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {lead.tags.slice(0, 3).map((lt) => (
+                      <TagBadge 
+                        key={lt.id}
+                        name={lt.tag.name}
+                        color={lt.tag.color}
+                        size="xs"
+                      />
+                    ))}
+                    {lead.tags.length > 3 && (
+                      <span className="text-xs text-gray-500">+{lead.tags.length - 3}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Row 4: Next Event */}
+                {nextEvent && (
+                  <div className="text-xs bg-blue-50 rounded-lg p-2 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-700 font-medium">{nextEvent.tipo}</span>
+                      <span className="text-blue-600">{formatDate(nextEvent.dataHora)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Row 5: Attention Alert */}
+                {attention && (
+                  <div className="text-xs bg-orange-50 rounded-lg p-2 border border-orange-200">
+                    <span className="text-orange-700 font-medium flex items-center gap-1">
+                      ⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Actions */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  {lead.phone && (
+                    <>
+                      <a
+                        href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="WhatsApp"
+                        className="p-1.5 hover:bg-green-50 rounded-lg transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4 text-green-600" />
+                      </a>
+                      <a
+                        href={`tel:${lead.phone}`}
+                        title="Ligar"
+                        className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Phone className="w-4 h-4 text-blue-600" />
+                      </a>
+                    </>
+                  )}
+                  {lead.email && (
+                    <a
+                      href={`mailto:${lead.email}`}
+                      title="Email"
+                      className="p-1.5 hover:bg-purple-50 rounded-lg transition-colors"
+                    >
+                      <Mail className="w-4 h-4 text-purple-600" />
+                    </a>
+                  )}
+                </div>
+                {onLeadClick && (
+                  <button
+                    onClick={() => onLeadClick(lead)}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  >
+                    Ver detalhes
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop Layout - Existing Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              {onSelectionChange && (
+                <th className="py-3 px-4 w-12">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={input => {
+                      if (input) input.indeterminate = someSelected || false
+                    }}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                  />
+                </th>
+              )}
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Cliente</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Temperatura</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Score</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Tags</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Próximo Evento</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Prioridade</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {leads.map((lead) => {
+              const attention = needsAttention(lead)
+              const nextEvent = getNextEvent(lead)
+              
+              return (
+                <tr 
+                  key={lead.id} 
+                  className={`hover:bg-gray-50 transition-colors ${attention ? 'bg-orange-50' : ''} ${selectedLeads.includes(lead.id) ? 'bg-purple-50' : ''}`}
+                >
+                  {onSelectionChange && (
+                    <td className="py-4 px-4 w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedLeads.includes(lead.id)}
+                        onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                  )}
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                      {/* Avatar with initials */}
+                      <div className={`w-10 h-10 rounded-full ${getAvatarColor(lead.name)} flex items-center justify-center text-white font-semibold text-sm flex-shrink-0`}>
+                        {getInitials(lead.name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 truncate">{lead.name}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                          {lead.phone && (
+                            <span className="truncate">{lead.phone}</span>
+                          )}
+                          {attention && (
+                            <span className="text-orange-600 font-medium whitespace-nowrap">⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <TemperaturaIndicator temperatura={lead.temperatura} />
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
-                        style={{ width: `${lead.score || 0}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 w-8 text-right">{lead.score || 0}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex flex-wrap gap-1 max-w-xs">
-                    {lead.tags && lead.tags.length > 0 ? (
-                      lead.tags.slice(0, 2).map((lt) => (
-                        <TagBadge 
-                          key={lt.id}
-                          name={lt.tag.name}
-                          color={lt.tag.color}
-                          size="xs"
+                  </td>
+                  <td className="py-4 px-4">
+                    <TemperaturaIndicator temperatura={lead.temperatura} />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                          style={{ width: `${lead.score || 0}%` }}
                         />
-                      ))
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 w-8 text-right">{lead.score || 0}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {lead.tags && lead.tags.length > 0 ? (
+                        lead.tags.slice(0, 2).map((lt) => (
+                          <TagBadge 
+                            key={lt.id}
+                            name={lt.tag.name}
+                            color={lt.tag.color}
+                            size="xs"
+                          />
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                      {lead.tags && lead.tags.length > 2 && (
+                        <span className="text-xs text-gray-500">+{lead.tags.length - 2}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    {nextEvent ? (
+                      <div className="text-sm">
+                        <p className="text-gray-900 font-medium">{nextEvent.tipo}</p>
+                        <p className="text-gray-500 text-xs">{formatDate(nextEvent.dataHora)}</p>
+                      </div>
+                    ) : lead.proximoContato ? (
+                      <div className="text-sm">
+                        <p className="text-gray-900 font-medium">Follow-up</p>
+                        <p className="text-gray-500 text-xs">{formatDate(lead.proximoContato)}</p>
+                      </div>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>
                     )}
-                    {lead.tags && lead.tags.length > 2 && (
-                      <span className="text-xs text-gray-500">+{lead.tags.length - 2}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    {lead.kanbanColumn ? (
+                      <KanbanColumnBadge column={lead.kanbanColumn} size="sm" />
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Sem coluna</span>
                     )}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  {nextEvent ? (
-                    <div className="text-sm">
-                      <p className="text-gray-900 font-medium">{nextEvent.tipo}</p>
-                      <p className="text-gray-500 text-xs">{formatDate(nextEvent.dataHora)}</p>
-                    </div>
-                  ) : lead.proximoContato ? (
-                    <div className="text-sm">
-                      <p className="text-gray-900 font-medium">Follow-up</p>
-                      <p className="text-gray-500 text-xs">{formatDate(lead.proximoContato)}</p>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-400">-</span>
-                  )}
-                </td>
-                <td className="py-4 px-4">
-                  {lead.kanbanColumn ? (
-                    <KanbanColumnBadge column={lead.kanbanColumn} size="sm" />
-                  ) : (
-                    <span className="text-xs text-gray-400 italic">Sem coluna</span>
-                  )}
-                </td>
-                <td className="py-4 px-4">
-                  <PriorityBadge priority={lead.priority} size="sm" />
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    {/* Quick action buttons */}
-                    {lead.phone && (
-                      <>
+                  </td>
+                  <td className="py-4 px-4">
+                    <PriorityBadge priority={lead.priority} size="sm" />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-2">
+                      {/* Quick action buttons */}
+                      {lead.phone && (
+                        <>
+                          <a
+                            href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="WhatsApp"
+                            className="p-1.5 hover:bg-green-50 rounded transition-colors"
+                          >
+                            <MessageCircle className="w-4 h-4 text-green-600" />
+                          </a>
+                          <a
+                            href={`tel:${lead.phone}`}
+                            title="Ligar"
+                            className="p-1.5 hover:bg-blue-50 rounded transition-colors"
+                          >
+                            <Phone className="w-4 h-4 text-blue-600" />
+                          </a>
+                        </>
+                      )}
+                      {lead.email && (
                         <a
-                          href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="WhatsApp"
-                          className="p-1.5 hover:bg-green-50 rounded transition-colors"
+                          href={`mailto:${lead.email}`}
+                          title="Email"
+                          className="p-1.5 hover:bg-purple-50 rounded transition-colors"
                         >
-                          <MessageCircle className="w-4 h-4 text-green-600" />
+                          <Mail className="w-4 h-4 text-purple-600" />
                         </a>
-                        <a
-                          href={`tel:${lead.phone}`}
-                          title="Ligar"
-                          className="p-1.5 hover:bg-blue-50 rounded transition-colors"
+                      )}
+                      {onLeadClick && (
+                        <button
+                          onClick={() => onLeadClick(lead)}
+                          title="Editar"
+                          className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                         >
-                          <Phone className="w-4 h-4 text-blue-600" />
-                        </a>
-                      </>
-                    )}
-                    {lead.email && (
-                      <a
-                        href={`mailto:${lead.email}`}
-                        title="Email"
-                        className="p-1.5 hover:bg-purple-50 rounded transition-colors"
-                      >
-                        <Mail className="w-4 h-4 text-purple-600" />
-                      </a>
-                    )}
-                    {onLeadClick && (
-                      <button
-                        onClick={() => onLeadClick(lead)}
-                        title="Editar"
-                        className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                      >
-                        <Edit className="w-4 h-4 text-gray-600" />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                          <Edit className="w-4 h-4 text-gray-600" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   )
 }
