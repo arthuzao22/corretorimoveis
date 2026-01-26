@@ -27,7 +27,7 @@ export function PWAStatus() {
 
       const isInstalled =
         window.matchMedia('(display-mode: standalone)').matches ||
-        // @ts-ignore
+        // @ts-expect-error - iOS standalone mode
         (window.navigator.standalone === true)
 
       setStatus({

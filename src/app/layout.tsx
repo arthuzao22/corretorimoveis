@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { LoadingProvider } from "@/context/LoadingContext";
 import { GlobalLoading, PageTransitionHandler } from "@/components/loading";
-import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { ServiceWorkerRegistration, OfflineIndicator, InstallPrompt } from "@/components/pwa";
 import { PWAStatus } from "@/components/pwa/PWAStatus";
 
 export const metadata: Metadata = {
@@ -87,6 +87,12 @@ export default function RootLayout({
         <LoadingProvider>
           {/* Service Worker Registration */}
           <ServiceWorkerRegistration />
+          
+          {/* Offline Indicator */}
+          <OfflineIndicator />
+          
+          {/* Install Prompt */}
+          <InstallPrompt />
           
           {/* PWA Status Indicator (apenas em desenvolvimento) */}
           {process.env.NODE_ENV === 'development' && <PWAStatus />}

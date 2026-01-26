@@ -123,5 +123,39 @@
   "handle_links": "preferred",
   "launch_handler": {
     "client_mode": ["focus-existing", "auto"]
-  }
+  },
+  "share_target": {
+    "action": "/corretor/imoveis/novo?share=true",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*", "video/*"]
+        }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/corretor/leads/importar?source=file_handler",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/vnd.ms-excel": [".xls"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      },
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ]
 }
