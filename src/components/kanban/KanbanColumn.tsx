@@ -45,9 +45,9 @@ interface LeadData {
     dataHora: Date | string
     observacao?: string | null
     completed: boolean
-    imovel: {
+    imovel?: {
       titulo: string
-    }
+    } | null
   }>
 }
 

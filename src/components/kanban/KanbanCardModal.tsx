@@ -63,7 +63,7 @@ interface Lead {
     completed: boolean
     imovel?: {
       titulo: string
-    }
+    } | null
   }>
 }
 
@@ -555,7 +555,7 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                     <Phone className="w-4 h-4" />
                     Informações de Contato
                   </h4>
-                  
+
                   <a
                     href={`tel:${lead.phone}`}
                     className="flex items-center gap-3 p-4 rounded-xl bg-green-50 border border-green-100 hover:border-green-200 transition-all group"
@@ -639,11 +639,10 @@ export function KanbanCardModal({ lead, isOpen, onClose, onUpdate, columns }: Ka
                           key={column.id}
                           onClick={() => handleColumnMove(column.id)}
                           disabled={movingColumn || column.id === lead.kanbanColumn?.id}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            column.id === lead.kanbanColumn?.id
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${column.id === lead.kanbanColumn?.id
                               ? 'text-white shadow-md scale-105'
                               : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                          } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${movingColumn ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                           style={
                             column.id === lead.kanbanColumn?.id
                               ? { backgroundColor: column.color || '#6b7280' }
