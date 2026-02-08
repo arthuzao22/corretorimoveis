@@ -214,7 +214,7 @@ export function Sidebar({ userName }: SidebarProps) {
   return (
     <>
       {/* Mobile Header Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:hidden z-30">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:hidden z-20">
         <button
           onClick={() => setIsMobileOpen(true)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -229,7 +229,7 @@ export function Sidebar({ userName }: SidebarProps) {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
         />
@@ -239,12 +239,12 @@ export function Sidebar({ userName }: SidebarProps) {
       <aside 
         className={cn(
           // Base styles
-          "fixed top-0 h-screen bg-white border-r border-gray-200 flex flex-col z-50",
+          "fixed top-0 h-screen bg-white border-r border-gray-200 flex flex-col",
           // Mobile styles
-          "left-0 w-72 transform transition-transform duration-300 ease-in-out",
+          "left-0 w-72 transform transition-transform duration-300 ease-in-out z-[35]",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
           // Desktop styles
-          "lg:translate-x-0 lg:transition-[width] lg:duration-200",
+          "lg:translate-x-0 lg:transition-[width] lg:duration-200 lg:z-20",
           isCollapsed ? "lg:w-20" : "lg:w-64"
         )}
         aria-label="Menu de navegação"

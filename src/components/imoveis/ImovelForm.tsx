@@ -159,6 +159,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
       const result = await onSubmit(submitData)
 
       if (result.success) {
+        setLoading(false)
         router.push('/corretor/imoveis')
         router.refresh()
       } else {
