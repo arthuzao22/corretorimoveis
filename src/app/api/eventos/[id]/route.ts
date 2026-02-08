@@ -83,7 +83,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -145,7 +145,7 @@ export async function GET(
           { status: 403 }
         )
       }
-      if (evento.lead.corretorId !== corretorId) {
+      if (evento.lead && evento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para ver este evento' },
           { status: 403 }
@@ -181,7 +181,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -226,7 +226,7 @@ export async function PUT(
           { status: 403 }
         )
       }
-      if (existingEvento.lead.corretorId !== corretorId) {
+      if (existingEvento.lead && existingEvento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para editar este evento' },
           { status: 403 }
@@ -239,7 +239,7 @@ export async function PUT(
       const lead = await prisma.lead.findUnique({
         where: { id: validatedData.leadId },
       })
-      
+
       if (!lead) {
         return NextResponse.json(
           { success: false, error: 'Lead não encontrado' },
@@ -262,7 +262,7 @@ export async function PUT(
       const imovel = await prisma.imovel.findUnique({
         where: { id: validatedData.imovelId },
       })
-      
+
       if (!imovel) {
         return NextResponse.json(
           { success: false, error: 'Imóvel não encontrado' },
@@ -337,7 +337,7 @@ export async function PUT(
         if (nextColumn && evento.lead.kanbanColumnId !== nextColumn.id) {
           // Move lead to next column
           const oldColumnName = currentColumn?.name || 'Sem coluna'
-          
+
           await prisma.lead.update({
             where: { id: evento.lead.id },
             data: {
@@ -371,8 +371,8 @@ export async function PUT(
     // Serialize Decimal values
     let valorNumericoPut = 0
     if (evento.imovel?.valor) {
-      valorNumericoPut = typeof evento.imovel.valor === 'number' 
-        ? evento.imovel.valor 
+      valorNumericoPut = typeof evento.imovel.valor === 'number'
+        ? evento.imovel.valor
         : evento.imovel.valor.toNumber()
     }
     const serializedEvento = {
@@ -389,7 +389,7 @@ export async function PUT(
     })
   } catch (error) {
     console.error('Error updating evento:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Dados inválidos', details: error.issues },
@@ -410,7 +410,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -448,7 +448,7 @@ export async function DELETE(
           { status: 403 }
         )
       }
-      if (existingEvento.lead.corretorId !== corretorId) {
+      if (existingEvento.lead && existingEvento.lead.corretorId !== corretorId) {
         return NextResponse.json(
           { success: false, error: 'Você não tem permissão para excluir este evento' },
           { status: 403 }
