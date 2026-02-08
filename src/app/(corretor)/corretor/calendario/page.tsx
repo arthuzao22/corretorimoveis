@@ -89,9 +89,19 @@ export default function CalendarioPage() {
   }
 
   const handleDateClick = (date: Date) => {
-    // Calendar is now read-only - events can only be created from kanban cards
-    // This function is kept for future reference but does nothing
-    return
+    // Open modal to create a new event at the clicked date
+    setSelectedEvento({
+      id: '', // Empty id indicates new event
+      tipo: 'GERAL',
+      dataHora: date,
+      observacao: null,
+      completed: false,
+      leadId: null,
+      imovelId: null,
+      lead: null,
+      imovel: null
+    } as any)
+    setIsModalOpen(true)
   }
 
   const handleEventClick = (evento: Evento) => {

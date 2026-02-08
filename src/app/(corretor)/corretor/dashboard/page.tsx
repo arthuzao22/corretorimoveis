@@ -7,7 +7,7 @@ import { LeadsPipelineChart } from '@/components/charts/LeadsPipelineChart'
 import { TopPropertiesWidget } from '@/components/dashboard/TopPropertiesWidget'
 import { UpcomingEventsWidget } from '@/components/dashboard/UpcomingEventsWidget'
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget'
-import { Home, Users, TrendingUp, Eye, Target } from 'lucide-react'
+import { Home, Users, TrendingUp, Eye, Target, Building2, Key } from 'lucide-react'
 import { Suspense } from 'react'
 import { DashboardSkeleton } from '@/components/skeletons'
 
@@ -89,6 +89,57 @@ async function DashboardContent() {
             isPositive: calculateIsPositive(metrics.totalViews, metrics.totalViewsPrevMonth)
           }}
         />
+      </div>
+
+      {/* Metrics by Type (VENDA/ALUGUEL) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Vendas */}
+        <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-emerald-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Vendas</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-emerald-600">{metrics.byTipo.venda.imoveis}</p>
+              <p className="text-xs text-gray-500">Imóveis</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-emerald-600">{metrics.byTipo.venda.leads}</p>
+              <p className="text-xs text-gray-500">Leads</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-emerald-600">{metrics.byTipo.venda.views}</p>
+              <p className="text-xs text-gray-500">Visualizações</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Aluguéis */}
+        <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Key className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Aluguéis</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{metrics.byTipo.aluguel.imoveis}</p>
+              <p className="text-xs text-gray-500">Imóveis</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{metrics.byTipo.aluguel.leads}</p>
+              <p className="text-xs text-gray-500">Leads</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{metrics.byTipo.aluguel.views}</p>
+              <p className="text-xs text-gray-500">Visualizações</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Two Column Layout for Widgets */}

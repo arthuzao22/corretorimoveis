@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCardModal } from './KanbanCardModal'
+import { CreateLeadModal } from './CreateLeadModal'
 import { moveLeadToColumn } from '@/server/actions/kanban'
 import { useRouter } from 'next/navigation'
 import { LeadPriority, LeadStatus } from '@prisma/client'
 import { DragDropContext, DropResult } from '@hello-pangea/dnd'
-import { Settings2, Search, Filter, X } from 'lucide-react'
+import { Settings2, Search, Filter, X, Plus } from 'lucide-react'
 
 interface LeadData {
   id: string
@@ -89,6 +90,14 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   const [priorityFilter, setPriorityFilter] = useState<LeadPriority | 'ALL'>('ALL')
   const [corretorFilter, setCorretorFilter] = useState<string>('ALL')
   const [isFiltersVisible, setIsFiltersVisible] = useState(true)
+
+  // Create lead modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
+  // Sync local state when initialBoard changes (after router.refresh())
+  useEffect(() => {
+    setBoard(initialBoard)
+  }, [initialBoard])
 
   const onDragEnd = useCallback(async (result: DropResult) => {
     const { destination, source, draggableId } = result
@@ -214,6 +223,13 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex-1 sm:flex-none p-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium hover:from-indigo-700 hover:to-purple-700"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="sm:inline">Novo Lead</span>
+            </button>
+            <button
               onClick={() => setIsFiltersVisible(!isFiltersVisible)}
               className={`flex-1 sm:flex-none p-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium ${isFiltersVisible ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
                 }`}
@@ -321,6 +337,13 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
           }))}
         />
       )}
+
+      {/* Create Lead Modal */}
+      <CreateLeadModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={() => router.refresh()}
+      />
     </div>
   )
 }

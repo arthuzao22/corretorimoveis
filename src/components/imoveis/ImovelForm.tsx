@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { BlobUpload } from '@/components/upload/BlobUpload'
 import { GoogleMapsIframe, shouldShowMap } from '@/components/maps/GoogleMapsIframe'
+import { fetchAddressByCep, formatCep, isValidCep } from '@/lib/utils/viacep'
 import { z } from 'zod'
+import { Loader2, Search } from 'lucide-react'
 
 // =============================================
 // VALIDAÇÃO ZOD COMPLETA
@@ -50,6 +52,7 @@ interface ImovelFormProps {
 export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }: ImovelFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [loadingCep, setLoadingCep] = useState(false)
   const [error, setError] = useState('')
   const [cidades, setCidades] = useState<any[]>([])
   const [statusConfigs, setStatusConfigs] = useState<any[]>([])
@@ -301,6 +304,58 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-900 border-b pb-3">📍 Localização</h3>
 
+          {/* CEP PRIMEIRO - com busca automática */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">CEP</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.cep}
+                  onChange={(e) => {
+                    const formatted = formatCep(e.target.value)
+                    setFormData({ ...formData, cep: formatted })
+                  }}
+                  disabled={loading}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!isValidCep(formData.cep || '')) {
+                      setError('CEP inválido. Digite 8 números.')
+                      return
+                    }
+                    setLoadingCep(true)
+                    setError('')
+                    const address = await fetchAddressByCep(formData.cep || '')
+                    if (address) {
+                      setFormData({
+                        ...formData,
+                        endereco: address.logradouro || formData.endereco,
+                        bairro: address.bairro || formData.bairro,
+                        cidade: address.cidade || formData.cidade,
+                        estado: address.estado || formData.estado,
+                      })
+                    } else {
+                      setError('CEP não encontrado')
+                    }
+                    setLoadingCep(false)
+                  }}
+                  disabled={loading || loadingCep}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {loadingCep ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  Buscar
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Digite o CEP e clique em Buscar para preencher automaticamente</p>
+            </div>
+          </div>
+
+          {/* Logradouro e Número */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-3">
               <Input
@@ -321,6 +376,7 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
             />
           </div>
 
+          {/* Bairro */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Bairro"
@@ -328,14 +384,6 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
               onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
               disabled={loading}
               placeholder="Centro, Vila Madalena..."
-            />
-
-            <Input
-              label="CEP"
-              value={formData.cep}
-              onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
-              disabled={loading}
-              placeholder="00000-000"
             />
           </div>
 

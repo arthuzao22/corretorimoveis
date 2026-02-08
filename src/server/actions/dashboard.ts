@@ -11,17 +11,31 @@ export interface DashboardMetrics {
   totalLeads: number
   leadsConvertidos: number
   totalViews: number
-  
+
   // Previous month metrics for comparison
   imoveisAtivosPrevMonth: number
   totalLeadsPrevMonth: number
   leadsConvertidosPrevMonth: number
   totalViewsPrevMonth: number
-  
+
   // Calculated metrics
   taxaConversao: number
   taxaConversaoPrevMonth: number
-  
+
+  // Metrics by property type (VENDA/ALUGUEL)
+  byTipo: {
+    venda: {
+      imoveis: number
+      leads: number
+      views: number
+    }
+    aluguel: {
+      imoveis: number
+      leads: number
+      views: number
+    }
+  }
+
   // Pipeline data
   pipeline: {
     novos: number
@@ -31,7 +45,7 @@ export interface DashboardMetrics {
     convertidos: number
     perdidos: number
   }
-  
+
   // Top properties
   topImoveis: Array<{
     id: string
@@ -39,8 +53,9 @@ export interface DashboardMetrics {
     views: number
     leads: number
     image: string | null
+    tipo: 'VENDA' | 'ALUGUEL'
   }>
-  
+
   // Upcoming events
   upcomingEvents: Array<{
     id: string
@@ -49,12 +64,12 @@ export interface DashboardMetrics {
     observacao: string | null
     lead: {
       name: string
-    }
+    } | null
     imovel: {
       titulo: string
-    }
+    } | null
   }>
-  
+
   // Pending tasks
   pendingTasks: {
     leadsNaoContatados: number
@@ -65,7 +80,7 @@ export interface DashboardMetrics {
 export async function getDashboardMetrics(): Promise<{ success: boolean; data?: DashboardMetrics; error?: string }> {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -96,7 +111,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           status: 'ATIVO'
         }
       }),
-      
+
       // Imóveis ativos (previous month) - we'll use created date as proxy
       prisma.imovel.count({
         where: {
@@ -107,7 +122,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           }
         }
       }),
-      
+
       // Leads current month
       prisma.lead.findMany({
         where: {
@@ -123,7 +138,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           createdAt: true
         }
       }),
-      
+
       // Leads previous month
       prisma.lead.findMany({
         where: {
@@ -139,7 +154,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           createdAt: true
         }
       }),
-      
+
       // All leads for pipeline
       prisma.lead.findMany({
         where: { corretorId },
@@ -148,13 +163,14 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           imovelId: true
         }
       }),
-      
+
       // All properties for views and top properties
       prisma.imovel.findMany({
-        where: { corretorId },
+        where: { corretorId, status: { not: 'INATIVO' } },
         select: {
           id: true,
           titulo: true,
+          tipo: true,
           views: true,
           images: true,
           leads: {
@@ -164,9 +180,9 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
         orderBy: {
           views: 'desc'
         },
-        take: 3
+        take: 5
       }),
-      
+
       // Upcoming events (next 3)
       prisma.eventoCalendario.findMany({
         where: {
@@ -195,7 +211,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
         },
         take: 3
       }),
-      
+
       // Leads not contacted (created > 1 day ago and no contact date)
       prisma.lead.count({
         where: {
@@ -213,12 +229,12 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     const totalLeadsPrevMonth = leadsPrevMonth.length
     const leadsConvertidos = leadsCurrentMonth.filter(l => l.status === 'CONVERTIDO').length
     const leadsConvertidosPrevMonth = leadsPrevMonth.filter(l => l.status === 'CONVERTIDO').length
-    
+
     const totalViews = allImoveis.reduce((sum, i) => sum + (i.views || 0), 0)
     // Note: Views are cumulative, so we estimate previous month by comparing monthly growth
     // In a production system, you would track views with timestamps in a separate table
     const totalViewsPrevMonth = Math.max(0, Math.floor(totalViews * 0.7)) // Rough estimate
-    
+
     const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0
     const taxaConversaoPrevMonth = totalLeadsPrevMonth > 0 ? (leadsConvertidosPrevMonth / totalLeadsPrevMonth) * 100 : 0
 
@@ -233,26 +249,40 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     }
 
     // Top properties
-    const topImoveis = allImoveis.map(imovel => ({
+    const topImoveis = allImoveis.slice(0, 3).map(imovel => ({
       id: imovel.id,
       titulo: imovel.titulo,
       views: imovel.views || 0,
       leads: imovel.leads.length,
-      image: imovel.images && imovel.images.length > 0 ? imovel.images[0] : null
+      image: imovel.images && imovel.images.length > 0 ? imovel.images[0] : null,
+      tipo: imovel.tipo as 'VENDA' | 'ALUGUEL'
     }))
 
-    // Upcoming events
+    // Metrics by tipo
+    const imoveisVenda = allImoveis.filter(i => i.tipo === 'VENDA')
+    const imoveisAluguel = allImoveis.filter(i => i.tipo === 'ALUGUEL')
+
+    const byTipo = {
+      venda: {
+        imoveis: imoveisVenda.length,
+        leads: imoveisVenda.reduce((sum, i) => sum + i.leads.length, 0),
+        views: imoveisVenda.reduce((sum, i) => sum + (i.views || 0), 0)
+      },
+      aluguel: {
+        imoveis: imoveisAluguel.length,
+        leads: imoveisAluguel.reduce((sum, i) => sum + i.leads.length, 0),
+        views: imoveisAluguel.reduce((sum, i) => sum + (i.views || 0), 0)
+      }
+    }
+
+    // Upcoming events (handle optional lead/imovel)
     const upcomingEvents = upcomingEventsData.map(event => ({
       id: event.id,
       dataHora: event.dataHora,
       tipo: event.tipo,
       observacao: event.observacao,
-      lead: {
-        name: event.lead.name
-      },
-      imovel: {
-        titulo: event.imovel.titulo
-      }
+      lead: event.lead ? { name: event.lead.name } : null,
+      imovel: event.imovel ? { titulo: event.imovel.titulo } : null
     }))
 
     // Count events in next 7 days
@@ -281,6 +311,7 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
       totalViewsPrevMonth,
       taxaConversao,
       taxaConversaoPrevMonth,
+      byTipo,
       pipeline,
       topImoveis,
       upcomingEvents,

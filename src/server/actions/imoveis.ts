@@ -134,8 +134,11 @@ export async function deleteImovel(id: string) {
       return { success: false, error: 'Imóvel não encontrado' }
     }
 
-    await prisma.imovel.delete({
-      where: { id }
+    // Soft delete: apenas marca como INATIVO em vez de deletar
+    // Isso preserva os leads e eventos associados
+    await prisma.imovel.update({
+      where: { id },
+      data: { status: 'INATIVO' }
     })
 
     return { success: true }
@@ -155,7 +158,8 @@ export async function getMyImoveis() {
 
     const imoveis = await prisma.imovel.findMany({
       where: {
-        corretorId: session.user.corretorId
+        corretorId: session.user.corretorId,
+        status: { not: 'INATIVO' } // Filtrar imóveis inativos (soft deleted)
       },
       include: {
         cidadeRef: {

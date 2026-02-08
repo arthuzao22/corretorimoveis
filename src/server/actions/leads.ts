@@ -69,10 +69,106 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
   }
 }
 
+// =============================================
+// CRIAR LEAD DIRETAMENTE PELO KANBAN
+// =============================================
+
+const kanbanLeadSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
+  phone: z.string().min(10, 'Telefone deve ter no mínimo 10 dígitos'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  message: z.string().optional(),
+  imovelId: z.string().optional(), // OPCIONAL - pode criar lead sem imóvel
+  kanbanColumnId: z.string().optional() // Coluna específica ou usa inicial
+})
+
+export async function createLeadFromKanban(data: z.infer<typeof kanbanLeadSchema>) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
+      return { success: false, error: 'Não autorizado' }
+    }
+
+    const validatedData = kanbanLeadSchema.parse(data)
+
+    // Determinar a coluna do Kanban
+    let columnId = validatedData.kanbanColumnId
+    let columnName = ''
+
+    if (!columnId) {
+      // Buscar coluna inicial se não especificada
+      const initialColumn = await prisma.kanbanColumn.findFirst({
+        where: {
+          board: { isGlobal: true },
+          isInitial: true
+        }
+      })
+
+      if (!initialColumn) {
+        return { success: false, error: 'Coluna inicial do Kanban não encontrada' }
+      }
+      columnId = initialColumn.id
+      columnName = initialColumn.name
+    } else {
+      // Buscar nome da coluna especificada
+      const column = await prisma.kanbanColumn.findUnique({
+        where: { id: columnId }
+      })
+      columnName = column?.name || 'Coluna'
+    }
+
+    // Criar lead
+    const lead = await prisma.lead.create({
+      data: {
+        name: validatedData.name,
+        phone: validatedData.phone,
+        email: validatedData.email || null,
+        message: validatedData.message || null,
+        imovelId: validatedData.imovelId || null,
+        corretorId: session.user.corretorId,
+        kanbanColumnId: columnId,
+        origem: 'kanban'
+      },
+      include: {
+        imovel: {
+          select: {
+            id: true,
+            titulo: true
+          }
+        }
+      }
+    })
+
+    // Timeline entry
+    await prisma.leadTimeline.create({
+      data: {
+        leadId: lead.id,
+        action: 'CREATED',
+        description: `Lead criado manualmente via Kanban na coluna "${columnName}"`,
+        metadata: {
+          source: 'kanban_creation',
+          columnId,
+          columnName,
+          hasImovel: !!validatedData.imovelId
+        }
+      }
+    })
+
+    return { success: true, lead }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0].message }
+    }
+    console.error('Create lead from kanban error:', error)
+    return { success: false, error: 'Erro ao criar lead' }
+  }
+}
+
 export async function getMyLeads(filters?: { status?: string }) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -111,7 +207,7 @@ export async function getMyLeads(filters?: { status?: string }) {
 export async function getAllLeads() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -162,7 +258,7 @@ const updateLeadSchema = z.object({
 export async function updateLeadStatus(data: z.infer<typeof updateLeadSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || (session.user.role !== 'CORRETOR' && session.user.role !== 'ADMIN')) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -269,7 +365,7 @@ const updateTemperaturaSchema = z.object({
 export async function updateLeadTemperatura(leadId: string, temperatura: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -321,7 +417,7 @@ const updateScoreSchema = z.object({
 export async function updateLeadScore(leadId: string, score: number) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -364,7 +460,7 @@ const bulkUpdateTemperaturaSchema = z.object({
 export async function bulkUpdateTemperatura(data: z.infer<typeof bulkUpdateTemperaturaSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -399,7 +495,7 @@ const bulkDeleteLeadsSchema = z.object({
 export async function bulkDeleteLeads(data: z.infer<typeof bulkDeleteLeadsSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }

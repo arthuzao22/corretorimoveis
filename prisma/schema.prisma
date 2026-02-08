@@ -330,7 +330,7 @@ model Lead {
   updatedAt       DateTime      @updatedAt
 
   // Relacionamentos
-  imovel       Imovel?           @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  imovel       Imovel?           @relation(fields: [imovelId], references: [id], onDelete: SetNull)
   corretor     CorretorProfile   @relation(fields: [corretorId], references: [id], onDelete: Cascade)
   statusConfig LeadStatusConfig? @relation(fields: [statusConfigId], references: [id], onDelete: SetNull)
   kanbanColumn KanbanColumn?     @relation(fields: [kanbanColumnId], references: [id], onDelete: SetNull)
@@ -378,8 +378,8 @@ model LandingBloco {
 
 model EventoCalendario {
   id         String      @id @default(cuid())
-  leadId     String
-  imovelId   String
+  leadId     String?
+  imovelId   String?
   tipo       EventoTipo  @default(VISITA)
   dataHora   DateTime
   observacao String?     @db.Text
@@ -388,8 +388,8 @@ model EventoCalendario {
   updatedAt  DateTime    @updatedAt
 
   // Relacionamentos
-  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  imovel Imovel @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  imovel Imovel? @relation(fields: [imovelId], references: [id], onDelete: SetNull)
 
   @@index([dataHora])
   @@index([leadId])
