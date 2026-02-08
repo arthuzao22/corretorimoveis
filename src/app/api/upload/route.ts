@@ -109,12 +109,15 @@ export async function POST(request: NextRequest) {
  * OPTIONS - CORS preflight
  */
 export async function OPTIONS() {
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
     return new NextResponse(null, {
         status: 200,
         headers: {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': allowedOrigin,
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Credentials': 'true',
         },
     })
 }

@@ -39,8 +39,8 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
     fetch('/api/cidades')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.cidades)) {
-          setCidades(data.cidades)
+        if (data.success && Array.isArray(data.data)) {
+          setCidades(data.data)
         }
       })
       .catch((err) => console.error('Error fetching cidades:', err))
@@ -49,8 +49,8 @@ export function FilterBar({ currentFilters }: FilterBarProps) {
     fetch('/api/imovel-status')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.statusList)) {
-          setStatusList(data.statusList)
+        if (data.success && Array.isArray(data.data)) {
+          setStatusList(data.data)
         }
       })
       .catch((err) => console.error('Error fetching status:', err))

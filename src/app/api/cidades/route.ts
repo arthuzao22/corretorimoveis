@@ -20,7 +20,7 @@ export async function GET() {
       ],
     })
 
-    return NextResponse.json({ success: true, cidades })
+    return NextResponse.json({ success: true, data: cidades })
   } catch (error) {
     console.error('Error fetching cidades:', error)
     return NextResponse.json(

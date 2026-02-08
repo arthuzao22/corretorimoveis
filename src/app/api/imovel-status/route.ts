@@ -21,7 +21,7 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ success: true, status: statusList })
+    return NextResponse.json({ success: true, data: statusList })
   } catch (error) {
     console.error('Error fetching imovel status:', error)
     return NextResponse.json(

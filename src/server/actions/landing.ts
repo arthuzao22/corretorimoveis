@@ -10,7 +10,7 @@ import { authOptions } from '@/lib/auth-options'
 export async function getAllLandings() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -44,7 +44,7 @@ export async function getAllLandings() {
 export async function getLandingByCorretor(corretorId: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -54,7 +54,7 @@ export async function getLandingByCorretor(corretorId: string) {
       const corretorProfile = await prisma.corretorProfile.findFirst({
         where: { userId: session.user.id }
       })
-      
+
       if (!corretorProfile || corretorProfile.id !== corretorId) {
         return { success: false, error: 'Não autorizado' }
       }
@@ -100,7 +100,7 @@ export async function createLandingBloco(data: {
 }) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -146,7 +146,7 @@ export async function updateLandingBloco(blocoId: string, data: {
 }) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -166,7 +166,7 @@ export async function updateLandingBloco(blocoId: string, data: {
 export async function deleteLandingBloco(blocoId: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -185,7 +185,7 @@ export async function deleteLandingBloco(blocoId: string) {
 export async function reorderLandingBlocos(corretorId: string, blocoIds: string[]) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -208,7 +208,7 @@ export async function reorderLandingBlocos(corretorId: string, blocoIds: string[
 export async function toggleLandingAtiva(corretorId: string, ativa: boolean) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -260,6 +260,16 @@ export async function createLeadFromLanding(data: {
   imovelId?: string
 }) {
   try {
+    // VALIDAÇÃO DE SEGURANÇA: Verificar se corretor existe e está ativo
+    const corretor = await prisma.corretorProfile.findUnique({
+      where: { id: data.corretorId },
+      include: { user: { select: { active: true } } }
+    })
+
+    if (!corretor || !corretor.user.active) {
+      return { success: false, error: 'Corretor não encontrado' }
+    }
+
     const lead = await prisma.lead.create({
       data: {
         corretorId: data.corretorId,

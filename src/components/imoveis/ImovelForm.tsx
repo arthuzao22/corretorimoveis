@@ -92,12 +92,12 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
 
         if (cidadesRes.ok) {
           const cidadesData = await cidadesRes.json()
-          setCidades(cidadesData.cidades || [])
+          setCidades(cidadesData.data || [])
         }
 
         if (statusRes.ok) {
           const statusData = await statusRes.json()
-          setStatusConfigs(statusData.status || [])
+          setStatusConfigs(statusData.data || [])
         }
       } catch (err) {
         console.error('Erro ao carregar dados:', err)
