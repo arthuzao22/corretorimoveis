@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { serializeImoveis } from '@/lib/utils/serializers'
+import { revalidatePath } from 'next/cache'
 
 export async function getAllCorretores() {
   try {
@@ -61,6 +62,10 @@ export async function approveCorretor(corretorId: string) {
       where: { id: corretorId },
       data: { approved: true }
     })
+
+    // SECURITY FIX: Revalidate paths to ensure fresh data
+    revalidatePath('/admin/corretores')
+    revalidatePath('/admin/dashboard')
 
     return { success: true }
   } catch (error) {

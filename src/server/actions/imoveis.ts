@@ -88,26 +88,37 @@ export async function updateImovel(id: string, data: Partial<z.infer<typeof imov
       return { success: false, error: 'Imóvel não encontrado' }
     }
 
+    // SECURITY FIX: Whitelist de campos permitidos para prevenir mass assignment
+    // Não permitir alteração de corretorId, id, createdAt, views, etc.
+    const allowedFields = {
+      titulo: data.titulo,
+      descricao: data.descricao,
+      tipo: data.tipo,
+      valor: data.valor,
+      endereco: data.endereco,
+      cidade: data.cidade,
+      estado: data.estado,
+      images: data.images,
+      statusConfigId: data.statusConfigId || null,
+      cidadeId: data.cidadeId || null,
+      cep: data.cep || null,
+      bairro: data.bairro || null,
+      quartos: data.quartos ?? null,
+      banheiros: data.banheiros ?? null,
+      suites: data.suites ?? null,
+      area: data.area ?? null,
+      areaTerreno: data.areaTerreno ?? null,
+      garagem: data.garagem ?? null,
+      condominio: data.condominio ?? null,
+      iptu: data.iptu ?? null,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      destaque: data.destaque ?? undefined,
+    }
+
     const updatedImovel = await prisma.imovel.update({
       where: { id },
-      data: {
-        ...data,
-        // Garantir que campos opcionais null/undefined sejam tratados corretamente
-        statusConfigId: data.statusConfigId || null,
-        cidadeId: data.cidadeId || null,
-        cep: data.cep || null,
-        bairro: data.bairro || null,
-        quartos: data.quartos ?? null,
-        banheiros: data.banheiros ?? null,
-        suites: data.suites ?? null,
-        area: data.area ?? null,
-        areaTerreno: data.areaTerreno ?? null,
-        garagem: data.garagem ?? null,
-        condominio: data.condominio ?? null,
-        iptu: data.iptu ?? null,
-        latitude: data.latitude ?? null,
-        longitude: data.longitude ?? null,
-      }
+      data: allowedFields
     })
 
     return { success: true, imovel: serializeImovel(updatedImovel) }

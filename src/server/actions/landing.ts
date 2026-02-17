@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCorretorBySlug } from '@/lib/corretor'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { z } from 'zod'
 
 // Admin Actions
 
@@ -258,11 +259,35 @@ export async function createLeadFromLanding(data: {
   email?: string
   message?: string
   imovelId?: string
+  honeypot?: string // Anti-spam honeypot field
 }) {
   try {
+    // SECURITY: Anti-spam honeypot check
+    // If honeypot field is filled, it's likely a bot
+    if (data.honeypot && data.honeypot.trim() !== '') {
+      console.warn('[SECURITY] Honeypot triggered for lead creation')
+      return { success: false, error: 'Invalid submission' }
+    }
+
+    // SECURITY: Input validation with Zod
+    const leadSchema = z.object({
+      corretorId: z.string().min(1),
+      name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(100),
+      phone: z.string().min(10, 'Telefone inválido').max(20),
+      email: z.string().email('Email inválido').optional().or(z.literal('')),
+      message: z.string().max(1000).optional(),
+      imovelId: z.string().optional()
+    })
+
+    const validatedData = leadSchema.parse(data)
+
+    // SECURITY: Sanitize text inputs to prevent XSS
+    const sanitizedName = validatedData.name.trim()
+    const sanitizedMessage = validatedData.message?.trim() || null
+
     // VALIDAÇÃO DE SEGURANÇA: Verificar se corretor existe e está ativo
     const corretor = await prisma.corretorProfile.findUnique({
-      where: { id: data.corretorId },
+      where: { id: validatedData.corretorId },
       include: { user: { select: { active: true } } }
     })
 
@@ -272,18 +297,21 @@ export async function createLeadFromLanding(data: {
 
     const lead = await prisma.lead.create({
       data: {
-        corretorId: data.corretorId,
-        imovelId: data.imovelId || null,
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        message: data.message,
+        corretorId: validatedData.corretorId,
+        imovelId: validatedData.imovelId || null,
+        name: sanitizedName,
+        phone: validatedData.phone,
+        email: validatedData.email || null,
+        message: sanitizedMessage,
         origem: 'landing'
       }
     })
 
     return { success: true, lead }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: 'Dados inválidos' }
+    }
     console.error('Create lead from landing error:', error)
     return { success: false, error: 'Erro ao criar lead' }
   }

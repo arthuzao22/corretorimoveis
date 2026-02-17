@@ -56,6 +56,26 @@ export const authOptions: NextAuthOptions = {
         token.corretorId = user.corretorId
         token.approved = user.approved
       }
+      
+      // SECURITY: Validate user is still active on every request
+      // This prevents disabled users from using cached JWT tokens
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { active: true, role: true }
+        })
+        
+        // If user is inactive or deleted, invalidate the token
+        if (!dbUser || !dbUser.active) {
+          return {} as any // Return empty token to force logout
+        }
+        
+        // Update role if it changed (e.g., promoted/demoted)
+        if (dbUser.role !== token.role) {
+          token.role = dbUser.role
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
@@ -83,7 +103,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 dias
+    maxAge: 7 * 24 * 60 * 60, // 7 dias (reduzido de 30 dias por segurança)
   },
   secret: process.env.NEXTAUTH_SECRET,
   useSecureCookies: process.env.NODE_ENV === 'production'
