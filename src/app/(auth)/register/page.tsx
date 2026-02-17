@@ -15,8 +15,8 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'CORRETOR' as 'CORRETOR' | 'ADMIN'
+    confirmPassword: ''
+    // role removido - tratado automaticamente no backend como CORRETOR
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,8 +41,8 @@ export default function RegisterPage() {
       const result = await registerUser({
         name: formData.name,
         email: formData.email,
-        password: formData.password,
-        role: formData.role
+        password: formData.password
+        // role removido - backend força CORRETOR para segurança
       })
 
       if (!result.success) {
@@ -101,21 +101,6 @@ export default function RegisterPage() {
             required
             disabled={loading}
           />
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
-              Tipo de Conta
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'CORRETOR' | 'ADMIN' })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            >
-              <option value="CORRETOR">Corretor</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
-          </div>
 
           {error && (
             <div className="text-red-600 text-sm text-center">

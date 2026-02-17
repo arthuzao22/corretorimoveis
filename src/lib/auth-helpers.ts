@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { prisma } from '@/lib/prisma'
 
 export class AuthError extends Error {
     constructor(message: string) {
@@ -74,4 +75,73 @@ export async function requireCorretorAuth(): Promise<
  */
 export async function requireAdminAuth(): Promise<AuthResult> {
     return requireAuth('ADMIN')
+}
+
+/**
+ * Valida que um recurso pertence ao corretor autenticado
+ * Suporta bypass para admins (casos de suporte)
+ */
+export async function validateResourceOwnership(
+  resourceType: 'imovel' | 'lead',
+  resourceId: string,
+  options?: {
+    allowAdmin?: boolean
+    customCorretorId?: string
+  }
+): Promise<
+  | { success: false; error: string }
+  | { success: true; isOwner: boolean; isAdmin: boolean }
+> {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) {
+    return { success: false, error: 'Não autorizado' }
+  }
+
+  // Admin bypass se habilitado
+  if (options?.allowAdmin && session.user.role === 'ADMIN') {
+    return { success: true, isOwner: false, isAdmin: true }
+  }
+
+  // Verificar se corretor tem perfil
+  if (session.user.role === 'CORRETOR' && !session.user.corretorId) {
+    return { success: false, error: 'Perfil de corretor não encontrado' }
+  }
+
+  const corretorId = options?.customCorretorId || session.user.corretorId
+
+  // Validar ownership baseado no tipo de recurso
+  let resource: any
+
+  switch (resourceType) {
+    case 'imovel':
+      resource = await prisma.imovel.findUnique({
+        where: { id: resourceId },
+        select: { id: true, corretorId: true }
+      })
+      break
+
+    case 'lead':
+      resource = await prisma.lead.findUnique({
+        where: { id: resourceId },
+        select: { id: true, corretorId: true }
+      })
+      break
+
+    default:
+      return { success: false, error: 'Tipo de recurso inválido' }
+  }
+
+  if (!resource) {
+    return { success: false, error: 'Recurso não encontrado' }
+  }
+
+  if (resource.corretorId !== corretorId) {
+    return {
+      success: false,
+      error: 'Acesso negado - recurso não pertence a você'
+    }
+  }
+
+  return { success: true, isOwner: true, isAdmin: false }
 }

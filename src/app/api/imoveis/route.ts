@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { serializeImoveis } from '@/lib/utils/serializers'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-options'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,10 +37,34 @@ export async function GET(request: NextRequest) {
       cursor: searchParams.get('cursor') || undefined,
     })
 
+    // ============================================
+    // SECURITY FIX: Autenticação + filtro por ownership
+    // ============================================
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticação necessária' },
+        { status: 401 }
+      )
+    }
+
     // Build where clause
     const where: any = {
       status: 'ATIVO', // Only show active properties
     }
+
+    // CRITICAL: Filtrar por corretor (admins veem tudo)
+    if (session.user.role === 'CORRETOR') {
+      if (!session.user.corretorId) {
+        return NextResponse.json(
+          { success: false, error: 'Perfil de corretor não encontrado' },
+          { status: 403 }
+        )
+      }
+      where.corretorId = session.user.corretorId
+    }
+    // Admin: sem filtro adicional - pode ver todos os imóveis
 
     if (params.tipo) {
       where.tipo = params.tipo
@@ -147,16 +173,16 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching imoveis:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: 'Invalid query parameters', details: error.issues },
+        { success: false, error: 'Parâmetros inválidos', details: error.issues },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch properties' },
+      { success: false, error: 'Erro ao buscar imóveis' },
       { status: 500 }
     )
   }

@@ -92,6 +92,39 @@ export async function createLeadFromKanban(data: z.infer<typeof kanbanLeadSchema
 
     const validatedData = kanbanLeadSchema.parse(data)
 
+    // ============================================
+    // SECURITY FIX: Validar ownership do imóvel
+    // ============================================
+    if (validatedData.imovelId) {
+      const imovel = await prisma.imovel.findUnique({
+        where: { id: validatedData.imovelId },
+        select: { id: true, corretorId: true, titulo: true }
+      })
+
+      if (!imovel) {
+        return {
+          success: false,
+          error: 'Imóvel não encontrado. Selecione um imóvel válido.'
+        }
+      }
+
+      if (imovel.corretorId !== session.user.corretorId) {
+        // Log de tentativa IDOR para auditoria
+        console.warn('[SECURITY] IDOR attempt:', {
+          userId: session.user.id,
+          corretorId: session.user.corretorId,
+          attemptedImovelId: validatedData.imovelId,
+          actualOwner: imovel.corretorId,
+          timestamp: new Date().toISOString()
+        })
+
+        return {
+          success: false,
+          error: 'Este imóvel não pertence ao seu perfil. Selecione um de seus próprios imóveis.'
+        }
+      }
+    }
+
     // Determinar a coluna do Kanban
     let columnId = validatedData.kanbanColumnId
     let columnName = ''
@@ -118,7 +151,7 @@ export async function createLeadFromKanban(data: z.infer<typeof kanbanLeadSchema
       columnName = column?.name || 'Coluna'
     }
 
-    // Criar lead
+    // Criar lead (ownership validado)
     const lead = await prisma.lead.create({
       data: {
         name: validatedData.name,
@@ -140,17 +173,18 @@ export async function createLeadFromKanban(data: z.infer<typeof kanbanLeadSchema
       }
     })
 
-    // Timeline entry
+    // Timeline com rastreamento de validação
     await prisma.leadTimeline.create({
       data: {
         leadId: lead.id,
         action: 'CREATED',
-        description: `Lead criado manualmente via Kanban na coluna "${columnName}"`,
+        description: `Lead criado via Kanban na coluna "${columnName}"`,
         metadata: {
           source: 'kanban_creation',
           columnId,
           columnName,
-          hasImovel: !!validatedData.imovelId
+          hasImovel: !!validatedData.imovelId,
+          ownershipValidated: !!validatedData.imovelId
         }
       }
     })

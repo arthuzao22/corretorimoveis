@@ -50,13 +50,30 @@ export function CreateLeadModal({
     const loadImoveis = async () => {
         setLoadingImoveis(true)
         try {
+            // Endpoint agora filtra automaticamente por corretor autenticado
             const res = await fetch('/api/imoveis')
             const data = await res.json()
+
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    setError('Sessão expirada. Faça login novamente.')
+                    return
+                }
+                throw new Error(data.error || 'Erro ao carregar imóveis')
+            }
+
             if (data.success && data.imoveis) {
                 setImoveis(data.imoveis)
+
+                if (data.imoveis.length === 0) {
+                    console.info('Nenhum imóvel disponível. Cadastre um imóvel primeiro.')
+                }
+            } else {
+                throw new Error(data.error || 'Resposta inválida')
             }
         } catch (err) {
             console.error('Erro ao carregar imóveis:', err)
+            setError('Não foi possível carregar a lista de imóveis')
         } finally {
             setLoadingImoveis(false)
         }
