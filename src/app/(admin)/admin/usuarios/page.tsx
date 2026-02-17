@@ -11,6 +11,15 @@ type User = {
     name: string
     email: string
     active: boolean
+    createdAt: Date
+    kanbanPermission: {
+      canEditBoard: boolean
+      canEditColumns: boolean
+    } | null
+  }
+  _count: {
+    imoveis: number
+    leads: number
   }
 }
 
@@ -26,7 +35,7 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     setLoading(true)
     const result = await getAllCorretores()
-    if (result.success) {
+    if (result.success && result.corretores) {
       setUsers(result.corretores)
     }
     setLoading(false)
