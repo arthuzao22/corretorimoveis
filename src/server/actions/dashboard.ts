@@ -91,80 +91,84 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     const currentMonthEnd = endOfMonth(now)
     const previousMonthStart = startOfMonth(subMonths(now, 1))
     const previousMonthEnd = endOfMonth(subMonths(now, 1))
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-    // Fetch all data in parallel for better performance
+    // PERFORMANCE: All queries in a single Promise.all — zero serial queries
     const [
-      // Current month data
       imoveisAtivos,
       imoveisAtivosPrevMonth,
-      leadsCurrentMonth,
-      leadsPrevMonth,
-      allLeads,
-      allImoveis,
+      totalLeads,
+      leadsConvertidos,
+      totalLeadsPrevMonth,
+      leadsConvertidosPrevMonth,
+      // Pipeline: single groupBy instead of findMany + 6x filter
+      pipelineData,
+      // Top imóveis (already optimized with take: 5)
+      topImoveisData,
+      // byTipo: groupBy instead of findMany + filter
+      imoveisByTipo,
+      leadsByTipoData,
+      // Events
       upcomingEventsData,
+      eventosProximos,
       leadsNaoContatados,
     ] = await Promise.all([
-      // Imóveis ativos (current)
+      // 1. Imóveis ativos (current)
       prisma.imovel.count({
-        where: {
-          corretorId,
-          status: 'ATIVO'
-        }
+        where: { corretorId, status: 'ATIVO' }
       }),
 
-      // Imóveis ativos (previous month) - we'll use created date as proxy
+      // 2. Imóveis ativos (previous month proxy)
       prisma.imovel.count({
         where: {
           corretorId,
           status: 'ATIVO',
-          createdAt: {
-            lte: previousMonthEnd
-          }
+          createdAt: { lte: previousMonthEnd }
         }
       }),
 
-      // Leads current month
-      prisma.lead.findMany({
+      // 3. Leads current month — count instead of findMany + .length
+      prisma.lead.count({
         where: {
           corretorId,
-          createdAt: {
-            gte: currentMonthStart,
-            lte: currentMonthEnd
-          }
-        },
-        select: {
-          id: true,
-          status: true,
-          createdAt: true
+          createdAt: { gte: currentMonthStart, lte: currentMonthEnd }
         }
       }),
 
-      // Leads previous month
-      prisma.lead.findMany({
+      // 4. Leads convertidos current month — count instead of findMany + filter
+      prisma.lead.count({
         where: {
           corretorId,
-          createdAt: {
-            gte: previousMonthStart,
-            lte: previousMonthEnd
-          }
-        },
-        select: {
-          id: true,
-          status: true,
-          createdAt: true
+          status: 'CONVERTIDO',
+          createdAt: { gte: currentMonthStart, lte: currentMonthEnd }
         }
       }),
 
-      // All leads for pipeline
-      prisma.lead.findMany({
+      // 5. Leads previous month — count
+      prisma.lead.count({
+        where: {
+          corretorId,
+          createdAt: { gte: previousMonthStart, lte: previousMonthEnd }
+        }
+      }),
+
+      // 6. Leads convertidos previous month — count
+      prisma.lead.count({
+        where: {
+          corretorId,
+          status: 'CONVERTIDO',
+          createdAt: { gte: previousMonthStart, lte: previousMonthEnd }
+        }
+      }),
+
+      // 7. Pipeline: groupBy status — 1 query instead of findMany + 6x .filter()
+      prisma.lead.groupBy({
+        by: ['status'],
         where: { corretorId },
-        select: {
-          status: true,
-          imovelId: true
-        }
+        _count: { id: true }
       }),
 
-      // All properties for views and top properties
+      // 8. Top properties (already efficient)
       prisma.imovel.findMany({
         where: { corretorId, status: { not: 'INATIVO' } },
         select: {
@@ -173,109 +177,109 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
           tipo: true,
           views: true,
           images: true,
-          leads: {
-            select: { id: true }
-          }
+          _count: { select: { leads: true } }
         },
-        orderBy: {
-          views: 'desc'
-        },
+        orderBy: { views: 'desc' },
         take: 5
       }),
 
-      // Upcoming events (next 3)
+      // 9. byTipo: imoveis count by tipo
+      prisma.imovel.groupBy({
+        by: ['tipo'],
+        where: { corretorId, status: { not: 'INATIVO' } },
+        _count: { id: true },
+        _sum: { views: true }
+      }),
+
+      // 10. byTipo: leads count by imovel tipo
+      prisma.lead.findMany({
+        where: { corretorId },
+        select: { imovel: { select: { tipo: true } } }
+      }),
+
+      // 11. Upcoming events (next 3)
       prisma.eventoCalendario.findMany({
         where: {
-          lead: {
-            corretorId
-          },
-          dataHora: {
-            gte: now
-          },
+          lead: { corretorId },
+          dataHora: { gte: now },
           completed: false
         },
         include: {
-          lead: {
-            select: {
-              name: true
-            }
-          },
-          imovel: {
-            select: {
-              titulo: true
-            }
-          }
+          lead: { select: { name: true } },
+          imovel: { select: { titulo: true } }
         },
-        orderBy: {
-          dataHora: 'asc'
-        },
+        orderBy: { dataHora: 'asc' },
         take: 3
       }),
 
-      // Leads not contacted (created > 1 day ago and no contact date)
+      // 12. Events next 7 days — was serial, now parallel
+      prisma.eventoCalendario.count({
+        where: {
+          lead: { corretorId },
+          dataHora: { gte: now, lte: sevenDaysFromNow },
+          completed: false
+        }
+      }),
+
+      // 13. Leads not contacted
       prisma.lead.count({
         where: {
           corretorId,
           dataContato: null,
           createdAt: {
-            lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) // More than 1 day ago
+            lt: new Date(now.getTime() - 24 * 60 * 60 * 1000)
           }
         }
       })
     ])
 
-    // Calculate metrics
-    const totalLeads = leadsCurrentMonth.length
-    const totalLeadsPrevMonth = leadsPrevMonth.length
-    const leadsConvertidos = leadsCurrentMonth.filter(l => l.status === 'CONVERTIDO').length
-    const leadsConvertidosPrevMonth = leadsPrevMonth.filter(l => l.status === 'CONVERTIDO').length
-
-    const totalViews = allImoveis.reduce((sum, i) => sum + (i.views || 0), 0)
-    // Note: Views are cumulative, so we estimate previous month by comparing monthly growth
-    // In a production system, you would track views with timestamps in a separate table
-    const totalViewsPrevMonth = Math.max(0, Math.floor(totalViews * 0.7)) // Rough estimate
+    // Calculate views (from top properties data — already fetched)
+    const totalViews = topImoveisData.reduce((sum, i) => sum + (i.views || 0), 0)
+    const totalViewsPrevMonth = Math.max(0, Math.floor(totalViews * 0.7))
 
     const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0
     const taxaConversaoPrevMonth = totalLeadsPrevMonth > 0 ? (leadsConvertidosPrevMonth / totalLeadsPrevMonth) * 100 : 0
 
-    // Pipeline data
+    // Pipeline from groupBy — no in-memory filtering needed
+    const pipelineMap = new Map(pipelineData.map(p => [p.status, p._count.id]))
     const pipeline = {
-      novos: allLeads.filter(l => l.status === 'NOVO').length,
-      contatados: allLeads.filter(l => l.status === 'CONTATADO').length,
-      qualificados: allLeads.filter(l => l.status === 'QUALIFICADO').length,
-      negociacao: allLeads.filter(l => l.status === 'NEGOCIACAO').length,
-      convertidos: allLeads.filter(l => l.status === 'CONVERTIDO').length,
-      perdidos: allLeads.filter(l => l.status === 'PERDIDO').length,
+      novos: pipelineMap.get('NOVO') || 0,
+      contatados: pipelineMap.get('CONTATADO') || 0,
+      qualificados: pipelineMap.get('QUALIFICADO') || 0,
+      negociacao: pipelineMap.get('NEGOCIACAO') || 0,
+      convertidos: pipelineMap.get('CONVERTIDO') || 0,
+      perdidos: pipelineMap.get('PERDIDO') || 0,
     }
 
-    // Top properties
-    const topImoveis = allImoveis.slice(0, 3).map(imovel => ({
+    // Top properties — use _count instead of leads.length
+    const topImoveis = topImoveisData.slice(0, 3).map(imovel => ({
       id: imovel.id,
       titulo: imovel.titulo,
       views: imovel.views || 0,
-      leads: imovel.leads.length,
+      leads: imovel._count.leads,
       image: imovel.images && imovel.images.length > 0 ? imovel.images[0] : null,
       tipo: imovel.tipo as 'VENDA' | 'ALUGUEL'
     }))
 
-    // Metrics by tipo
-    const imoveisVenda = allImoveis.filter(i => i.tipo === 'VENDA')
-    const imoveisAluguel = allImoveis.filter(i => i.tipo === 'ALUGUEL')
+    // byTipo from groupBy data
+    const tipoMap = new Map(imoveisByTipo.map(t => [t.tipo, { count: t._count.id, views: t._sum.views || 0 }]))
+    const leadsVenda = leadsByTipoData.filter(l => l.imovel?.tipo === 'VENDA').length
+    const leadsAluguel = leadsByTipoData.filter(l => l.imovel?.tipo === 'ALUGUEL').length
 
     const byTipo = {
       venda: {
-        imoveis: imoveisVenda.length,
-        leads: imoveisVenda.reduce((sum, i) => sum + i.leads.length, 0),
-        views: imoveisVenda.reduce((sum, i) => sum + (i.views || 0), 0)
+        imoveis: tipoMap.get('VENDA')?.count || 0,
+        leads: leadsVenda,
+        views: tipoMap.get('VENDA')?.views || 0
       },
       aluguel: {
-        imoveis: imoveisAluguel.length,
-        leads: imoveisAluguel.reduce((sum, i) => sum + i.leads.length, 0),
-        views: imoveisAluguel.reduce((sum, i) => sum + (i.views || 0), 0)
+        imoveis: tipoMap.get('ALUGUEL')?.count || 0,
+        leads: leadsAluguel,
+        views: tipoMap.get('ALUGUEL')?.views || 0
       }
     }
 
-    // Upcoming events (handle optional lead/imovel)
+    // Events — already formatted
     const upcomingEvents = upcomingEventsData.map(event => ({
       id: event.id,
       dataHora: event.dataHora,
@@ -284,21 +288,6 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
       lead: event.lead ? { name: event.lead.name } : null,
       imovel: event.imovel ? { titulo: event.imovel.titulo } : null
     }))
-
-    // Count events in next 7 days
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-    const eventosProximos = await prisma.eventoCalendario.count({
-      where: {
-        lead: {
-          corretorId
-        },
-        dataHora: {
-          gte: now,
-          lte: sevenDaysFromNow
-        },
-        completed: false
-      }
-    })
 
     const metrics: DashboardMetrics = {
       imoveisAtivos,

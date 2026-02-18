@@ -97,89 +97,102 @@ export async function getKanbanBoard(boardId?: string) {
       return { success: false, error: 'Board não encontrado' }
     }
 
-    // Get leads for each column
-    const columnsWithLeads = await Promise.all(
-      board.columns.map(async (column) => {
-        const where: Prisma.LeadWhereInput = { kanbanColumnId: column.id }
+    // PERFORMANCE: Single query for ALL leads instead of N+1 (1 query per column)
+    const leadsWhere: Prisma.LeadWhereInput = {
+      kanbanColumnId: { in: board.columns.map(c => c.id) }
+    }
 
-        // Filter by corretor if not admin
-        if (session.user.role === 'CORRETOR' && session.user.corretorId) {
-          where.corretorId = session.user.corretorId
-        }
+    // Filter by corretor if not admin
+    if (session.user.role === 'CORRETOR' && session.user.corretorId) {
+      leadsWhere.corretorId = session.user.corretorId
+    }
 
-        const leads = await prisma.lead.findMany({
-          where,
-          include: {
-            imovel: {
+    const allLeads = await prisma.lead.findMany({
+      where: leadsWhere,
+      include: {
+        imovel: {
+          select: {
+            id: true,
+            titulo: true,
+            valor: true,
+          }
+        },
+        corretor: {
+          select: {
+            id: true,
+            user: {
               select: {
-                id: true,
-                titulo: true,
-                valor: true,
+                name: true,
               }
-            },
-            corretor: {
-              select: {
-                id: true,
-                user: {
-                  select: {
-                    name: true,
-                  }
-                }
-              }
-            },
-            kanbanColumn: {
+            }
+          }
+        },
+        kanbanColumn: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          }
+        },
+        tags: {
+          select: {
+            id: true,
+            tag: {
               select: {
                 id: true,
                 name: true,
                 color: true,
               }
-            },
-            tags: {
+            }
+          }
+        },
+        eventos: {
+          select: {
+            id: true,
+            tipo: true,
+            dataHora: true,
+            observacao: true,
+            completed: true,
+            imovel: {
               select: {
-                id: true,
-                tag: {
-                  select: {
-                    id: true,
-                    name: true,
-                    color: true,
-                  }
-                }
-              }
-            },
-            eventos: {
-              select: {
-                id: true,
-                tipo: true,
-                dataHora: true,
-                observacao: true,
-                completed: true,
-                imovel: {
-                  select: {
-                    titulo: true,
-                  }
-                }
-              },
-              orderBy: {
-                dataHora: 'asc'
+                titulo: true,
               }
             }
           },
-          orderBy: { updatedAt: 'desc' }
-        })
-
-        // Serialize leads to convert Decimal values
-        const serializedLeads = leads.map(lead => ({
-          ...lead,
-          imovel: lead.imovel ? serializeImovel(lead.imovel) : null
-        }))
-
-        return {
-          ...column,
-          leads: serializedLeads,
-          leadCount: serializedLeads.length
+          orderBy: {
+            dataHora: 'asc'
+          }
         }
-      })
-    )
+      },
+      orderBy: { updatedAt: 'desc' }
+    })
+
+    // Group leads by column in memory (O(n) instead of N queries)
+    const leadsByColumn = new Map<string, typeof allLeads>()
+    for (const lead of allLeads) {
+      const columnId = lead.kanbanColumnId || ''
+      if (!leadsByColumn.has(columnId)) {
+        leadsByColumn.set(columnId, [])
+      }
+      leadsByColumn.get(columnId)!.push(lead)
+    }
+
+    // Build columns with their leads
+    const columnsWithLeads = board.columns.map(column => {
+      const columnLeads = leadsByColumn.get(column.id) || []
+
+      // Serialize leads to convert Decimal values
+      const serializedLeads = columnLeads.map(lead => ({
+        ...lead,
+        imovel: lead.imovel ? serializeImovel(lead.imovel) : null
+      }))
+
+      return {
+        ...column,
+        leads: serializedLeads,
+        leadCount: serializedLeads.length
+      }
+    })
 
     return {
       success: true,

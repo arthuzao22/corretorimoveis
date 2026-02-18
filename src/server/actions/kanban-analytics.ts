@@ -57,29 +57,7 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
       return { success: false, error: 'Board não encontrado' }
     }
 
-    // Get leads per column
-    const leadsPerColumn = await Promise.all(
-      board.columns.map(async (column) => {
-        const count = await prisma.lead.count({
-          where: {
-            ...where,
-            kanbanColumnId: column.id
-          }
-        })
-
-        return {
-          columnId: column.id,
-          columnName: column.name,
-          color: column.color,
-          count
-        }
-      })
-    )
-
-    // Get total leads
-    const totalLeads = await prisma.lead.count({ where })
-
-    // Get closed vs lost
+    const columnIds = board.columns.map(c => c.id)
     const finalColumns = board.columns.filter(c => c.isFinal)
     const closedColumns = finalColumns.filter(c =>
       c.name.toLowerCase().includes('fechado') ||
@@ -91,80 +69,93 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
       c.name.toLowerCase().includes('cancelado')
     )
 
-    const closedCount = await prisma.lead.count({
-      where: {
-        ...where,
-        kanbanColumnId: { in: closedColumns.map(c => c.id) }
-      }
-    })
+    // PERFORMANCE: 2 parallel queries instead of N+1+N waterfall (was 100+ queries)
+    const [leadsGrouped, allMoves] = await Promise.all([
+      // Single groupBy replaces N individual count queries
+      prisma.lead.groupBy({
+        by: ['kanbanColumnId'],
+        where: {
+          ...where,
+          kanbanColumnId: { in: columnIds }
+        },
+        _count: { id: true }
+      }),
+      // Single query for ALL KANBAN_MOVED entries replaces N*M individual queries
+      prisma.leadTimeline.findMany({
+        where: {
+          action: 'KANBAN_MOVED',
+          lead: where,
+        },
+        select: {
+          leadId: true,
+          createdAt: true,
+          metadata: true,
+        },
+        orderBy: { createdAt: 'asc' }
+      }),
+    ])
 
-    const lostCount = await prisma.lead.count({
-      where: {
-        ...where,
-        kanbanColumnId: { in: lostColumns.map(c => c.id) }
-      }
-    })
-
-    // Calculate average time per column using timeline data
-    const avgTimePerColumn = await Promise.all(
-      board.columns.map(async (column) => {
-        const moves = await prisma.leadTimeline.findMany({
-          where: {
-            action: 'KANBAN_MOVED',
-            lead: where,
-            metadata: {
-              path: ['toColumnId'],
-              equals: column.id
-            }
-          },
-          include: {
-            lead: {
-              select: {
-                id: true,
-                createdAt: true
-              }
-            }
-          }
-        })
-
-        // Calculate time spent (simplified - from entry to next move or now)
-        let totalHours = 0
-        let count = 0
-
-        for (const move of moves) {
-          // Find next move for this lead
-          const nextMove = await prisma.leadTimeline.findFirst({
-            where: {
-              leadId: move.leadId,
-              action: 'KANBAN_MOVED',
-              createdAt: { gt: move.createdAt }
-            },
-            orderBy: { createdAt: 'asc' }
-          })
-
-          const endTime = nextMove ? nextMove.createdAt : new Date()
-          const hours = (endTime.getTime() - move.createdAt.getTime()) / (1000 * 60 * 60)
-
-          totalHours += hours
-          count++
-        }
-
-        const avgHours = count > 0 ? totalHours / count : 0
-
-        return {
-          columnId: column.id,
-          columnName: column.name,
-          avgHours: Math.round(avgHours * 10) / 10,
-          avgDays: Math.round((avgHours / 24) * 10) / 10
-        }
-      })
+    // Build leadsPerColumn from groupBy result
+    const columnCountMap = new Map(
+      leadsGrouped.map(g => [g.kanbanColumnId, g._count.id])
     )
 
-    // Conversion rate (simplified - leads that reached final columns)
-    const finalLeadsCount = await prisma.lead.count({
-      where: {
-        ...where,
-        kanbanColumnId: { in: finalColumns.map(c => c.id) }
+    const leadsPerColumn = board.columns.map(column => ({
+      columnId: column.id,
+      columnName: column.name,
+      color: column.color,
+      count: columnCountMap.get(column.id) || 0
+    }))
+
+    const totalLeads = leadsPerColumn.reduce((sum, c) => sum + c.count, 0)
+    const closedCount = closedColumns.reduce((sum, c) => sum + (columnCountMap.get(c.id) || 0), 0)
+    const lostCount = lostColumns.reduce((sum, c) => sum + (columnCountMap.get(c.id) || 0), 0)
+    const finalLeadsCount = finalColumns.reduce((sum, c) => sum + (columnCountMap.get(c.id) || 0), 0)
+
+    // PERFORMANCE: Calculate avg time per column from pre-fetched moves (pure in-memory)
+    // Group moves by leadId for efficient next-move lookups
+    const movesByLead = new Map<string, Array<{ createdAt: Date; toColumnId: string }>>()
+    for (const move of allMoves) {
+      const metadata = move.metadata as Record<string, string> | null
+      const toColumnId = metadata?.toColumnId
+      if (!toColumnId) continue
+
+      if (!movesByLead.has(move.leadId)) {
+        movesByLead.set(move.leadId, [])
+      }
+      movesByLead.get(move.leadId)!.push({
+        createdAt: move.createdAt,
+        toColumnId,
+      })
+    }
+
+    // Calculate avg time per column — all in-memory, zero additional queries
+    const avgTimePerColumn = board.columns.map(column => {
+      let totalHours = 0
+      let count = 0
+
+      for (const [, leadMoves] of movesByLead) {
+        // leadMoves are already sorted by createdAt (from query orderBy)
+        for (let i = 0; i < leadMoves.length; i++) {
+          if (leadMoves[i].toColumnId === column.id) {
+            // Find next move = next item in the sorted array
+            const endTime = i + 1 < leadMoves.length
+              ? leadMoves[i + 1].createdAt
+              : new Date()
+            const hours = (endTime.getTime() - leadMoves[i].createdAt.getTime()) / (1000 * 60 * 60)
+            totalHours += hours
+            count++
+          }
+        }
+      }
+
+      const avgHours = count > 0 ? totalHours / count : 0
+
+      return {
+        columnId: column.id,
+        columnName: column.name,
+        avgHours: Math.round(avgHours * 10) / 10,
+        avgDays: Math.round((avgHours / 24) * 10) / 10
       }
     })
 
@@ -177,19 +168,10 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
     if (session.user.role === 'ADMIN') {
       const agents = await prisma.corretorProfile.findMany({
         include: {
-          user: {
-            select: {
-              name: true
-            }
-          },
-          _count: {
-            select: {
-              leads: true
-            }
-          }
+          user: { select: { name: true } },
+          _count: { select: { leads: true } }
         }
       })
-
       leadsPerAgent = agents.map(agent => ({
         agentId: agent.id,
         agentName: agent.user.name,
