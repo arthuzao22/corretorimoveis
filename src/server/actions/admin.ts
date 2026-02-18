@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
 export async function getAllCorretores() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -53,7 +53,7 @@ export async function getAllCorretores() {
 export async function approveCorretor(corretorId: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -77,7 +77,7 @@ export async function approveCorretor(corretorId: string) {
 export async function toggleUserActive(userId: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -95,6 +95,9 @@ export async function toggleUserActive(userId: string) {
       data: { active: !user.active }
     })
 
+    revalidatePath('/admin/corretores')
+    revalidatePath('/admin/usuarios')
+
     return { success: true }
   } catch (error) {
     console.error('Toggle user active error:', error)
@@ -105,7 +108,7 @@ export async function toggleUserActive(userId: string) {
 export async function getAllImoveisAdmin() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Não autorizado' }
     }

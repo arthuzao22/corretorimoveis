@@ -1,10 +1,47 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getCorretorBySlug } from '@/lib/corretor'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
+
+// SECURITY: Zod schemas para prevenir mass assignment no config
+const landingBlocoConfigSchema = z.object({
+  backgroundColor: z.string().optional(),
+  textColor: z.string().optional(),
+  layout: z.enum(['full', 'half', 'third', 'two-thirds']).optional(),
+  alignment: z.enum(['left', 'center', 'right']).optional(),
+  padding: z.string().optional(),
+  margin: z.string().optional(),
+  borderRadius: z.string().optional(),
+  showTitle: z.boolean().optional(),
+  showSubtitle: z.boolean().optional(),
+  customCss: z.string().max(500).optional(),
+}).passthrough().optional() // passthrough allows extra keys for flexibility but validates known ones
+
+const createLandingBlocoSchema = z.object({
+  corretorId: z.string().min(1),
+  tipo: z.string().min(1),
+  titulo: z.string().max(200).optional(),
+  subtitulo: z.string().max(300).optional(),
+  texto: z.string().max(5000).optional(),
+  imagens: z.array(z.string().url()).optional(),
+  videoUrl: z.string().url().optional().or(z.literal('')),
+  config: landingBlocoConfigSchema,
+})
+
+const updateLandingBlocoSchema = z.object({
+  titulo: z.string().max(200).optional(),
+  subtitulo: z.string().max(300).optional(),
+  texto: z.string().max(5000).optional(),
+  imagens: z.array(z.string().url()).optional(),
+  videoUrl: z.string().url().optional().or(z.literal('')).or(z.null()),
+  ativo: z.boolean().optional(),
+  config: landingBlocoConfigSchema,
+})
 
 // Admin Actions
 
@@ -89,16 +126,7 @@ export async function getLandingByCorretor(corretorId: string) {
   }
 }
 
-export async function createLandingBloco(data: {
-  corretorId: string
-  tipo: string
-  titulo?: string
-  subtitulo?: string
-  texto?: string
-  imagens?: string[]
-  videoUrl?: string
-  config?: any
-}) {
+export async function createLandingBloco(data: z.infer<typeof createLandingBlocoSchema>) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -106,9 +134,12 @@ export async function createLandingBloco(data: {
       return { success: false, error: 'Não autorizado' }
     }
 
+    // SECURITY: Validar input com Zod
+    const validatedData = createLandingBlocoSchema.parse(data)
+
     // Pegar a última ordem
     const lastBloco = await prisma.landingBloco.findFirst({
-      where: { corretorId: data.corretorId },
+      where: { corretorId: validatedData.corretorId },
       orderBy: { ordem: 'desc' }
     })
 
@@ -116,35 +147,32 @@ export async function createLandingBloco(data: {
 
     const bloco = await prisma.landingBloco.create({
       data: {
-        corretorId: data.corretorId,
-        tipo: data.tipo,
-        titulo: data.titulo,
-        subtitulo: data.subtitulo,
-        texto: data.texto,
-        imagens: data.imagens || [],
-        videoUrl: data.videoUrl,
-        config: data.config,
+        corretorId: validatedData.corretorId,
+        tipo: validatedData.tipo,
+        titulo: validatedData.titulo,
+        subtitulo: validatedData.subtitulo,
+        texto: validatedData.texto,
+        imagens: validatedData.imagens || [],
+        videoUrl: validatedData.videoUrl || null,
+        config: (validatedData.config || {}) as Prisma.InputJsonValue,
         ordem,
         ativo: true
       }
     })
 
+    revalidatePath('/admin/landings')
+
     return { success: true, bloco }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: 'Dados inválidos' }
+    }
     console.error('Create landing bloco error:', error)
     return { success: false, error: 'Erro ao criar bloco' }
   }
 }
 
-export async function updateLandingBloco(blocoId: string, data: {
-  titulo?: string
-  subtitulo?: string
-  texto?: string
-  imagens?: string[]
-  videoUrl?: string
-  ativo?: boolean
-  config?: any
-}) {
+export async function updateLandingBloco(blocoId: string, data: z.infer<typeof updateLandingBlocoSchema>) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -152,13 +180,29 @@ export async function updateLandingBloco(blocoId: string, data: {
       return { success: false, error: 'Não autorizado' }
     }
 
+    // SECURITY: Validar input com Zod — previne mass assignment
+    const validatedData = updateLandingBlocoSchema.parse(data)
+
     const bloco = await prisma.landingBloco.update({
       where: { id: blocoId },
-      data
+      data: {
+        titulo: validatedData.titulo,
+        subtitulo: validatedData.subtitulo,
+        texto: validatedData.texto,
+        imagens: validatedData.imagens,
+        videoUrl: validatedData.videoUrl,
+        ativo: validatedData.ativo,
+        config: validatedData.config ? (validatedData.config as Prisma.InputJsonValue) : undefined,
+      }
     })
+
+    revalidatePath('/admin/landings')
 
     return { success: true, bloco }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: 'Dados inválidos' }
+    }
     console.error('Update landing bloco error:', error)
     return { success: false, error: 'Erro ao atualizar bloco' }
   }
@@ -218,6 +262,9 @@ export async function toggleLandingAtiva(corretorId: string, ativa: boolean) {
       where: { id: corretorId },
       data: { landingAtiva: ativa }
     })
+
+    revalidatePath('/admin/landings')
+    revalidatePath('/lp')
 
     return { success: true }
   } catch (error) {

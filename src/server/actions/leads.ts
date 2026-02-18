@@ -4,27 +4,49 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { revalidatePath } from 'next/cache'
 
 const leadSchema = z.object({
   imovelId: z.string(),
-  name: z.string().min(2),
+  name: z.string().min(2).max(100),
   email: z.string().email(),
-  phone: z.string().min(10),
-  message: z.string().optional()
+  phone: z.string().min(10).max(20),
+  message: z.string().max(1000).optional(),
+  honeypot: z.string().optional() // Anti-spam honeypot field
 })
 
 export async function createLead(data: z.infer<typeof leadSchema>) {
   try {
+    // SECURITY: Anti-spam honeypot check
+    if (data.honeypot && data.honeypot.trim() !== '') {
+      console.warn('[SECURITY] Honeypot triggered for public createLead')
+      return { success: false, error: 'Invalid submission' }
+    }
+
     const validatedData = leadSchema.parse(data)
 
     // Buscar o imóvel para obter o corretorId
     const imovel = await prisma.imovel.findUnique({
-      where: { id: validatedData.imovelId }
+      where: { id: validatedData.imovelId },
+      include: {
+        corretor: {
+          include: { user: { select: { active: true } } }
+        }
+      }
     })
 
     if (!imovel) {
       return { success: false, error: 'Imóvel não encontrado' }
     }
+
+    // SECURITY: Verificar se o corretor está ativo
+    if (!imovel.corretor?.user?.active) {
+      return { success: false, error: 'Corretor não disponível' }
+    }
+
+    // Sanitize text inputs
+    const sanitizedName = validatedData.name.trim()
+    const sanitizedMessage = validatedData.message?.trim() || null
 
     // Get the initial Kanban column from the global board
     const initialColumn = await prisma.kanbanColumn.findFirst({
@@ -42,7 +64,11 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
 
     const lead = await prisma.lead.create({
       data: {
-        ...validatedData,
+        name: sanitizedName,
+        email: validatedData.email,
+        phone: validatedData.phone,
+        message: sanitizedMessage,
+        imovelId: validatedData.imovelId,
         corretorId: imovel.corretorId,
         kanbanColumnId: initialColumn.id // Auto-assign to initial column
       }
@@ -62,8 +88,14 @@ export async function createLead(data: z.infer<typeof leadSchema>) {
       }
     })
 
+    revalidatePath('/corretor/kanban')
+    revalidatePath('/corretor/leads')
+
     return { success: true, leadId: lead.id }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: 'Dados inválidos' }
+    }
     console.error('Create lead error:', error)
     return { success: false, error: 'Erro ao enviar contato' }
   }
@@ -541,17 +573,25 @@ export async function bulkDeleteLeads(data: z.infer<typeof bulkDeleteLeadsSchema
 
     const { leadIds } = result.data
 
-    // Delete all leads that belong to this corretor
-    await prisma.lead.deleteMany({
+    // SECURITY FIX: Soft delete — marca status como PERDIDO em vez de deletar
+    // Isso preserva timeline, tags, comments e permite recuperação
+    await prisma.lead.updateMany({
       where: {
         id: { in: leadIds },
         corretorId: session.user.corretorId
+      },
+      data: {
+        status: 'PERDIDO',
+        updatedAt: new Date()
       }
     })
+
+    revalidatePath('/corretor/leads')
+    revalidatePath('/corretor/kanban')
 
     return { success: true }
   } catch (error) {
     console.error('Bulk delete leads error:', error)
-    return { success: false, error: 'Erro ao excluir leads em lote' }
+    return { success: false, error: 'Erro ao arquivar leads em lote' }
   }
 }

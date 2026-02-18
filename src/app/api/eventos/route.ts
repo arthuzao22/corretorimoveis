@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -64,7 +65,7 @@ const querySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating evento:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Dados inválidos', details: error.issues },
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -174,7 +175,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    
+
     // Parse and validate query parameters
     const params = querySchema.parse({
       leadId: searchParams.get('leadId') || undefined,
@@ -186,7 +187,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.EventoCalendarioWhereInput = {}
 
     // For corretores, only show events with their own leads/imoveis
     if (session.user.role === 'CORRETOR') {
@@ -223,7 +224,7 @@ export async function GET(request: NextRequest) {
 
     // Cursor-based pagination
     const take = params.limit + 1 // Fetch one more to check if there's a next page
-    const queryOptions: any = {
+    const queryOptions: Prisma.EventoCalendarioFindManyArgs = {
       where,
       select: {
         id: true,
@@ -284,8 +285,8 @@ export async function GET(request: NextRequest) {
     const serializedEventos = results.map((evento: EventoWithRelations) => {
       let valorNumerico = 0
       if (evento.imovel?.valor) {
-        valorNumerico = typeof evento.imovel.valor === 'number' 
-          ? evento.imovel.valor 
+        valorNumerico = typeof evento.imovel.valor === 'number'
+          ? evento.imovel.valor
           : evento.imovel.valor.toNumber()
       }
       return {
@@ -308,7 +309,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching eventos:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Parâmetros inválidos', details: error.issues },

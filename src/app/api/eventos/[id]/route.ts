@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -282,9 +283,9 @@ export async function PUT(
     }
 
     // Update the event
-    const updateData: any = {}
-    if (validatedData.leadId) updateData.leadId = validatedData.leadId
-    if (validatedData.imovelId) updateData.imovelId = validatedData.imovelId
+    const updateData: Prisma.EventoCalendarioUpdateInput = {}
+    if (validatedData.leadId) updateData.lead = { connect: { id: validatedData.leadId } }
+    if (validatedData.imovelId) updateData.imovel = { connect: { id: validatedData.imovelId } }
     if (validatedData.dataHora) updateData.dataHora = new Date(validatedData.dataHora)
     if (validatedData.observacao !== undefined) updateData.observacao = validatedData.observacao
     if (validatedData.completed !== undefined) updateData.completed = validatedData.completed
