@@ -16,7 +16,7 @@ const profileSchema = z.object({
 export async function updateCorretorProfile(data: z.infer<typeof profileSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -49,9 +49,9 @@ export async function updateCorretorProfile(data: z.infer<typeof profileSchema>)
     })
 
     return { success: true, profile: updatedProfile }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Update profile error:', error)
-    if (error?.issues) {
+    if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message }
     }
     return { success: false, error: 'Erro ao atualizar perfil' }
@@ -61,7 +61,7 @@ export async function updateCorretorProfile(data: z.infer<typeof profileSchema>)
 export async function getMyProfile() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }
@@ -96,7 +96,7 @@ export async function getMyProfile() {
 export async function checkSlugAvailability(slug: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR') {
       return { success: false, error: 'Não autorizado' }
     }

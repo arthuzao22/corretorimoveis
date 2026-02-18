@@ -14,7 +14,7 @@ const messageTemplateSchema = z.object({
 export async function createMessageTemplate(data: z.infer<typeof messageTemplateSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -23,7 +23,9 @@ export async function createMessageTemplate(data: z.infer<typeof messageTemplate
 
     const template = await prisma.messageTemplate.create({
       data: {
-        ...validatedData,
+        nome: validatedData.nome,
+        mensagem: validatedData.mensagem,
+        categoria: validatedData.categoria,
         corretorId: session.user.corretorId
       }
     })
@@ -38,7 +40,7 @@ export async function createMessageTemplate(data: z.infer<typeof messageTemplate
 export async function getMyMessageTemplates() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -62,10 +64,13 @@ export async function getMyMessageTemplates() {
 export async function updateMessageTemplate(id: string, data: Partial<z.infer<typeof messageTemplateSchema>>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }
+
+    // Validate partial data with Zod
+    const validatedData = messageTemplateSchema.partial().parse(data)
 
     // Verify template belongs to this corretor
     const template = await prisma.messageTemplate.findUnique({
@@ -78,7 +83,11 @@ export async function updateMessageTemplate(id: string, data: Partial<z.infer<ty
 
     const updatedTemplate = await prisma.messageTemplate.update({
       where: { id },
-      data
+      data: {
+        nome: validatedData.nome,
+        mensagem: validatedData.mensagem,
+        categoria: validatedData.categoria,
+      }
     })
 
     return { success: true, template: updatedTemplate }
@@ -91,7 +100,7 @@ export async function updateMessageTemplate(id: string, data: Partial<z.infer<ty
 export async function deleteMessageTemplate(id: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'CORRETOR' || !session.user.corretorId) {
       return { success: false, error: 'Não autorizado' }
     }

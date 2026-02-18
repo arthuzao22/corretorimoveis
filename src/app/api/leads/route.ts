@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -19,7 +20,7 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    
+
     // Parse and validate query parameters
     const params = querySchema.parse({
       statusId: searchParams.get('statusId') || undefined,
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.LeadWhereInput = {}
 
     // For corretores, only show their own leads
     // For admins, allow filtering by corretorId or show all
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Cursor-based pagination
     const take = params.limit + 1 // Fetch one more to check if there's a next page
-    const queryOptions: any = {
+    const queryOptions: Prisma.LeadFindManyArgs = {
       where,
       select: {
         id: true,
@@ -170,7 +171,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching leads:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Invalid query parameters', details: error.issues },

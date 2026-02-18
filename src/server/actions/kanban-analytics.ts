@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 
@@ -14,12 +15,12 @@ interface KanbanFilters {
 export async function getKanbanMetrics(filters?: KanbanFilters) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
 
-    const where: any = {}
+    const where: Prisma.LeadWhereInput = {}
 
     // Apply filters
     if (filters?.dateFrom || filters?.dateTo) {
@@ -80,12 +81,12 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
 
     // Get closed vs lost
     const finalColumns = board.columns.filter(c => c.isFinal)
-    const closedColumns = finalColumns.filter(c => 
-      c.name.toLowerCase().includes('fechado') || 
+    const closedColumns = finalColumns.filter(c =>
+      c.name.toLowerCase().includes('fechado') ||
       c.name.toLowerCase().includes('ganho') ||
       c.name.toLowerCase().includes('convertido')
     )
-    const lostColumns = finalColumns.filter(c => 
+    const lostColumns = finalColumns.filter(c =>
       c.name.toLowerCase().includes('perdido') ||
       c.name.toLowerCase().includes('cancelado')
     )
@@ -143,7 +144,7 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
 
           const endTime = nextMove ? nextMove.createdAt : new Date()
           const hours = (endTime.getTime() - move.createdAt.getTime()) / (1000 * 60 * 60)
-          
+
           totalHours += hours
           count++
         }
@@ -167,8 +168,8 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
       }
     })
 
-    const conversionRate = totalLeads > 0 
-      ? Math.round((closedCount / totalLeads) * 100 * 10) / 10 
+    const conversionRate = totalLeads > 0
+      ? Math.round((closedCount / totalLeads) * 100 * 10) / 10
       : 0
 
     // Leads per agent (admin only)
@@ -203,8 +204,8 @@ export async function getKanbanMetrics(filters?: KanbanFilters) {
         leadsPerColumn,
         closedCount,
         lostCount,
-        closedVsLostRatio: (closedCount + lostCount) > 0 
-          ? Math.round((closedCount / (closedCount + lostCount)) * 100 * 10) / 10 
+        closedVsLostRatio: (closedCount + lostCount) > 0
+          ? Math.round((closedCount / (closedCount + lostCount)) * 100 * 10) / 10
           : 0,
         conversionRate,
         avgTimePerColumn,

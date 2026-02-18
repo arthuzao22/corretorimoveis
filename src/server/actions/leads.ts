@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { Prisma, LeadStatus } from '@prisma/client'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -239,12 +240,12 @@ export async function getMyLeads(filters?: { status?: string }) {
       return { success: false, error: 'Não autorizado' }
     }
 
-    const where: { corretorId: string; status?: any } = {
+    const where: Prisma.LeadWhereInput = {
       corretorId: session.user.corretorId
     }
 
     if (filters?.status) {
-      where.status = filters.status as any
+      where.status = filters.status as LeadStatus
     }
 
     const leads = await prisma.lead.findMany({

@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { TimelineAction } from '@prisma/client'
@@ -9,7 +10,7 @@ export async function addTimelineEntry(
   leadId: string,
   action: TimelineAction,
   description: string,
-  metadata?: Record<string, any>
+  metadata?: Prisma.InputJsonValue
 ) {
   try {
     const session = await getServerSession(authOptions)

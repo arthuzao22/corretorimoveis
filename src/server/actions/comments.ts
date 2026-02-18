@@ -4,6 +4,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+const createCommentSchema = z.object({
+    content: z.string().min(1, 'Comentário não pode estar vazio').max(5000, 'Comentário muito longo'),
+    images: z.array(z.string().url()).max(10).default([]),
+})
 
 // =============================================
 // TYPES
@@ -39,14 +45,8 @@ export async function createComment(
             return { success: false, error: 'Não autorizado' }
         }
 
-        // Validate content
-        if (!content || content.trim().length === 0) {
-            return { success: false, error: 'Comentário não pode estar vazio' }
-        }
-
-        if (content.length > 5000) {
-            return { success: false, error: 'Comentário muito longo (máximo 5000 caracteres)' }
-        }
+        // SECURITY: Validate inputs with Zod
+        const validated = createCommentSchema.parse({ content, images })
 
         // Verify lead exists and user has access
         const lead = await prisma.lead.findFirst({
@@ -80,8 +80,8 @@ export async function createComment(
             data: {
                 leadId,
                 authorId: session.user.id,
-                content: content.trim(),
-                images
+                content: validated.content.trim(),
+                images: validated.images
             },
             include: {
                 author: {
@@ -122,6 +122,19 @@ export async function getLeadComments(
 
         if (!session?.user) {
             return { success: false, error: 'Não autorizado' }
+        }
+
+        // SECURITY: Verify lead ownership for corretors (prevent IDOR)
+        if (session.user.role === 'CORRETOR' && session.user.corretorId) {
+            const lead = await prisma.lead.findFirst({
+                where: {
+                    id: leadId,
+                    corretorId: session.user.corretorId
+                }
+            })
+            if (!lead) {
+                return { success: false, error: 'Lead não encontrado' }
+            }
         }
 
         // Get comments ordered by creation date (oldest first, like chat)

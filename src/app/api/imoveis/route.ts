@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { serializeImoveis } from '@/lib/utils/serializers'
 import { getServerSession } from 'next-auth'
@@ -23,7 +24,7 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     // Parse and validate query parameters
     const params = querySchema.parse({
       tipo: searchParams.get('tipo') || undefined,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.ImovelWhereInput = {
       status: 'ATIVO', // Only show active properties
     }
 
@@ -78,12 +79,11 @@ export async function GET(request: NextRequest) {
       where.statusConfigId = params.statusId
     }
 
-    if (params.minValor !== undefined) {
-      where.valor = { ...where.valor, gte: params.minValor }
-    }
-
-    if (params.maxValor !== undefined) {
-      where.valor = { ...where.valor, lte: params.maxValor }
+    if (params.minValor !== undefined || params.maxValor !== undefined) {
+      const valorFilter: { gte?: number; lte?: number } = {}
+      if (params.minValor !== undefined) valorFilter.gte = params.minValor
+      if (params.maxValor !== undefined) valorFilter.lte = params.maxValor
+      where.valor = valorFilter
     }
 
     if (params.quartos !== undefined) {
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Cursor-based pagination
     const take = params.limit + 1 // Fetch one more to check if there's a next page
-    const queryOptions: any = {
+    const queryOptions: Prisma.ImovelFindManyArgs = {
       where,
       select: {
         id: true,

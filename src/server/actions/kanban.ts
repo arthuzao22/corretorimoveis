@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -47,7 +48,7 @@ const updatePermissionsSchema = z.object({
 export async function getKanbanBoard(boardId?: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -99,8 +100,8 @@ export async function getKanbanBoard(boardId?: string) {
     // Get leads for each column
     const columnsWithLeads = await Promise.all(
       board.columns.map(async (column) => {
-        const where: any = { kanbanColumnId: column.id }
-        
+        const where: Prisma.LeadWhereInput = { kanbanColumnId: column.id }
+
         // Filter by corretor if not admin
         if (session.user.role === 'CORRETOR' && session.user.corretorId) {
           where.corretorId = session.user.corretorId
@@ -197,7 +198,7 @@ export async function getKanbanBoard(boardId?: string) {
 export async function getKanbanColumns() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -232,7 +233,7 @@ export async function getKanbanColumns() {
 export async function moveLeadToColumn(data: z.infer<typeof moveLeadSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || (session.user.role !== 'CORRETOR' && session.user.role !== 'ADMIN')) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -317,7 +318,7 @@ const bulkMoveLeadsSchema = z.object({
 export async function bulkMoveLeads(data: z.infer<typeof bulkMoveLeadsSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || (session.user.role !== 'CORRETOR' && session.user.role !== 'ADMIN')) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -334,7 +335,7 @@ export async function bulkMoveLeads(data: z.infer<typeof bulkMoveLeadsSchema>) {
     }
 
     // Update all leads that belong to this corretor
-    const where = session.user.role === 'ADMIN' 
+    const where = session.user.role === 'ADMIN'
       ? { id: { in: validatedData.leadIds } }
       : { id: { in: validatedData.leadIds }, corretorId: session.user.corretorId }
 
@@ -384,7 +385,7 @@ export async function bulkMoveLeads(data: z.infer<typeof bulkMoveLeadsSchema>) {
 export async function createColumn(data: z.infer<typeof createColumnSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -400,7 +401,7 @@ export async function createColumn(data: z.infer<typeof createColumnSchema>) {
     // If setting as initial, unset other initial columns in the same board
     if (validatedData.isInitial) {
       await prisma.kanbanColumn.updateMany({
-        where: { 
+        where: {
           boardId: validatedData.boardId,
           isInitial: true
         },
@@ -425,7 +426,7 @@ export async function createColumn(data: z.infer<typeof createColumnSchema>) {
 export async function updateColumn(data: z.infer<typeof updateColumnSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -451,7 +452,7 @@ export async function updateColumn(data: z.infer<typeof updateColumnSchema>) {
     // If setting as initial, unset other initial columns in the same board
     if (updates.isInitial) {
       await prisma.kanbanColumn.updateMany({
-        where: { 
+        where: {
           boardId: existingColumn.boardId,
           isInitial: true,
           id: { not: columnId }
@@ -478,7 +479,7 @@ export async function updateColumn(data: z.infer<typeof updateColumnSchema>) {
 export async function deleteColumn(columnId: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Apenas administradores podem deletar colunas' }
     }
@@ -509,7 +510,7 @@ export async function deleteColumn(columnId: string) {
 export async function reorderColumns(boardId: string, columnOrders: { id: string; order: number }[]) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -547,7 +548,7 @@ export async function reorderColumns(boardId: string, columnOrders: { id: string
 export async function getKanbanPermissions(userId?: string) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return { success: false, error: 'Não autorizado' }
     }
@@ -579,7 +580,7 @@ export async function getKanbanPermissions(userId?: string) {
 export async function updateKanbanPermissions(data: z.infer<typeof updatePermissionsSchema>) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return { success: false, error: 'Apenas administradores podem atualizar permissões' }
     }
@@ -610,7 +611,7 @@ export async function updateKanbanPermissions(data: z.infer<typeof updatePermiss
 // HELPER FUNCTIONS
 // =============================================
 
-async function checkColumnEditPermission(user: any): Promise<boolean> {
+async function checkColumnEditPermission(user: { role: string; id: string }): Promise<boolean> {
   if (user.role === 'ADMIN') return true
 
   const permissions = await prisma.kanbanPermission.findUnique({
