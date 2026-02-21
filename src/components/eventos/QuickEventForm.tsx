@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { X, Save, Loader2, Calendar as CalendarIcon, Clock, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { EventoTipo } from '@prisma/client'
+import type { EventoTipo } from '@/hooks/useEventos'
 
 interface QuickEventFormProps {
   leadId: string
@@ -27,9 +27,10 @@ const EVENT_TYPES: Array<{
   color: string
 }> = [
     { value: 'VISITA', label: 'Visita', color: 'bg-blue-500' },
-    { value: 'ACOMPANHAMENTO', label: 'Follow-up', color: 'bg-yellow-500' },
-    { value: 'REUNIAO', label: 'Reunião', color: 'bg-green-500' },
+    { value: 'ACOMPANHAMENTO', label: 'Follow-up', color: 'bg-amber-500' },
+    { value: 'REUNIAO', label: 'Reunião', color: 'bg-emerald-500' },
     { value: 'URGENTE', label: 'Urgente', color: 'bg-red-500' },
+    { value: 'GERAL', label: 'Geral', color: 'bg-slate-500' },
   ]
 
 export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis, defaultImovel }: QuickEventFormProps) {
@@ -116,8 +117,8 @@ export function QuickEventForm({ leadId, leadName, onSave, onCancel, imoveis, de
                 type="button"
                 onClick={() => setFormData({ ...formData, tipo: eventType.value })}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${formData.tipo === eventType.value
-                    ? `${eventType.color} text-white shadow-md`
-                    : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
+                  ? `${eventType.color} text-white shadow-md`
+                  : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
                   }`}
               >
                 {eventType.label}

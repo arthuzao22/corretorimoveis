@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://*.vercel-storage.com https://*.cloudinary.com https://maps.googleapis.com",
+              "connect-src 'self' https://*.vercel-storage.com https://*.cloudinary.com https://maps.googleapis.com https://viacep.com.br",
               "frame-src 'self' https://www.google.com",
               "object-src 'none'",
               "base-uri 'self'",

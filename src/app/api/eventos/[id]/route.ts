@@ -157,10 +157,10 @@ export async function GET(
     // Serialize Decimal values
     const serializedEvento = {
       ...evento,
-      imovel: {
+      imovel: evento.imovel ? {
         ...evento.imovel,
         valor: typeof evento.imovel.valor === 'number' ? evento.imovel.valor : evento.imovel.valor.toNumber(),
-      },
+      } : null,
     }
 
     return NextResponse.json({
@@ -378,10 +378,10 @@ export async function PUT(
     }
     const serializedEvento = {
       ...evento,
-      imovel: {
+      imovel: evento.imovel ? {
         ...evento.imovel,
         valor: valorNumericoPut,
-      },
+      } : null,
     }
 
     return NextResponse.json({

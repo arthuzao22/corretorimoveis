@@ -58,20 +58,26 @@ export function EventCard({
       case 'ACOMPANHAMENTO':
         return {
           label: 'Follow-up',
-          color: 'bg-yellow-500',
-          lightColor: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+          color: 'bg-amber-500',
+          lightColor: 'bg-amber-50 border-amber-200 text-amber-700',
         }
       case 'REUNIAO':
         return {
           label: 'Reunião',
-          color: 'bg-green-500',
-          lightColor: 'bg-green-50 border-green-200 text-green-700',
+          color: 'bg-emerald-500',
+          lightColor: 'bg-emerald-50 border-emerald-200 text-emerald-700',
         }
       case 'URGENTE':
         return {
           label: 'Urgente',
           color: 'bg-red-500',
           lightColor: 'bg-red-50 border-red-200 text-red-700',
+        }
+      case 'GERAL':
+        return {
+          label: 'Geral',
+          color: 'bg-slate-500',
+          lightColor: 'bg-slate-50 border-slate-200 text-slate-700',
         }
       default:
         return {

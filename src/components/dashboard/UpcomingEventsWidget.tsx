@@ -25,15 +25,15 @@ interface UpcomingEventsWidgetProps {
 
 const eventTypeColors = {
   VISITA: 'bg-blue-100 text-blue-700',
-  ACOMPANHAMENTO: 'bg-green-100 text-green-700',
-  REUNIAO: 'bg-purple-100 text-purple-700',
+  ACOMPANHAMENTO: 'bg-amber-100 text-amber-700',
+  REUNIAO: 'bg-emerald-100 text-emerald-700',
   URGENTE: 'bg-red-100 text-red-700',
-  GERAL: 'bg-gray-100 text-gray-700'
+  GERAL: 'bg-slate-100 text-slate-700'
 }
 
 const eventTypeLabels = {
   VISITA: 'Visita',
-  ACOMPANHAMENTO: 'Acompanhamento',
+  ACOMPANHAMENTO: 'Follow-up',
   REUNIAO: 'Reunião',
   URGENTE: 'Urgente',
   GERAL: 'Geral'

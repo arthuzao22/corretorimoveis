@@ -18,6 +18,7 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; border: string }>
   ACOMPANHAMENTO: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   REUNIAO: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   URGENTE: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  GERAL: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
 }
 
 export function Calendario({
@@ -125,12 +126,12 @@ export function Calendario({
                 <div className="flex justify-between items-start mb-1.5">
                   <div
                     className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-all ${today
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : currentMonth
-                          ? isWeekend
-                            ? 'text-red-500'
-                            : 'text-slate-700'
-                          : 'text-slate-300'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : currentMonth
+                        ? isWeekend
+                          ? 'text-red-500'
+                          : 'text-slate-700'
+                        : 'text-slate-300'
                       }`}
                   >
                     {day.getDate()}
@@ -153,11 +154,11 @@ export function Calendario({
                           e.stopPropagation()
                           onEventClick(evento)
                         }}
-                        className={`text-[11px] ${colors.bg} ${colors.text} px-2 py-1 rounded-md truncate hover:shadow-sm cursor-pointer transition-all border ${colors.border}`}
+                        className={`text-[11px] ${colors.bg} ${colors.text} px-2 py-1 rounded-md truncate hover:shadow-sm cursor-pointer transition-all border ${colors.border} ${evento.completed ? 'opacity-50 line-through' : ''}`}
                       >
                         <span className="font-medium">{formatTime(evento.dataHora)}</span>
                         <span className="mx-1">·</span>
-                        <span>{evento.lead.name}</span>
+                        <span>{evento.lead?.name || 'Evento Geral'}</span>
                       </div>
                     )
                   })}
@@ -205,8 +206,8 @@ export function Calendario({
                   </div>
                   <div
                     className={`text-xl font-bold mt-1 ${today
-                        ? 'bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center mx-auto shadow-md'
-                        : 'text-slate-800'
+                      ? 'bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center mx-auto shadow-md'
+                      : 'text-slate-800'
                       }`}
                   >
                     {day.getDate()}
@@ -225,7 +226,7 @@ export function Calendario({
                         }}
                         className={`text-sm ${colors.bg} ${colors.text} p-3 rounded-xl hover:shadow-md cursor-pointer transition-all border ${colors.border}`}
                       >
-                        <div className="font-semibold truncate">{evento.lead.name}</div>
+                        <div className="font-semibold truncate">{evento.lead?.name || 'Evento Geral'}</div>
                         <div className="text-xs flex items-center gap-1.5 mt-1.5 opacity-80">
                           <Clock size={12} />
                           {formatTime(evento.dataHora)}
@@ -284,11 +285,11 @@ export function Calendario({
                         </div>
                         <div>
                           <div className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">
-                            {evento.lead.name}
+                            {evento.lead?.name || 'Evento Geral'}
                           </div>
                           <div className="text-sm text-slate-500 flex items-center gap-2">
                             <Building2 size={14} />
-                            {evento.imovel.titulo}
+                            {evento.imovel?.titulo || 'Sem imóvel'}
                           </div>
                         </div>
                       </div>
@@ -354,8 +355,8 @@ export function Calendario({
                 key={v.value}
                 onClick={() => changeView(v.value as CalendarView)}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${view === v.value
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-800'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-800'
                   }`}
               >
                 {v.label}

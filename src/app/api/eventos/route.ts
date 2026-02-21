@@ -25,7 +25,7 @@ type EventoWithRelations = {
         name: string
       }
     }
-  }
+  } | null
   imovel: {
     id: string
     titulo: string
@@ -33,14 +33,14 @@ type EventoWithRelations = {
     cidade: string
     estado: string
     valor: { toNumber(): number } | number
-  }
+  } | null
 }
 
 // Validation schema for creating an event
 const createEventoSchema = z.object({
-  leadId: z.string().min(1, 'Lead é obrigatório'),
-  imovelId: z.string().min(1, 'Imóvel é obrigatório'),
-  tipo: z.enum(['VISITA', 'ACOMPANHAMENTO', 'REUNIAO', 'URGENTE']).default('VISITA'),
+  leadId: z.string().optional().transform((val) => val && val.length > 0 ? val : undefined),
+  imovelId: z.string().optional().transform((val) => val && val.length > 0 ? val : undefined),
+  tipo: z.enum(['VISITA', 'ACOMPANHAMENTO', 'REUNIAO', 'URGENTE', 'GERAL']).default('VISITA'),
   dataHora: z.string().min(1, 'Data e hora é obrigatória').transform((val) => {
     // Accept both datetime-local format (YYYY-MM-DDTHH:mm) and ISO format
     const date = new Date(val)
@@ -50,6 +50,15 @@ const createEventoSchema = z.object({
     return date.toISOString()
   }),
   observacao: z.string().optional(),
+}).refine((data) => {
+  // For non-GERAL types, leadId and imovelId are required
+  if (data.tipo !== 'GERAL') {
+    return !!data.leadId && !!data.imovelId
+  }
+  return true
+}, {
+  message: 'Lead e Imóvel são obrigatórios para este tipo de evento',
+  path: ['leadId'],
 })
 
 // Validation schema for query parameters
@@ -76,47 +85,61 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createEventoSchema.parse(body)
 
-    // Verify that the lead and imovel belong to the user
-    const lead = await prisma.lead.findUnique({
-      where: { id: validatedData.leadId },
-      include: { corretor: true },
-    })
+    // Verify that the lead and imovel belong to the user (only if provided)
+    if (validatedData.leadId) {
+      const lead = await prisma.lead.findUnique({
+        where: { id: validatedData.leadId },
+        include: { corretor: true },
+      })
 
-    const imovel = await prisma.imovel.findUnique({
-      where: { id: validatedData.imovelId },
-      include: { corretor: true },
-    })
-
-    if (!lead || !imovel) {
-      return NextResponse.json(
-        { success: false, error: 'Lead ou imóvel não encontrado' },
-        { status: 404 }
-      )
-    }
-
-    // Check authorization
-    if (session.user.role === 'CORRETOR') {
-      const { corretorId } = session.user
-      if (!corretorId) {
+      if (!lead) {
         return NextResponse.json(
-          { success: false, error: 'Usuário não possui perfil de corretor' },
-          { status: 403 }
+          { success: false, error: 'Lead não encontrado' },
+          { status: 404 }
         )
       }
-      if (lead.corretorId !== corretorId || imovel.corretorId !== corretorId) {
+
+      if (session.user.role === 'CORRETOR') {
+        const { corretorId } = session.user
+        if (!corretorId || lead.corretorId !== corretorId) {
+          return NextResponse.json(
+            { success: false, error: 'Você não tem permissão para usar este lead' },
+            { status: 403 }
+          )
+        }
+      }
+    }
+
+    if (validatedData.imovelId) {
+      const imovel = await prisma.imovel.findUnique({
+        where: { id: validatedData.imovelId },
+        include: { corretor: true },
+      })
+
+      if (!imovel) {
         return NextResponse.json(
-          { success: false, error: 'Você não tem permissão para criar evento com este lead ou imóvel' },
-          { status: 403 }
+          { success: false, error: 'Imóvel não encontrado' },
+          { status: 404 }
         )
+      }
+
+      if (session.user.role === 'CORRETOR') {
+        const { corretorId } = session.user
+        if (!corretorId || imovel.corretorId !== corretorId) {
+          return NextResponse.json(
+            { success: false, error: 'Você não tem permissão para usar este imóvel' },
+            { status: 403 }
+          )
+        }
       }
     }
 
     // Create the event
     const evento = await prisma.eventoCalendario.create({
       data: {
-        leadId: validatedData.leadId,
-        imovelId: validatedData.imovelId,
-        tipo: validatedData.tipo,
+        ...(validatedData.leadId ? { lead: { connect: { id: validatedData.leadId } } } : {}),
+        ...(validatedData.imovelId ? { imovel: { connect: { id: validatedData.imovelId } } } : {}),
+        tipo: validatedData.tipo as any, // GERAL will be recognized after prisma generate
         dataHora: new Date(validatedData.dataHora),
         observacao: validatedData.observacao,
       },
@@ -283,8 +306,11 @@ export async function GET(request: NextRequest) {
 
     // Serialize Decimal values
     const serializedEventos = results.map((evento: EventoWithRelations) => {
+      if (!evento.imovel) {
+        return evento
+      }
       let valorNumerico = 0
-      if (evento.imovel?.valor) {
+      if (evento.imovel.valor) {
         valorNumerico = typeof evento.imovel.valor === 'number'
           ? evento.imovel.valor
           : evento.imovel.valor.toNumber()

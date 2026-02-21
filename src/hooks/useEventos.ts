@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { EventoTipo } from '@prisma/client'
+
+export type EventoTipo = 'VISITA' | 'ACOMPANHAMENTO' | 'REUNIAO' | 'URGENTE' | 'GERAL'
 
 export interface Evento {
   id: string
@@ -20,7 +21,7 @@ export interface Evento {
         name: string
       }
     }
-  }
+  } | null
   imovel: {
     id: string
     titulo: string
@@ -28,12 +29,12 @@ export interface Evento {
     cidade?: string
     estado?: string
     valor?: number
-  }
+  } | null
 }
 
 interface CreateEventoData {
-  leadId: string
-  imovelId: string
+  leadId?: string
+  imovelId?: string
   tipo: EventoTipo
   dataHora: string
   observacao?: string

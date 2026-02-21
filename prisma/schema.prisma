@@ -51,6 +51,7 @@ enum EventoTipo {
   ACOMPANHAMENTO
   REUNIAO
   URGENTE
+  GERAL
 }
 
 enum TimelineAction {
