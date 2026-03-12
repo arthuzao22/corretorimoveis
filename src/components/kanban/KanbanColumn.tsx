@@ -85,19 +85,19 @@ export function KanbanColumn({
   return (
     <div className="flex-shrink-0 w-[280px] sm:w-80 md:w-[320px] lg:w-80 flex flex-col h-full max-h-full">
       {/* Column Header */}
-      <div className="flex items-center justify-between p-2 sm:p-3 mb-2 rounded-xl bg-white/50 backdrop-blur-sm border border-gray-100/50 shadow-sm group hover:bg-white/80 transition-colors">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <div className="flex items-center justify-between p-3 sm:p-3.5 mb-3 rounded-xl bg-white border border-slate-100 shadow-sm group hover:border-slate-200 hover:shadow-md transition-all">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div
-            className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm ring-2 ring-white flex-shrink-0"
+            className="w-3 h-3 rounded-full shadow-sm flex-shrink-0"
             style={{ backgroundColor: bgColor }}
           />
           <div className="flex flex-col min-w-0 flex-1">
-            <h3 className="font-bold text-gray-800 text-xs sm:text-sm truncate">{column.name}</h3>
-            <span className="text-[10px] text-gray-500 font-medium truncate">
-              {column.leadCount} {column.leadCount === 1 ? 'lead' : 'leads'}
+            <h3 className="font-bold text-slate-800 text-sm truncate">{column.name}</h3>
+            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+              <span>{column.leadCount} {column.leadCount === 1 ? 'lead' : 'leads'}</span>
               {totalValue > 0 && (
-                <span className="ml-1 text-gray-400 hidden sm:inline">
-                  • {new Intl.NumberFormat('pt-BR', {
+                <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded hidden sm:inline">
+                  {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
                     notation: 'compact',
@@ -105,16 +105,16 @@ export function KanbanColumn({
                   }).format(totalValue)}
                 </span>
               )}
-            </span>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-          <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <button className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+            <Plus className="w-4 h-4" />
           </button>
-          <button className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 hidden sm:block">
-            <MoreHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors hidden sm:block">
+            <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -126,9 +126,9 @@ export function KanbanColumn({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 space-y-2 sm:space-y-3 overflow-y-auto px-1 pb-4
-              transition-colors duration-200 rounded-xl
-              ${snapshot.isDraggingOver ? 'bg-indigo-50/50 ring-2 ring-indigo-100/50' : ''}
+              flex-1 space-y-2.5 overflow-y-auto px-1 pb-4
+              transition-all duration-200 rounded-xl
+              ${snapshot.isDraggingOver ? 'bg-indigo-50/60 ring-2 ring-indigo-200/60' : ''}
             `}
             style={{
               scrollbarWidth: 'thin',
@@ -147,8 +147,9 @@ export function KanbanColumn({
             {provided.placeholder}
 
             {column.leads.length === 0 && !snapshot.isDraggingOver && (
-              <div className="h-20 sm:h-24 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 text-xs font-medium bg-gray-50/50">
-                Solte um cartão aqui
+              <div className="h-24 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 text-xs font-medium bg-slate-50/50 gap-1">
+                <Plus className="w-4 h-4 text-slate-300" />
+                <span>Solte um lead aqui</span>
               </div>
             )}
           </div>
