@@ -74,40 +74,40 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
           }}
           onClick={onClick}
           className={`
-            group relative bg-white rounded-xl p-4 shadow-sm border border-gray-100 
-            hover:shadow-md transition-all duration-200 cursor-pointer
-            ${snapshot.isDragging ? 'shadow-lg rotate-2 scale-105 z-50' : ''}
+            group relative bg-white rounded-xl p-4 border border-slate-100 
+            hover:border-slate-200 hover:shadow-md transition-all duration-200 cursor-pointer
+            ${snapshot.isDragging ? 'shadow-xl rotate-1 scale-[1.02] z-50 border-indigo-200' : 'shadow-sm'}
             ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
           {/* Priority Stripe */}
           <div
-            className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${lead.priority === 'URGENTE' ? 'bg-red-500' :
-                lead.priority === 'ALTA' ? 'bg-orange-500' :
-                  lead.priority === 'MEDIA' ? 'bg-yellow-500' :
-                    'bg-blue-400'
+            className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${lead.priority === 'URGENTE' ? 'bg-red-500' :
+                lead.priority === 'ALTA' ? 'bg-amber-500' :
+                  lead.priority === 'MEDIA' ? 'bg-yellow-400' :
+                    'bg-slate-300'
               }`}
           />
 
           <div className="pl-3 space-y-3">
             {/* Header: Name & Time */}
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-gray-800 text-sm group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+              <h4 className="font-semibold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-tight">
                 {lead.name}
               </h4>
-              <span className="text-[10px] text-gray-400 whitespace-nowrap flex-shrink-0">
+              <span className="text-[10px] text-slate-400 whitespace-nowrap flex-shrink-0 bg-slate-50 px-1.5 py-0.5 rounded">
                 {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: false, locale: ptBR }).replace('aproximadamente ', '')}
               </span>
             </div>
 
             {/* Property Info */}
             {lead.imovel && (
-              <div className="flex items-start gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-                <Building2 className="w-3.5 h-3.5 mt-0.5 text-gray-400 flex-shrink-0" />
+              <div className="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <Building2 className="w-3.5 h-3.5 mt-0.5 text-slate-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-700 truncate">{lead.imovel.titulo}</p>
+                  <p className="font-medium text-slate-700 truncate">{lead.imovel.titulo}</p>
                   {lead.imovel.valor && (
-                    <p className="text-green-600 font-semibold mt-0.5">
+                    <p className="text-emerald-600 font-bold mt-0.5">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
@@ -121,26 +121,26 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
             )}
 
             {/* Tags & Badges Row */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
               {/* Event Status Pills */}
               {hasOverdueEvents && (
-                <div title="Atividades Atrasadas" className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full border border-red-100">
+                <div title="Atividades Atrasadas" className="flex items-center gap-1 text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100">
                   <AlertCircle className="w-3 h-3" />
-                  <span>Atenção</span>
+                  <span>Atrasado</span>
                 </div>
               )}
 
               {upcomingEvents.length > 0 && !hasOverdueEvents && (
-                <div title="Próximas Atividades" className="flex items-center gap-1 text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                <div title="Proximas Atividades" className="flex items-center gap-1 text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">
                   <Calendar className="w-3 h-3" />
-                  <span>{upcomingEvents.length}</span>
+                  <span>{upcomingEvents.length} evento{upcomingEvents.length > 1 ? 's' : ''}</span>
                 </div>
               )}
 
               {isAging && !hasOverdueEvents && (
-                <div title="Lead Sem Atividade Recente" className="flex items-center gap-1 text-[10px] font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
+                <div title="Lead Sem Atividade Recente" className="flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
                   <Clock className="w-3 h-3" />
-                  <span>+7 dias</span>
+                  <span>Inativo</span>
                 </div>
               )}
 
@@ -148,32 +148,32 @@ export function LeadCard({ lead, index, onClick, isDisabled }: LeadCardProps) {
               {lead.tags?.slice(0, 2).map((lt) => (
                 <span
                   key={lt.id}
-                  className="px-2 py-0.5 rounded-full text-[10px] font-medium border"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-medium border"
                   style={{
-                    backgroundColor: lt.tag.color + '15',
+                    backgroundColor: lt.tag.color + '12',
                     color: lt.tag.color,
-                    borderColor: lt.tag.color + '30'
+                    borderColor: lt.tag.color + '25'
                   }}
                 >
                   {lt.tag.name}
                 </span>
               ))}
               {(lead.tags?.length || 0) > 2 && (
-                <span className="text-[10px] text-gray-400">+{lead.tags!.length - 2}</span>
+                <span className="text-[10px] text-slate-400 font-medium">+{lead.tags!.length - 2}</span>
               )}
             </div>
 
             {/* Footer: Broker Avatar/Name */}
-            <div className="flex items-center justify-between border-t border-gray-50 pt-2 mt-2">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                  <UserIcon className="w-3 h-3" />
+            <div className="flex items-center justify-between border-t border-slate-50 pt-2.5 mt-2.5">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium text-[10px]">
+                  {lead.corretor.user.name.charAt(0)}
                 </div>
-                <span className="max-w-[100px] truncate">{lead.corretor.user.name.split(' ')[0]}</span>
+                <span className="max-w-[100px] truncate font-medium">{lead.corretor.user.name.split(' ')[0]}</span>
               </div>
 
-              {/* Quick Actions (Visible on Hover could go here, but kept simple for now) */}
-              <button className="text-gray-300 hover:text-blue-500 transition-colors">
+              {/* Quick Actions */}
+              <button className="text-slate-300 hover:text-indigo-500 transition-colors p-1 rounded hover:bg-indigo-50">
                 <Phone className="w-3.5 h-3.5" />
               </button>
             </div>

@@ -36,15 +36,14 @@ export interface DashboardMetrics {
     }
   }
 
-  // Pipeline data
-  pipeline: {
-    novos: number
-    contatados: number
-    qualificados: number
-    negociacao: number
-    convertidos: number
-    perdidos: number
-  }
+  // Pipeline data - NOW USES KANBAN COLUMNS
+  pipeline: Array<{
+    id: string
+    name: string
+    color: string | null
+    count: number
+    order: number
+  }>
 
   // Top properties
   topImoveis: Array<{
@@ -161,11 +160,25 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
         }
       }),
 
-      // 7. Pipeline: groupBy status — 1 query instead of findMany + 6x .filter()
-      prisma.lead.groupBy({
-        by: ['status'],
-        where: { corretorId },
-        _count: { id: true }
+      // 7. Pipeline: Get Kanban columns with lead counts — using real Kanban data
+      prisma.kanbanColumn.findMany({
+        where: {
+          board: { isGlobal: true }
+        },
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          order: true,
+          _count: {
+            select: {
+              leads: {
+                where: { corretorId }
+              }
+            }
+          }
+        },
+        orderBy: { order: 'asc' }
       }),
 
       // 8. Top properties (already efficient)
@@ -240,16 +253,14 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0
     const taxaConversaoPrevMonth = totalLeadsPrevMonth > 0 ? (leadsConvertidosPrevMonth / totalLeadsPrevMonth) * 100 : 0
 
-    // Pipeline from groupBy — no in-memory filtering needed
-    const pipelineMap = new Map(pipelineData.map(p => [p.status, p._count.id]))
-    const pipeline = {
-      novos: pipelineMap.get('NOVO') || 0,
-      contatados: pipelineMap.get('CONTATADO') || 0,
-      qualificados: pipelineMap.get('QUALIFICADO') || 0,
-      negociacao: pipelineMap.get('NEGOCIACAO') || 0,
-      convertidos: pipelineMap.get('CONVERTIDO') || 0,
-      perdidos: pipelineMap.get('PERDIDO') || 0,
-    }
+    // Pipeline from Kanban columns — real data from Kanban board
+    const pipeline = pipelineData.map(column => ({
+      id: column.id,
+      name: column.name,
+      color: column.color,
+      count: column._count.leads,
+      order: column.order
+    }))
 
     // Top properties — use _count instead of leads.length
     const topImoveis = topImoveisData.slice(0, 3).map(imovel => ({

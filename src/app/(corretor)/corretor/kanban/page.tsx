@@ -31,28 +31,28 @@ export default async function KanbanPage() {
   const canEditColumns = permissionsResult.success && permissionsResult.permissions?.canEditColumns
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Kanban - Pipeline de Vendas</h1>
-          <p className="text-gray-600 mt-1">
-            Gerencie seus leads visualmente com drag & drop
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Pipeline de Vendas</h1>
+          <p className="text-slate-500 mt-1 text-sm">
+            Arraste e solte para gerenciar seus leads
           </p>
         </div>
         <div className="flex gap-2">
           {canEditColumns && (
             <Link
               href="/corretor/kanban/editor"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 bg-white text-slate-700 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2 text-sm font-medium border border-slate-200 shadow-sm"
             >
               <Settings className="w-4 h-4" />
-              Editar Kanban
+              Configurar
             </Link>
           )}
           <Link
             href="/corretor/kanban/analytics"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-2 text-sm font-medium shadow-sm"
           >
             <LayoutGrid className="w-4 h-4" />
             Analytics

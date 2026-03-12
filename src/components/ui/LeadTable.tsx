@@ -142,12 +142,66 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
   }
 
   // Check if lead needs attention (no interaction for ATTENTION_THRESHOLD_DAYS)
+  // Considers: ultimaInteracao, dataContato, updatedAt (includes Kanban moves), and completed events
   const needsAttention = (lead: Lead) => {
-    const lastInteraction = lead.ultimaInteracao || lead.dataContato || lead.createdAt
-    if (!lastInteraction) return false
+    // Get the most recent activity date from multiple sources
+    const possibleDates: Date[] = []
     
-    const date = typeof lastInteraction === 'string' ? new Date(lastInteraction) : lastInteraction
-    const daysSince = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+    // 1. Explicit interaction date
+    if (lead.ultimaInteracao) {
+      const d = typeof lead.ultimaInteracao === 'string' ? new Date(lead.ultimaInteracao) : lead.ultimaInteracao
+      possibleDates.push(d)
+    }
+    
+    // 2. Contact date
+    if (lead.dataContato) {
+      const d = typeof lead.dataContato === 'string' ? new Date(lead.dataContato) : lead.dataContato
+      possibleDates.push(d)
+    }
+    
+    // 3. Last update (includes Kanban movements)
+    if (lead.updatedAt) {
+      const d = typeof lead.updatedAt === 'string' ? new Date(lead.updatedAt) : lead.updatedAt
+      possibleDates.push(d)
+    }
+    
+    // 4. Check completed events (most recent)
+    if (lead.eventos && lead.eventos.length > 0) {
+      const completedEvents = lead.eventos
+        .filter(e => e.completed)
+        .map(e => typeof e.dataHora === 'string' ? new Date(e.dataHora) : e.dataHora)
+      
+      if (completedEvents.length > 0) {
+        const mostRecentEvent = new Date(Math.max(...completedEvents.map(d => d.getTime())))
+        possibleDates.push(mostRecentEvent)
+      }
+    }
+    
+    // 5. If lead has upcoming events scheduled, don't mark as needing attention
+    if (lead.eventos && lead.eventos.length > 0) {
+      const now = new Date()
+      const hasUpcomingEvent = lead.eventos.some(e => 
+        !e.completed && new Date(e.dataHora) > now
+      )
+      if (hasUpcomingEvent) return false
+    }
+    
+    // 6. If there's a proximoContato scheduled, don't mark as needing attention
+    if (lead.proximoContato) {
+      const followUp = typeof lead.proximoContato === 'string' ? new Date(lead.proximoContato) : lead.proximoContato
+      if (followUp > new Date()) return false
+    }
+    
+    // If no dates found, use createdAt
+    if (possibleDates.length === 0) {
+      const created = typeof lead.createdAt === 'string' ? new Date(lead.createdAt) : lead.createdAt
+      possibleDates.push(created)
+    }
+    
+    // Get the most recent date
+    const lastActivity = new Date(Math.max(...possibleDates.map(d => d.getTime())))
+    const daysSince = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
+    
     return daysSince >= ATTENTION_THRESHOLD_DAYS
   }
 
@@ -253,9 +307,9 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
 
                 {/* Row 5: Attention Alert */}
                 {attention && (
-                  <div className="text-xs bg-orange-50 rounded-lg p-2 border border-orange-200">
-                    <span className="text-orange-700 font-medium flex items-center gap-1">
-                      ⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias
+                  <div className="text-xs bg-amber-50 rounded-lg p-2 border border-amber-200">
+                    <span className="text-amber-700 font-medium flex items-center gap-1">
+                      Sem atividade recente ({ATTENTION_THRESHOLD_DAYS}+ dias)
                     </span>
                   </div>
                 )}
@@ -370,7 +424,7 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
                             <span className="truncate">{lead.phone}</span>
                           )}
                           {attention && (
-                            <span className="text-orange-600 font-medium whitespace-nowrap">⚠️ Sem contato há {ATTENTION_THRESHOLD_DAYS}+ dias</span>
+                            <span className="text-amber-600 font-medium whitespace-nowrap">Sem atividade ({ATTENTION_THRESHOLD_DAYS}+ dias)</span>
                           )}
                         </div>
                       </div>

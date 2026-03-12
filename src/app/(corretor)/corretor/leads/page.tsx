@@ -189,29 +189,35 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meus Leads</h1>
-          <p className="text-gray-600 mt-1">
-            {leads.length} {leads.length === 1 ? 'lead' : 'leads'} {pagination.hasNextPage ? '(mostrando os primeiros)' : ''}
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Meus Leads</h1>
+          <p className="text-slate-500 mt-1 text-sm">
+            {leads.length} {leads.length === 1 ? 'lead encontrado' : 'leads encontrados'} {pagination.hasNextPage ? '(mostrando os primeiros)' : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg">
+        <div className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl border border-indigo-100">
           <Users className="w-5 h-5" />
-          <span className="font-semibold">{leads.length}+</span>
+          <span className="font-bold">{leads.length}</span>
+          <span className="text-indigo-500 text-sm">leads</span>
         </div>
       </div>
 
       {/* Stats Cards - Kanban Columns */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {columnStats.map((stat) => (
           <div
             key={stat.id}
-            className="bg-white rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow"
-            style={{ borderLeftColor: stat.color || '#6b7280' }}
+            className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group"
           >
-            <p className="text-sm text-gray-600">{stat.name}</p>
-            <p className="text-2xl font-bold" style={{ color: stat.color || '#6b7280' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div 
+                className="w-2.5 h-2.5 rounded-full shadow-sm"
+                style={{ backgroundColor: stat.color || '#6b7280' }}
+              />
+              <p className="text-sm text-slate-600 truncate">{stat.name}</p>
+            </div>
+            <p className="text-2xl font-bold text-slate-800">
               {stat.count}
             </p>
           </div>
