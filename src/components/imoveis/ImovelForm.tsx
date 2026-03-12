@@ -52,6 +52,7 @@ interface ImovelFormProps {
 export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }: ImovelFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const [loadingCep, setLoadingCep] = useState(false)
   const [error, setError] = useState('')
   const [cidades, setCidades] = useState<any[]>([])
@@ -120,15 +121,16 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading || submitted) return
     setError('')
 
     try {
-      // Validação com Zod
+      // Validacao com Zod
       const validatedData = imovelFormSchema.parse(formData)
 
       setLoading(true)
 
-      // Converter strings para números quando necessário
+      // Converter strings para numeros quando necessario
       const submitData = {
         titulo: validatedData.titulo,
         descricao: validatedData.descricao,
@@ -159,18 +161,18 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
       const result = await onSubmit(submitData)
 
       if (result.success) {
-        setLoading(false)
+        setSubmitted(true)
         router.push('/corretor/imoveis')
         router.refresh()
       } else {
-        setError(result.error || 'Erro ao salvar imóvel')
+        setError(result.error || 'Erro ao salvar imovel')
         setLoading(false)
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
         setError(err.issues[0].message)
       } else {
-        setError('Erro ao validar formulário')
+        setError('Erro ao validar formulario')
       }
       setLoading(false)
     }
@@ -561,8 +563,8 @@ export function ImovelForm({ imovel, onSubmit, submitLabel = 'Salvar Imóvel' }:
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={loading || formData.images.length === 0}>
-          {loading ? 'Salvando...' : submitLabel}
+        <Button type="submit" disabled={loading || submitted || formData.images.length === 0}>
+          {submitted ? 'Redirecionando...' : loading ? 'Salvando...' : submitLabel}
         </Button>
       </div>
     </form>

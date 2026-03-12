@@ -32,7 +32,7 @@ type Imovel = {
 
 interface PropertyFilters {
   tipo?: 'VENDA' | 'ALUGUEL' | 'ALL'
-  status?: 'ATIVO' | 'INATIVO' | 'VENDIDO' | 'ALUGADO' | 'ALL'
+  status?: 'ATIVO' | 'INATIVO' | 'VENDIDO' | 'ALUGADO' | 'COMPRADO' | 'OCUPADO' | 'ALL'
   minValor?: string
   maxValor?: string
   bairro?: string
@@ -214,6 +214,12 @@ export default function ImoveisPage() {
                               ? 'bg-green-600 text-white'
                               : imovel.status === 'VENDIDO'
                               ? 'bg-blue-600 text-white'
+                              : imovel.status === 'ALUGADO'
+                              ? 'bg-yellow-600 text-white'
+                              : imovel.status === 'COMPRADO'
+                              ? 'bg-purple-600 text-white'
+                              : imovel.status === 'OCUPADO'
+                              ? 'bg-orange-600 text-white'
                               : 'bg-gray-600 text-white'
                           }`}
                         >

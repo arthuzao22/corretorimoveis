@@ -25,6 +25,8 @@ enum ImovelStatus {
   INATIVO
   VENDIDO
   ALUGADO
+  COMPRADO
+  OCUPADO
 }
 
 enum LeadStatus {
