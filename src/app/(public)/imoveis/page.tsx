@@ -137,20 +137,25 @@ async function ImoveisContent({ searchParams }: { searchParams: Promise<SearchPa
   }))
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Buscar Imóveis</h1>
-            <p className="text-gray-600">
-              {serializedImoveis.length} {serializedImoveis.length === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Buscar Imoveis</h1>
+            <p className="text-slate-500">
+              {serializedImoveis.length} {serializedImoveis.length === 1 ? 'imovel encontrado' : 'imoveis encontrados'}
             </p>
           </div>
 
-          <FilterBar currentFilters={params} />
+          {/* Filters */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
+            <FilterBar currentFilters={params} />
+          </div>
 
-          <div className="mt-8">
+          {/* Results */}
+          <div>
             <ImoveisList
               initialImoveis={serializedImoveis}
               initialPagination={pagination}

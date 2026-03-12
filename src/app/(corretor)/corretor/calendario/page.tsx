@@ -212,35 +212,32 @@ export default function CalendarioPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <CalendarIcon size={32} className="text-purple-600" />
-              Calendário de Eventos
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Gerencie seus agendamentos com leads e imóveis
-            </p>
-          </div>
-          <Button
-            onClick={handleNewEvent}
-            className="flex items-center gap-2"
-          >
-            <Plus size={18} />
-            Novo Evento
-          </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            Calendario de Eventos
+          </h1>
+          <p className="text-slate-500 mt-1 text-sm">
+            Gerencie seus agendamentos com leads e imoveis
+          </p>
         </div>
+        <button
+          onClick={handleNewEvent}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
+        >
+          <Plus size={18} />
+          Novo Evento
+        </button>
       </div>
 
       {/* Feedback Messages */}
       {feedbackMessage && (
         <div
-          className={`mb-6 p-4 rounded-lg ${feedbackMessage.type === 'success'
-            ? 'bg-green-50 text-green-800 border border-green-200'
-            : 'bg-red-50 text-red-800 border border-red-200'
+          className={`p-4 rounded-xl text-sm font-medium ${feedbackMessage.type === 'success'
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            : 'bg-red-50 text-red-700 border border-red-200'
             }`}
         >
           {feedbackMessage.message}
@@ -249,18 +246,23 @@ export default function CalendarioPage() {
 
       {/* Empty State */}
       {!initialLoading && eventos.length === 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-12 text-center mb-8">
-          <CalendarIcon size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <CalendarIcon size={32} className="text-slate-400" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">
             Nenhum evento marcado ainda
           </h3>
-          <p className="text-gray-600 mb-4">
-            Clique em &quot;Novo Evento&quot; ou em uma data no calendário para criar seu primeiro evento
+          <p className="text-slate-500 mb-6 max-w-md mx-auto">
+            Clique em &quot;Novo Evento&quot; ou em uma data no calendario para criar seu primeiro evento
           </p>
-          <Button onClick={handleNewEvent} className="inline-flex items-center gap-2">
+          <button 
+            onClick={handleNewEvent} 
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
+          >
             <Plus size={18} />
             Criar Primeiro Evento
-          </Button>
+          </button>
         </div>
       )}
 

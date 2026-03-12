@@ -103,47 +103,49 @@ async function PropertyContent({ id }: { id: string }) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
       <Navbar />
 
       <div className="flex-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-5">
             {/* Gallery */}
-            <ImageGallery images={imovel.images} alt={imovel.titulo} />
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <ImageGallery images={imovel.images} alt={imovel.titulo} />
+            </div>
 
             {/* Title and Price */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+            <div className="bg-white rounded-2xl shadow-sm p-5 lg:p-6 border border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
                     {imovel.titulo}
                   </h1>
-                  <div className="flex items-start gap-2 text-gray-600 mb-2">
-                    <MapPin className="w-5 h-5 mt-1 flex-shrink-0" />
+                  <div className="flex items-start gap-2 text-slate-600">
+                    <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-slate-400" />
                     <div>
-                      <p>{imovel.endereco}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-slate-700">{imovel.endereco}</p>
+                      <p className="text-sm text-slate-500">
                         {imovel.cidade}, {imovel.estado}
                         {imovel.cep && ` - CEP: ${imovel.cep}`}
                       </p>
                     </div>
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
-                  imovel.tipo === 'VENDA' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                <span className={`px-3 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap ${
+                  imovel.tipo === 'VENDA' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                 }`}>
                   {imovel.tipo === 'VENDA' ? 'Venda' : 'Aluguel'}
                 </span>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6">
-                <p className="text-sm text-blue-700 font-medium mb-1">Valor do Imóvel</p>
-                <p className="text-4xl font-bold text-blue-600">
-                  R$ {imovel.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <p className="text-sm text-slate-500 font-medium mb-1">Valor do Imovel</p>
+                <p className="text-3xl sm:text-4xl font-bold text-slate-900">
+                  R$ {imovel.valor.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
@@ -152,17 +154,17 @@ async function PropertyContent({ id }: { id: string }) {
             <PropertyDetails imovel={imovel} />
 
             {/* Description */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-900">Descrição</h2>
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed">{imovel.descricao}</p>
+            <div className="bg-white rounded-2xl shadow-sm p-5 lg:p-6 border border-slate-100">
+              <h2 className="text-xl font-bold mb-4 text-slate-800">Descricao</h2>
+              <p className="text-slate-600 whitespace-pre-line leading-relaxed">{imovel.descricao}</p>
             </div>
 
-            {/* Localização com Google Maps Iframe */}
+            {/* Localizacao com Google Maps Iframe */}
             {shouldShowMap && (
-              <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <div className="bg-white rounded-2xl shadow-sm p-5 lg:p-6 border border-slate-100">
                 <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-2xl font-semibold text-gray-900">Localização</h2>
+                  <MapPin className="w-5 h-5 text-indigo-600" />
+                  <h2 className="text-xl font-bold text-slate-800">Localizacao</h2>
                 </div>
                 
                 <GoogleMapsIframe
@@ -171,8 +173,8 @@ async function PropertyContent({ id }: { id: string }) {
                   cidade={imovel.cidade}
                   estado={imovel.estado}
                   cep={imovel.cep || undefined}
-                  height="450px"
-                  className="rounded-lg shadow-sm"
+                  height="400px"
+                  className="rounded-xl shadow-sm"
                 />
                 
                 <div className="mt-4">
@@ -184,8 +186,9 @@ async function PropertyContent({ id }: { id: string }) {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center w-full"
+                    className="inline-flex items-center justify-center gap-2 w-full bg-slate-900 text-white px-6 py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium text-sm"
                   >
+                    <MapPin className="w-4 h-4" />
                     Abrir no Google Maps
                   </a>
                 </div>
@@ -197,55 +200,57 @@ async function PropertyContent({ id }: { id: string }) {
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
               {/* Corretor Info */}
-              <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-white" />
+              <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <span className="text-xl font-bold text-indigo-600">
+                      {imovel.corretor.user.name.charAt(0)}
+                    </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Corretor Responsável</p>
-                    <p className="font-bold text-gray-900 text-lg">{imovel.corretor.user.name}</p>
+                    <p className="text-xs text-slate-500 font-medium">Corretor</p>
+                    <p className="font-bold text-slate-800">{imovel.corretor.user.name}</p>
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {whatsappUrl && (
                     <a
                       href={whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm"
                     >
-                      <MessageCircle className="w-5 h-5" />
-                      Falar no WhatsApp
+                      <MessageCircle className="w-4 h-4" />
+                      WhatsApp
                     </a>
                   )}
 
                   <a
                     href={`tel:${imovel.corretor.whatsapp || ''}`}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
+                    className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-colors font-medium text-sm shadow-sm"
                   >
-                    <Phone className="w-5 h-5" />
-                    Ligar Agora
+                    <Phone className="w-4 h-4" />
+                    Ligar
                   </a>
 
                   <Link
                     href={`/corretor/${imovel.corretor.slug}`}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl hover:bg-slate-200 transition-colors font-medium text-sm"
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4" />
                     Ver Perfil
                   </Link>
                 </div>
               </div>
 
               {/* Contact Form */}
-              <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">
+              <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
+                <h3 className="text-lg font-bold mb-2 text-slate-800">
                   Tenho Interesse
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Deixe seus dados e o corretor entrará em contato com você.
+                <p className="text-sm text-slate-500 mb-4">
+                  Deixe seus dados e o corretor entrara em contato.
                 </p>
                 <ContactForm imovelId={imovel.id} />
               </div>

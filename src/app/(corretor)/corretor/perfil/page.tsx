@@ -94,23 +94,23 @@ export default function PerfilPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Meu Perfil</h1>
-        <p className="text-gray-600 mt-1">Configure suas informações públicas</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Meu Perfil</h1>
+        <p className="text-slate-500 mt-1 text-sm">Configure suas informacoes publicas</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Form */}
         <div className="lg:col-span-2">
-          <Card>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 lg:p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Readonly Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
@@ -135,23 +135,23 @@ export default function PerfilPage() {
                   disabled={saving}
                   placeholder="meu-nome-imoveis"
                 />
-                <div className="mt-1 flex items-center gap-2 text-sm">
+                <div className="mt-2 flex items-center gap-2 text-sm">
                   {slugChecking && (
-                    <span className="text-gray-500">Verificando...</span>
+                    <span className="text-slate-500">Verificando...</span>
                   )}
                   {!slugChecking && slugAvailable === true && formData.slug.length >= 3 && (
-                    <span className="text-green-600 flex items-center gap-1">
-                      <Check className="w-4 h-4" /> Slug disponível
+                    <span className="text-emerald-600 flex items-center gap-1.5 font-medium">
+                      <Check className="w-4 h-4" /> Slug disponivel
                     </span>
                   )}
                   {!slugChecking && slugAvailable === false && (
-                    <span className="text-red-600 flex items-center gap-1">
-                      <X className="w-4 h-4" /> Slug já está em uso
+                    <span className="text-red-600 flex items-center gap-1.5 font-medium">
+                      <X className="w-4 h-4" /> Slug ja esta em uso
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Sua página pública será: /corretor/{formData.slug}
+                <p className="text-xs text-slate-400 mt-1">
+                  Sua pagina publica sera: /corretor/{formData.slug}
                 </p>
               </div>
 
@@ -166,11 +166,11 @@ export default function PerfilPage() {
                   placeholder="https://exemplo.com/minha-foto.jpg"
                 />
                 {formData.photo && (
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <img
                       src={formData.photo}
                       alt="Preview"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 shadow-sm"
                       onError={(e) => {
                         e.currentTarget.src = ''
                         e.currentTarget.style.display = 'none'
@@ -181,20 +181,20 @@ export default function PerfilPage() {
               </div>
 
               {/* Bio */}
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700">
                   Bio
                 </label>
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
                   rows={4}
                   disabled={saving}
                   maxLength={500}
-                  placeholder="Conte um pouco sobre você e sua experiência..."
+                  placeholder="Conte um pouco sobre voce e sua experiencia..."
                 />
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-slate-400">
                   {formData.bio.length}/500 caracteres
                 </span>
               </div>
@@ -213,33 +213,37 @@ export default function PerfilPage() {
                   value={formData.cidade}
                   onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
                   disabled={saving}
-                  placeholder="São Paulo, SP"
+                  placeholder="Sao Paulo, SP"
                 />
               </div>
 
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                <div className="text-red-700 text-sm bg-red-50 p-3.5 rounded-xl border border-red-200 font-medium">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="text-green-600 text-sm bg-green-50 p-3 rounded-lg">
+                <div className="text-emerald-700 text-sm bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 font-medium">
                   {success}
                 </div>
               )}
 
-              <Button type="submit" disabled={saving || slugAvailable === false} className="w-full">
-                {saving ? 'Salvando...' : 'Salvar Alterações'}
-              </Button>
+              <button 
+                type="submit" 
+                disabled={saving || slugAvailable === false} 
+                className="w-full px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Salvando...' : 'Salvar Alteracoes'}
+              </button>
             </form>
-          </Card>
+          </div>
         </div>
 
         {/* Preview */}
         <div className="lg:col-span-1">
-          <Card>
-            <h3 className="text-lg font-semibold mb-4">Preview da Página Pública</h3>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 lg:p-6 sticky top-24">
+            <h3 className="text-base font-bold text-slate-800 mb-4">Preview da Pagina Publica</h3>
             
             {formData.slug && slugAvailable !== false ? (
               <div className="space-y-4">
@@ -248,14 +252,14 @@ export default function PerfilPage() {
                     <img
                       src={formData.photo}
                       alt="Preview"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 shadow-sm"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none'
                       }}
                     />
                   ) : (
-                    <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-3xl font-bold text-blue-600">
+                    <div className="w-20 h-20 bg-indigo-100 rounded-xl flex items-center justify-center">
+                      <span className="text-2xl font-bold text-indigo-600">
                         {formData.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -263,30 +267,30 @@ export default function PerfilPage() {
                 </div>
                 
                 <div className="text-center">
-                  <h4 className="font-semibold text-gray-900">{formData.name}</h4>
+                  <h4 className="font-bold text-slate-800">{formData.name}</h4>
                   {formData.cidade && (
-                    <p className="text-sm text-gray-600">{formData.cidade}</p>
+                    <p className="text-sm text-slate-500">{formData.cidade}</p>
                   )}
                   {formData.bio && (
-                    <p className="text-sm text-gray-700 mt-2">{formData.bio}</p>
+                    <p className="text-sm text-slate-600 mt-2 line-clamp-3">{formData.bio}</p>
                   )}
                 </div>
 
                 <Link
                   href={`/corretor/${formData.slug}`}
                   target="_blank"
-                  className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="flex items-center justify-center gap-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium p-2.5 rounded-xl hover:bg-indigo-50 transition-colors"
                 >
-                  Ver Página Pública
+                  Ver Pagina Publica
                   <ExternalLink className="w-4 h-4" />
                 </Link>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-slate-400 text-center py-6">
                 Configure seu slug para ver o preview
               </p>
             )}
-          </Card>
+          </div>
         </div>
       </div>
     </div>
