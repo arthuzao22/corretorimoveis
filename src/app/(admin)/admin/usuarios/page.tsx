@@ -70,48 +70,48 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Gerenciar Usuários</h1>
+        <p className="text-slate-500 mt-1 text-sm sm:text-base">
           Promova usuários a administrador ou remova privilégios
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Usuário
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wide">
                 Ações
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-slate-100">
             {users.map((corretor) => (
               <tr key={corretor.user.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-slate-900">
                     {corretor.user.name}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{corretor.user.email}</div>
+                  <div className="text-sm text-slate-500">{corretor.user.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
                     corretor.user.active
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
                   }`}>
                     {corretor.user.active ? 'Ativo' : 'Inativo'}
                   </span>

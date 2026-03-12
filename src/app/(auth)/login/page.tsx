@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
 import { Navbar } from '@/components/ui/Navbar'
+import { LogIn } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -63,11 +64,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+        <Card className="w-full max-w-md bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+              <LogIn className="w-5 h-5 text-indigo-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Login</h1>
+            <p className="text-slate-500 text-sm mt-1">Acesse seu painel para continuar.</p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -89,14 +96,14 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-red-600 text-sm text-center">
+              <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-xl p-2.5">
                 {error}
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full rounded-xl bg-slate-900 hover:bg-slate-800"
               disabled={loading}
             >
               {loading ? 'Entrando...' : 'Entrar'}
@@ -104,8 +111,8 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Não tem uma conta? </span>
-            <Link href="/register" className="text-blue-600 hover:underline">
+            <span className="text-slate-600">Não tem uma conta? </span>
+            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 underline-offset-2 hover:underline">
               Cadastre-se
             </Link>
           </div>

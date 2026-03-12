@@ -19,7 +19,7 @@ export default async function CorretorLayout({
 
   return (
     <GlobalSearchProvider>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-slate-50 flex">
         <Sidebar userName={session.user.name || 'Usuário'} />
         <main className="flex-1 min-w-0 pt-16 lg:pt-0 lg:ml-0">
           <div className="p-4 lg:p-8">

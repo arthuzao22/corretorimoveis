@@ -36,10 +36,10 @@ export default function EditarImovelPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando imóvel...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto" />
+          <p className="mt-4 text-slate-500">Carregando imóvel...</p>
         </div>
       </div>
     )
@@ -50,17 +50,17 @@ export default function EditarImovelPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Link
           href="/corretor/imoveis"
-          className="text-gray-600 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Editar Imóvel</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Editar Imóvel</h1>
+          <p className="text-slate-500 mt-1 text-sm sm:text-base">
             Atualize as informações do imóvel "{imovel.titulo}"
           </p>
         </div>

@@ -46,11 +46,13 @@ interface PropertyListProps {
   emptyMessage?: string
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<ImovelStatus, { label: string; color: string }> = {
   ATIVO: { label: 'Ativo', color: 'bg-green-600' },
   INATIVO: { label: 'Inativo', color: 'bg-gray-600' },
   VENDIDO: { label: 'Vendido', color: 'bg-blue-600' },
   ALUGADO: { label: 'Alugado', color: 'bg-purple-600' },
+  COMPRADO: { label: 'Comprado', color: 'bg-indigo-600' },
+  OCUPADO: { label: 'Ocupado', color: 'bg-amber-600' },
 }
 
 export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: PropertyListProps) {
@@ -112,10 +114,10 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
               {/* Status Badge */}
               <span
                 className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-lg ${
-                  STATUS_CONFIG[imovel.status]?.color || 'bg-gray-600'
+                  STATUS_CONFIG[imovel.status].color
                 }`}
               >
-                {STATUS_CONFIG[imovel.status]?.label || imovel.status}
+                {STATUS_CONFIG[imovel.status].label}
               </span>
 
               {/* Destaque Badge */}

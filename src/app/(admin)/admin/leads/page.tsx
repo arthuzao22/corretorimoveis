@@ -41,29 +41,32 @@ export default function LeadsAdminPage() {
   }, [])
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>
+    return <div className="text-center py-10 text-slate-500">Carregando...</div>
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Todos os Leads</h1>
+    <div className="px-4 py-6 sm:px-0 space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Todos os Leads</h1>
+        <p className="text-slate-500 mt-1 text-sm sm:text-base">Acompanhe os contatos recebidos em toda a operação.</p>
+      </div>
 
       {leads.length === 0 ? (
-        <Card>
-          <p className="text-center text-gray-500 py-8">
+        <Card className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-center text-slate-500 py-8">
             Nenhum lead registrado ainda.
           </p>
         </Card>
       ) : (
         <div className="space-y-4">
           {leads.map((lead) => (
-            <Card key={lead.id}>
+            <Card key={lead.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     {lead.name}
                   </h3>
-                  <div className="mt-2 space-y-1 text-sm text-gray-600">
+                  <div className="mt-2 space-y-1 text-sm text-slate-600">
                     <p>
                       <span className="font-medium">Email:</span> {lead.email}
                     </p>
@@ -85,7 +88,7 @@ export default function LeadsAdminPage() {
                     )}
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-slate-500">
                   {new Date(lead.createdAt).toLocaleDateString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',
