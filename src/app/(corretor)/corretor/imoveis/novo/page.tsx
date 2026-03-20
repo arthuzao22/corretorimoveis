@@ -5,10 +5,10 @@ import { createImovel } from '@/server/actions/imoveis'
 
 export default function NovoImovelPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Novo Imóvel</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Novo Imóvel</h1>
+        <p className="text-slate-500 mt-1 text-sm sm:text-base">
           Cadastre um novo imóvel com todas as informações necessárias
         </p>
       </div>

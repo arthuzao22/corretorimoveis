@@ -37,28 +37,31 @@ export default function ImoveisAdminPage() {
   }, [])
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>
+    return <div className="text-center py-10 text-slate-500">Carregando...</div>
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Todos os Imóveis</h1>
+    <div className="px-4 py-6 sm:px-0 space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Todos os Imóveis</h1>
+        <p className="text-slate-500 mt-1 text-sm sm:text-base">Visualização consolidada dos imóveis cadastrados por todos os corretores.</p>
+      </div>
 
       {imoveis.length === 0 ? (
-        <Card>
-          <p className="text-center text-gray-500 py-8">
+        <Card className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-center text-slate-500 py-8">
             Nenhum imóvel cadastrado ainda.
           </p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {imoveis.map((imovel) => (
-            <Card key={imovel.id}>
+            <Card key={imovel.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all">
               <div className="flex flex-col h-full">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
                   {imovel.titulo}
                 </h3>
-                <div className="flex-1 space-y-2 text-sm text-gray-600">
+                <div className="flex-1 space-y-2 text-sm text-slate-600">
                   <p>
                     <span className="font-medium">Tipo:</span>{' '}
                     {imovel.tipo === 'VENDA' ? 'Venda' : 'Aluguel'}
@@ -74,10 +77,10 @@ export default function ImoveisAdminPage() {
                   <p>
                     <span className="font-medium">Status:</span>{' '}
                     <span
-                      className={`inline-block px-2 py-1 rounded text-xs ${
+                      className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium ${
                         imovel.status === 'ATIVO'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
                       }`}
                     >
                       {imovel.status}

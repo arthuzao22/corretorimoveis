@@ -14,9 +14,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return pathname === '/'
-    }
+    if (path === '/') return pathname === '/'
     return pathname.startsWith(path)
   }
 
@@ -26,16 +24,18 @@ export function Navbar({ transparent = false }: NavbarProps) {
   ]
 
   return (
-    <header className={`${transparent ? 'bg-white/80 backdrop-blur-md' : 'bg-white'} border-b border-slate-100 sticky top-0 z-30`}>
+    <header className={`${transparent ? 'bg-white/80 backdrop-blur-md' : 'bg-white'} border-b border-slate-100 shadow-sm sticky top-0 z-30`}>
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         <div className="flex justify-between items-center h-16">
+          
           {/* Logo */}
           <TransitionLink 
             href="/" 
-            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-slate-800 hover:text-slate-900 transition-colors"
+            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
             <Building2 className="w-7 h-7 sm:w-8 sm:h-8" />
-            <span>ImovelPro</span>
+            <span>ImóvelPro</span>
           </TransitionLink>
 
           {/* Desktop Navigation */}
@@ -46,8 +46,8 @@ export function Navbar({ transparent = false }: NavbarProps) {
                 href={link.href}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   isActive(link.href)
-                    ? 'bg-slate-100 text-slate-900'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent hover:border-slate-100'
                 }`}
               >
                 <link.icon className="w-4 h-4" />
@@ -56,35 +56,32 @@ export function Navbar({ transparent = false }: NavbarProps) {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
             <TransitionLink
               href="/login"
-              className="flex items-center gap-2 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-100 transition-all font-medium text-sm"
+              className="flex items-center gap-2 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all font-medium text-sm"
             >
               <LogIn className="w-4 h-4" />
               Entrar
             </TransitionLink>
+
             <TransitionLink
               href="/register"
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-all font-medium text-sm"
+              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition-all shadow-sm hover:shadow-md font-medium text-sm border border-slate-900 hover:border-slate-800"
             >
               <UserPlus className="w-4 h-4" />
               Cadastrar-se
             </TransitionLink>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all"
             aria-label="Menu"
           >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
@@ -92,6 +89,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-100">
             <div className="flex flex-col gap-2">
+
               {navLinks.map((link) => (
                 <TransitionLink
                   key={link.href}
@@ -99,36 +97,39 @@ export function Navbar({ transparent = false }: NavbarProps) {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     isActive(link.href)
-                      ? 'bg-slate-100 text-slate-900'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent hover:border-slate-100'
                   }`}
                 >
                   <link.icon className="w-5 h-5" />
                   {link.label}
                 </TransitionLink>
               ))}
-              
+
               <div className="border-t border-slate-100 mt-2 pt-2">
                 <TransitionLink
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all"
                 >
                   <LogIn className="w-5 h-5" />
                   Entrar
                 </TransitionLink>
+
                 <TransitionLink
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-all mt-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-all mt-2"
                 >
                   <UserPlus className="w-5 h-5" />
                   Cadastrar-se
                 </TransitionLink>
               </div>
+
             </div>
           </div>
         )}
+
       </nav>
     </header>
   )

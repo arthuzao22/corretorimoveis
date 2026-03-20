@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
 import { Navbar } from '@/components/ui/Navbar'
+import { LogIn } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -35,14 +36,11 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        // Pequeno delay para garantir que a sessão foi criada
         await new Promise(resolve => setTimeout(resolve, 100))
 
-        // Buscar a sessão para determinar o papel do usuário
         const response = await fetch('/api/auth/session')
         const session = await response.json()
 
-        // Redirecionar baseado no papel do usuário
         if (session?.user?.role === 'ADMIN') {
           window.location.href = '/admin/dashboard'
         } else if (session?.user?.role === 'CORRETOR') {
@@ -65,9 +63,20 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
+
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6 text-slate-800">Entrar</h1>
+        <Card className="w-full max-w-md bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+              <LogIn className="w-5 h-5 text-indigo-600" />
+            </div>
+
+            <h1 className="text-2xl font-bold text-slate-900">Login</h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Acesse seu painel para continuar.
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -89,26 +98,30 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-red-500 text-sm text-center font-medium p-3 bg-red-50 rounded-xl">
+              <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-xl p-2.5">
                 {error}
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-slate-800"
+              className="w-full rounded-xl bg-slate-900 hover:bg-slate-800"
               disabled={loading}
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
 
-          <div className="mt-5 text-center text-sm">
-            <span className="text-slate-600">Nao tem uma conta? </span>
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <div className="mt-4 text-center text-sm">
+            <span className="text-slate-600">Não tem uma conta? </span>
+            <Link
+              href="/register"
+              className="text-indigo-600 hover:text-indigo-700 underline-offset-2 hover:underline"
+            >
               Cadastre-se
             </Link>
           </div>
+
         </Card>
       </div>
     </div>

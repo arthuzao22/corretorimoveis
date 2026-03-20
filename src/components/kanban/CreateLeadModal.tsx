@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { X, Loader2, Plus, Building2, User, Phone, Mail, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { createLeadFromKanban } from '@/server/actions/leads'
 
 interface Imovel {
@@ -40,7 +39,6 @@ export function CreateLeadModal({
         imovelId: ''
     })
 
-    // Carregar imóveis disponíveis
     useEffect(() => {
         if (isOpen) {
             loadImoveis()
@@ -50,7 +48,6 @@ export function CreateLeadModal({
     const loadImoveis = async () => {
         setLoadingImoveis(true)
         try {
-            // Endpoint agora filtra automaticamente por corretor autenticado
             const res = await fetch('/api/imoveis')
             const data = await res.json()
 
@@ -64,10 +61,6 @@ export function CreateLeadModal({
 
             if (data.success && data.imoveis) {
                 setImoveis(data.imoveis)
-
-                if (data.imoveis.length === 0) {
-                    console.info('Nenhum imóvel disponível. Cadastre um imóvel primeiro.')
-                }
             } else {
                 throw new Error(data.error || 'Resposta inválida')
             }
@@ -95,7 +88,6 @@ export function CreateLeadModal({
             })
 
             if (result.success) {
-                // Reset form
                 setFormData({
                     name: '',
                     phone: '',
@@ -108,7 +100,7 @@ export function CreateLeadModal({
             } else {
                 setError(result.error || 'Erro ao criar lead')
             }
-        } catch (err) {
+        } catch {
             setError('Erro ao criar lead')
         } finally {
             setLoading(false)
@@ -127,24 +119,28 @@ export function CreateLeadModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+                
                 {/* Header */}
-                <div className="p-5 bg-slate-900 text-white">
+                <div className="p-6 bg-slate-900 text-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
                                 <Plus className="w-5 h-5" />
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold">Novo Lead</h2>
                                 {columnName && (
-                                    <p className="text-slate-400 text-sm">Sera adicionado em: {columnName}</p>
+                                    <p className="text-white/70 text-sm">
+                                        Será adicionado em: {columnName}
+                                    </p>
                                 )}
                             </div>
                         </div>
+
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-white/10 rounded-xl transition-colors"
@@ -156,8 +152,9 @@ export function CreateLeadModal({
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    
                     {error && (
-                        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium">
+                        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
                             {error}
                         </div>
                     )}
@@ -165,7 +162,7 @@ export function CreateLeadModal({
                     {/* Nome */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
-                            <User className="w-4 h-4 text-slate-400" />
+                            <User className="w-4 h-4" />
                             Nome *
                         </label>
                         <input
@@ -173,7 +170,7 @@ export function CreateLeadModal({
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             placeholder="Nome do cliente"
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all"
                             required
                             disabled={loading}
                         />
@@ -182,7 +179,7 @@ export function CreateLeadModal({
                     {/* Telefone */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
-                            <Phone className="w-4 h-4 text-slate-400" />
+                            <Phone className="w-4 h-4" />
                             Telefone *
                         </label>
                         <input
@@ -190,7 +187,7 @@ export function CreateLeadModal({
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                             placeholder="(00) 00000-0000"
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all"
                             required
                             disabled={loading}
                         />
@@ -199,7 +196,7 @@ export function CreateLeadModal({
                     {/* Email */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
-                            <Mail className="w-4 h-4 text-slate-400" />
+                            <Mail className="w-4 h-4" />
                             Email
                         </label>
                         <input
@@ -207,24 +204,24 @@ export function CreateLeadModal({
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             placeholder="email@exemplo.com"
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all"
                             disabled={loading}
                         />
                     </div>
 
-                    {/* Imovel de interesse */}
+                    {/* Imóvel */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
-                            <Building2 className="w-4 h-4 text-slate-400" />
-                            Imovel de interesse (opcional)
+                            <Building2 className="w-4 h-4" />
+                            Imóvel de interesse (opcional)
                         </label>
                         <select
                             value={formData.imovelId}
                             onChange={(e) => setFormData({ ...formData, imovelId: e.target.value })}
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all"
                             disabled={loading || loadingImoveis}
                         >
-                            <option value="">Nenhum imovel selecionado</option>
+                            <option value="">Nenhum imóvel selecionado</option>
                             {imoveis.map((imovel) => (
                                 <option key={imovel.id} value={imovel.id}>
                                     {imovel.titulo} ({imovel.tipo === 'VENDA' ? 'Venda' : 'Aluguel'})
@@ -236,33 +233,35 @@ export function CreateLeadModal({
                     {/* Mensagem */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
-                            <MessageSquare className="w-4 h-4 text-slate-400" />
-                            Observacao
+                            <MessageSquare className="w-4 h-4" />
+                            Observação
                         </label>
                         <textarea
                             value={formData.message}
                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                            placeholder="Anotacoes sobre o lead..."
+                            placeholder="Anotações sobre o lead..."
                             rows={3}
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400 resize-none"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all resize-none"
                             disabled={loading}
                         />
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-4 border-t border-slate-100">
-                        <button
+                        <Button
                             type="button"
+                            variant="secondary"
                             onClick={onClose}
                             disabled={loading}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
+                            className="flex-1"
                         >
                             Cancelar
-                        </button>
-                        <button
+                        </Button>
+
+                        <Button
                             type="submit"
                             disabled={loading || !formData.name || !formData.phone}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 rounded-xl"
                         >
                             {loading ? (
                                 <>
@@ -275,8 +274,9 @@ export function CreateLeadModal({
                                     Criar Lead
                                 </>
                             )}
-                        </button>
+                        </Button>
                     </div>
+
                 </form>
             </div>
         </div>

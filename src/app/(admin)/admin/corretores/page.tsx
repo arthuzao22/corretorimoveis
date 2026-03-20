@@ -84,31 +84,34 @@ export default function CorretoresPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>
+    return <div className="text-center py-10 text-slate-500">Carregando...</div>
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Gerenciar Corretores</h1>
+    <div className="px-4 py-6 sm:px-0 space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Gerenciar Corretores</h1>
+        <p className="text-slate-500 mt-1 text-sm sm:text-base">Controle de aprovação, ativação e permissões do Kanban por corretor.</p>
+      </div>
 
       {corretores.length === 0 ? (
-        <Card>
-          <p className="text-center text-gray-500 py-8">
+        <Card className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-center text-slate-500 py-8">
             Nenhum corretor cadastrado ainda.
           </p>
         </Card>
       ) : (
         <div className="space-y-4">
           {corretores.map((corretor) => (
-            <Card key={corretor.id}>
+            <Card key={corretor.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all">
               <div className="flex flex-col gap-4">
                 {/* Main Info */}
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-slate-900">
                       {corretor.user.name}
                     </h3>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                    <div className="mt-2 space-y-1 text-sm text-slate-600">
                       <p>
                         <span className="font-medium">Email:</span> {corretor.user.email}
                       </p>
@@ -124,10 +127,10 @@ export default function CorretoresPage() {
                       <p>
                         <span className="font-medium">Status:</span>{' '}
                         <span
-                          className={`inline-block px-2 py-1 rounded text-xs ${
+                          className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium border ${
                             corretor.user.active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-red-50 text-red-700 border-red-200'
                           }`}
                         >
                           {corretor.user.active ? 'Ativo' : 'Inativo'}
@@ -136,10 +139,10 @@ export default function CorretoresPage() {
                       <p>
                         <span className="font-medium">Aprovado:</span>{' '}
                         <span
-                          className={`inline-block px-2 py-1 rounded text-xs ${
+                          className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium border ${
                             corretor.approved
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
                           }`}
                         >
                           {corretor.approved ? 'Sim' : 'Pendente'}
@@ -151,7 +154,7 @@ export default function CorretoresPage() {
                     {!corretor.approved && (
                       <Button
                         onClick={() => handleApprove(corretor.id)}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap bg-slate-900 hover:bg-slate-800 rounded-xl"
                       >
                         Aprovar
                       </Button>
@@ -167,10 +170,10 @@ export default function CorretoresPage() {
                 </div>
 
                 {/* Kanban Permissions */}
-                <div className="border-t pt-4">
+                <div className="border-t border-slate-100 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Settings className="w-4 h-4 text-indigo-600" />
-                    <h4 className="font-semibold text-gray-900">Permissões do Kanban</h4>
+                    <h4 className="font-semibold text-slate-900">Permissões do Kanban</h4>
                   </div>
                   
                   <div className="flex flex-wrap gap-4">
@@ -182,16 +185,16 @@ export default function CorretoresPage() {
                         disabled={savingPermissions === corretor.user.id}
                         className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-slate-700">
                         Pode editar estrutura do Kanban
                         {savingPermissions === corretor.user.id && (
-                          <span className="ml-2 text-xs text-gray-500">(salvando...)</span>
+                          <span className="ml-2 text-xs text-slate-500">(salvando...)</span>
                         )}
                       </span>
                     </label>
                   </div>
                   
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-slate-500 mt-2">
                     Corretores com esta permissão podem criar, editar e excluir colunas do Kanban.
                   </p>
                 </div>
