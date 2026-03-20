@@ -56,7 +56,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className }: CardHeaderProps) {
   return (
-    <div className={cn('border-b border-gray-100 pb-4 mb-4', className)}>
+    <div className={cn('border-b border-slate-100 pb-4 mb-4', className)}>
       {children}
     </div>
   )
@@ -70,7 +70,7 @@ interface CardTitleProps {
 
 export function CardTitle({ children, className, as: Component = 'h3' }: CardTitleProps) {
   return (
-    <Component className={cn('text-lg font-semibold text-gray-800', className)}>
+    <Component className={cn('text-lg font-semibold text-slate-800', className)}>
       {children}
     </Component>
   )
@@ -83,7 +83,7 @@ interface CardDescriptionProps {
 
 export function CardDescription({ children, className }: CardDescriptionProps) {
   return (
-    <p className={cn('text-sm text-gray-500 mt-1', className)}>
+    <p className={cn('text-sm text-slate-500 mt-1', className)}>
       {children}
     </p>
   )
@@ -109,7 +109,7 @@ interface CardFooterProps {
 
 export function CardFooter({ children, className }: CardFooterProps) {
   return (
-    <div className={cn('border-t border-gray-100 pt-4 mt-4 flex items-center justify-end gap-3', className)}>
+    <div className={cn('border-t border-slate-100 pt-4 mt-4 flex items-center justify-end gap-3', className)}>
       {children}
     </div>
   )

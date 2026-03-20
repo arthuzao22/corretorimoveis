@@ -167,22 +167,26 @@ export function EventoModalEnhanced({
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-xl">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <CalendarIcon className="w-6 h-6" />
-                  {evento ? 'Editar Evento' : 'Novo Evento'}
-                </h2>
-                <p className="text-indigo-100 mt-1">
-                  Agende visitas, reuniões e acompanhamentos
-                </p>
+          <div className="bg-slate-900 text-white p-5 rounded-t-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                  <CalendarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">
+                    {evento ? 'Editar Evento' : 'Novo Evento'}
+                  </h2>
+                  <p className="text-slate-400 text-sm">
+                    Agende visitas, reunioes e acompanhamentos
+                  </p>
+                </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -190,17 +194,17 @@ export function EventoModalEnhanced({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Validation Error */}
             {validationError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
-                <span className="text-sm">{validationError}</span>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-red-700 text-sm font-medium">
+                {validationError}
               </div>
             )}
 
             {/* Event Type Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-slate-700 mb-3">
                 Tipo de Evento *
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -211,9 +215,9 @@ export function EventoModalEnhanced({
                     onClick={() =>
                       setFormData({ ...formData, tipo: eventType.value })
                     }
-                    className={`p-3 rounded-lg border-2 transition-all text-left ${formData.tipo === eventType.value
-                        ? `${eventType.bgColor} border-current ${eventType.color} ring-1 ring-current/20`
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-100'
+                    className={`p-3 rounded-xl border-2 transition-all text-left ${formData.tipo === eventType.value
+                        ? `${eventType.bgColor} border-current ${eventType.color}`
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100'
                       }`}
                   >
                     <div className="flex items-center gap-2 font-semibold text-sm">
@@ -230,8 +234,8 @@ export function EventoModalEnhanced({
 
             {/* Lead Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-400" />
+              <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4 text-slate-400" />
                 Lead {requiresLeadImovel ? '*' : '(opcional)'}
               </label>
               <select
@@ -239,7 +243,7 @@ export function EventoModalEnhanced({
                 onChange={(e) =>
                   setFormData({ ...formData, leadId: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
               >
                 <option value="">
                   {requiresLeadImovel ? 'Selecione um lead' : 'Nenhum lead (evento geral)'}
@@ -254,19 +258,19 @@ export function EventoModalEnhanced({
 
             {/* Property Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                Imóvel {requiresLeadImovel ? '*' : '(opcional)'}
+              <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-slate-400" />
+                Imovel {requiresLeadImovel ? '*' : '(opcional)'}
               </label>
               <select
                 value={formData.imovelId}
                 onChange={(e) =>
                   setFormData({ ...formData, imovelId: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
               >
                 <option value="">
-                  {requiresLeadImovel ? 'Selecione um imóvel' : 'Nenhum imóvel (evento geral)'}
+                  {requiresLeadImovel ? 'Selecione um imovel' : 'Nenhum imovel (evento geral)'}
                 </option>
                 {imoveis.map((imovel) => (
                   <option key={imovel.id} value={imovel.id}>
@@ -278,8 +282,8 @@ export function EventoModalEnhanced({
 
             {/* Date and Time */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
+              <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-slate-400" />
                 Data e Hora *
               </label>
               <input
@@ -289,15 +293,15 @@ export function EventoModalEnhanced({
                   setFormData({ ...formData, dataHora: e.target.value })
                 }
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-gray-400" />
-                Observações
+              <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-400" />
+                Observacoes
               </label>
               <textarea
                 value={formData.observacao}
@@ -306,7 +310,7 @@ export function EventoModalEnhanced({
                 }
                 rows={3}
                 placeholder="Adicione detalhes sobre este evento..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white text-gray-900"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 resize-none bg-white text-slate-800 placeholder:text-slate-400 transition-colors"
               />
             </div>
 
@@ -345,14 +349,19 @@ export function EventoModalEnhanced({
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 justify-end pt-4 border-t">
-              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <div className="flex gap-3 justify-end pt-5 border-t border-slate-100">
+              <button 
+                type="button" 
+                onClick={onClose} 
+                disabled={loading}
+                className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
+              >
                 Cancelar
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
                   <>
@@ -365,7 +374,7 @@ export function EventoModalEnhanced({
                     {evento ? 'Atualizar' : 'Criar'} Evento
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </form>
         </div>

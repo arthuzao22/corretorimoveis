@@ -16,7 +16,6 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  // Generate QR code when modal opens
   useEffect(() => {
     if (isOpen && !qrCodeUrl) {
       generateQRCode()
@@ -24,7 +23,6 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
   }, [isOpen, qrCodeUrl])
 
   const getImovelUrl = () => {
-    // Get the full URL for the property
     const baseUrl = window.location.origin
     return `${baseUrl}/imovel/${imovelId}`
   }
@@ -73,9 +71,13 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 relative">
-        {/* Close button */}
+        
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1.5 rounded-lg hover:bg-slate-100"
@@ -89,12 +91,14 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
             <div className="p-2 bg-indigo-50 border border-indigo-100 rounded-xl">
               <QrCode className="w-6 h-6 text-indigo-600" />
             </div>
-            <h2 className="text-xl font-semibold text-slate-900">QR Code do Imóvel</h2>
+            <h2 className="text-xl font-semibold text-slate-900">
+              QR Code do Imóvel
+            </h2>
           </div>
           <p className="text-sm text-slate-500 line-clamp-2">{titulo}</p>
         </div>
 
-        {/* QR Code Display */}
+        {/* QR Code */}
         <div className="flex justify-center mb-6">
           {loading ? (
             <div className="w-64 h-64 bg-slate-100 rounded-xl flex items-center justify-center">
@@ -109,7 +113,9 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
 
         {/* Link */}
         <div className="mb-6">
-          <p className="text-xs font-medium text-slate-700 mb-2">Link do imóvel:</p>
+          <p className="text-xs font-medium text-slate-700 mb-2">
+            Link do imóvel:
+          </p>
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -138,6 +144,7 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
             <Download className="w-4 h-4" />
             Baixar QR Code
           </Button>
+
           <Button
             variant="secondary"
             onClick={onClose}
@@ -149,13 +156,16 @@ export function QRCodeModal({ imovelId, titulo, isOpen, onClose }: QRCodeModalPr
 
         {/* Instructions */}
         <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-          <p className="text-xs text-indigo-900 font-medium mb-1">Como usar:</p>
+          <p className="text-xs text-indigo-900 font-medium mb-1">
+            Como usar:
+          </p>
           <ul className="text-xs text-indigo-800 space-y-1">
             <li>• Baixe o QR Code e imprima em panfletos</li>
             <li>• Coloque em placas de "Vende-se"</li>
             <li>• Compartilhe nas redes sociais</li>
           </ul>
         </div>
+
       </div>
     </div>
   )

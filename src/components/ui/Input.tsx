@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-slate-700 mb-1.5"
           >
             {label}
             {props.required && <span className="text-red-500 ml-0.5">*</span>}
@@ -38,7 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {leftIcon}
             </div>
           )}
@@ -59,7 +59,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
           
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
               {rightIcon}
             </div>
           )}
@@ -68,7 +68,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p 
             id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-red-600"
+            className="mt-1.5 text-sm text-red-500 font-medium"
             role="alert"
           >
             {error}
@@ -78,7 +78,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {hint && !error && (
           <p 
             id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-gray-500"
+            className="mt-1.5 text-sm text-slate-500"
           >
             {hint}
           </p>
@@ -115,7 +115,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-slate-700 mb-1.5"
           >
             {label}
             {props.required && <span className="text-red-500 ml-0.5">*</span>}
@@ -139,7 +139,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {error && (
           <p 
             id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-red-600"
+            className="mt-1.5 text-sm text-red-500 font-medium"
             role="alert"
           >
             {error}
@@ -149,7 +149,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {hint && !error && (
           <p 
             id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-gray-500"
+            className="mt-1.5 text-sm text-slate-500"
           >
             {hint}
           </p>
@@ -190,7 +190,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-slate-700 mb-1.5"
           >
             {label}
             {props.required && <span className="text-red-500 ml-0.5">*</span>}
@@ -227,7 +227,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {error && (
           <p 
             id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-red-600"
+            className="mt-1.5 text-sm text-red-500 font-medium"
             role="alert"
           >
             {error}
@@ -237,7 +237,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {hint && !error && (
           <p 
             id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-gray-500"
+            className="mt-1.5 text-sm text-slate-500"
           >
             {hint}
           </p>

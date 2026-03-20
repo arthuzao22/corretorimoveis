@@ -39,7 +39,6 @@ export function CreateLeadModal({
         imovelId: ''
     })
 
-    // Carregar imóveis disponíveis
     useEffect(() => {
         if (isOpen) {
             loadImoveis()
@@ -49,7 +48,6 @@ export function CreateLeadModal({
     const loadImoveis = async () => {
         setLoadingImoveis(true)
         try {
-            // Endpoint agora filtra automaticamente por corretor autenticado
             const res = await fetch('/api/imoveis')
             const data = await res.json()
 
@@ -63,10 +61,6 @@ export function CreateLeadModal({
 
             if (data.success && data.imoveis) {
                 setImoveis(data.imoveis)
-
-                if (data.imoveis.length === 0) {
-                    console.info('Nenhum imóvel disponível. Cadastre um imóvel primeiro.')
-                }
             } else {
                 throw new Error(data.error || 'Resposta inválida')
             }
@@ -94,7 +88,6 @@ export function CreateLeadModal({
             })
 
             if (result.success) {
-                // Reset form
                 setFormData({
                     name: '',
                     phone: '',
@@ -107,7 +100,7 @@ export function CreateLeadModal({
             } else {
                 setError(result.error || 'Erro ao criar lead')
             }
-        } catch (err) {
+        } catch {
             setError('Erro ao criar lead')
         } finally {
             setLoading(false)
@@ -126,10 +119,11 @@ export function CreateLeadModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+                
                 {/* Header */}
                 <div className="p-6 bg-slate-900 text-white">
                     <div className="flex items-center justify-between">
@@ -138,12 +132,15 @@ export function CreateLeadModal({
                                 <Plus className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold">Novo Lead</h2>
+                                <h2 className="text-lg font-bold">Novo Lead</h2>
                                 {columnName && (
-                                    <p className="text-white/70 text-sm">Será adicionado em: {columnName}</p>
+                                    <p className="text-white/70 text-sm">
+                                        Será adicionado em: {columnName}
+                                    </p>
                                 )}
                             </div>
                         </div>
+
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-white/10 rounded-xl transition-colors"
@@ -155,6 +152,7 @@ export function CreateLeadModal({
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    
                     {error && (
                         <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
                             {error}
@@ -211,7 +209,7 @@ export function CreateLeadModal({
                         />
                     </div>
 
-                    {/* Imóvel de interesse */}
+                    {/* Imóvel */}
                     <div>
                         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-1.5">
                             <Building2 className="w-4 h-4" />
@@ -249,34 +247,36 @@ export function CreateLeadModal({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
                         <Button
                             type="button"
-                            variant="ghost"
+                            variant="secondary"
                             onClick={onClose}
                             disabled={loading}
                             className="flex-1"
                         >
                             Cancelar
                         </Button>
+
                         <Button
                             type="submit"
                             disabled={loading || !formData.name || !formData.phone}
-                            className="flex-1 bg-slate-900 hover:bg-slate-800 rounded-xl"
+                            className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 rounded-xl"
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                     Criando...
                                 </>
                             ) : (
                                 <>
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    <Plus className="w-4 h-4" />
                                     Criar Lead
                                 </>
                             )}
                         </Button>
                     </div>
+
                 </form>
             </div>
         </div>

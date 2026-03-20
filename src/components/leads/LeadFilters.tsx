@@ -69,14 +69,16 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
   const hasActiveFilters = Object.values(filters).some(v => v !== '')
 
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-      <div className="flex items-center gap-2 mb-6">
-        <Filter className="w-5 h-5 text-purple-600" />
-        <span className="font-semibold text-gray-900">Filtros Avançados</span>
+    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+      <div className="flex items-center gap-2.5 mb-6">
+        <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
+          <Filter className="w-4 h-4 text-slate-600" />
+        </div>
+        <span className="font-semibold text-slate-800">Filtros Avancados</span>
         {hasActiveFilters && (
           <button
             onClick={handleClear}
-            className="ml-auto px-4 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-1 border border-red-200"
+            className="ml-auto px-4 py-2 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 font-medium"
           >
             <X className="w-4 h-4" />
             Limpar Filtros
@@ -85,15 +87,15 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
       </div>
 
       {/* Search Bar */}
-      <div className="mb-4">
+      <div className="mb-5">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar por nome, email ou telefone..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 placeholder:text-slate-400 transition-colors"
           />
         </div>
       </div>
@@ -101,13 +103,13 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Kanban Column Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Fase do Funil
           </label>
           <select
             value={filters.kanbanColumnId}
             onChange={(e) => handleFilterChange('kanbanColumnId', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
           >
             <option value="">Todas as Fases</option>
             {kanbanColumns.map((column) => (
@@ -120,13 +122,13 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
 
         {/* Priority Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Prioridade
           </label>
           <select
             value={filters.priority}
             onChange={(e) => handleFilterChange('priority', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
           >
             {PRIORITY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -138,13 +140,13 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
 
         {/* Origem Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Origem
           </label>
           <select
             value={filters.origem}
             onChange={(e) => handleFilterChange('origem', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
           >
             {ORIGEM_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -156,27 +158,27 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
 
         {/* Date From Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Data Inicial
           </label>
           <input
             type="date"
             value={filters.dateFrom}
             onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
           />
         </div>
 
         {/* Date To Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Data Final
           </label>
           <input
             type="date"
             value={filters.dateTo}
             onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-gray-900"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 transition-colors"
           />
         </div>
       </div>

@@ -86,7 +86,9 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
       <Card>
         <div className="text-center py-12">
           <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">{emptyMessage || 'Nenhum imóvel encontrado'}</p>
+          <p className="text-gray-500 mb-4">
+            {emptyMessage || 'Nenhum imóvel encontrado'}
+          </p>
         </div>
       </Card>
     )
@@ -97,6 +99,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
       {imoveis.map((imovel) => (
         <Card key={imovel.id} className="group hover:shadow-xl transition-shadow duration-300">
           <div className="flex flex-col h-full">
+            
             {/* Image */}
             <div className="relative h-48 -m-6 mb-4 overflow-hidden rounded-t-xl">
               {imovel.images && imovel.images.length > 0 ? (
@@ -111,7 +114,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                 </div>
               )}
 
-              {/* Status Badge */}
+              {/* Status */}
               <span
                 className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-lg ${
                   STATUS_CONFIG[imovel.status].color
@@ -120,7 +123,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                 {STATUS_CONFIG[imovel.status].label}
               </span>
 
-              {/* Destaque Badge */}
+              {/* Destaque */}
               {imovel.destaque && (
                 <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white shadow-lg flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
@@ -128,7 +131,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                 </span>
               )}
 
-              {/* Views Counter */}
+              {/* Views */}
               <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 {imovel.views}
@@ -143,7 +146,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                 </h3>
                 
                 <div className="flex items-center text-sm text-gray-600 mb-2">
-                  <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                  <MapPin className="w-4 h-4 mr-1" />
                   <span className="truncate">
                     {imovel.bairro && `${imovel.bairro}, `}
                     {imovel.cidade} - {imovel.estado}
@@ -155,30 +158,30 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                 </p>
               </div>
 
-              {/* Property Features */}
+              {/* Features */}
               <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                 {imovel.quartos != null && (
                   <div className="flex items-center gap-1">
                     <BedDouble className="w-4 h-4" />
-                    <span>{imovel.quartos}</span>
+                    {imovel.quartos}
                   </div>
                 )}
                 {imovel.banheiros != null && (
                   <div className="flex items-center gap-1">
                     <Bath className="w-4 h-4" />
-                    <span>{imovel.banheiros}</span>
+                    {imovel.banheiros}
                   </div>
                 )}
                 {imovel.garagem != null && (
                   <div className="flex items-center gap-1">
                     <Car className="w-4 h-4" />
-                    <span>{imovel.garagem}</span>
+                    {imovel.garagem}
                   </div>
                 )}
                 {imovel.area != null && (
                   <div className="flex items-center gap-1">
                     <Maximize className="w-4 h-4" />
-                    <span>{imovel.area}m²</span>
+                    {imovel.area}m²
                   </div>
                 )}
               </div>
@@ -191,6 +194,7 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                     Editar
                   </Button>
                 </Link>
+
                 <Button
                   variant="danger"
                   size="sm"
@@ -199,9 +203,10 @@ export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: Prope
                   className="flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {deletingId === imovel.id ? 'Excluindo...' : ''}
+                  {deletingId === imovel.id && 'Excluindo...'}
                 </Button>
               </div>
+
             </div>
           </div>
         </Card>

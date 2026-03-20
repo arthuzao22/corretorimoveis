@@ -26,21 +26,21 @@ export function VideoBloco({ bloco }: VideoBlocoProps) {
   const embedUrl = bloco.videoUrl ? getYouTubeEmbedUrl(bloco.videoUrl) : null
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="max-w-5xl mx-auto px-4">
         {bloco.titulo && (
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-4xl font-bold text-foreground text-center mb-4">
             {bloco.titulo}
           </h2>
         )}
         {bloco.subtitulo && (
-          <p className="text-xl text-gray-600 text-center mb-12">
+          <p className="text-xl text-muted-foreground text-center mb-12">
             {bloco.subtitulo}
           </p>
         )}
 
         {embedUrl && (
-          <div className="aspect-video rounded-lg overflow-hidden shadow-xl mb-8">
+          <div className="aspect-video rounded-lg overflow-hidden shadow-xl border border-border mb-8">
             <iframe
               src={embedUrl}
               title={bloco.titulo || 'Vídeo'}
@@ -52,7 +52,7 @@ export function VideoBloco({ bloco }: VideoBlocoProps) {
         )}
 
         {bloco.texto && (
-          <p className="text-gray-600 text-center max-w-3xl mx-auto">
+          <p className="text-muted-foreground text-center max-w-3xl mx-auto">
             {bloco.texto}
           </p>
         )}

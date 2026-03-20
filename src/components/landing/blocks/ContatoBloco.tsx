@@ -48,42 +48,42 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-card">
       <div className="max-w-4xl mx-auto px-4">
         {bloco.titulo && (
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-4xl font-bold text-foreground text-center mb-4">
             {bloco.titulo}
           </h2>
         )}
         {bloco.subtitulo && (
-          <p className="text-xl text-gray-600 text-center mb-12">
+          <p className="text-xl text-muted-foreground text-center mb-12">
             {bloco.subtitulo}
           </p>
         )}
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-background rounded-lg shadow-lg border border-border p-8">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
               {error}
             </div>
           )}
           
           {success ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-emerald-500" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 Mensagem Enviada!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Entraremos em contato em breve.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   <User className="w-4 h-4 inline mr-2" />
                   Nome Completo *
                 </label>
@@ -96,7 +96,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   <Phone className="w-4 h-4 inline mr-2" />
                   Telefone/WhatsApp *
                 </label>
@@ -109,7 +109,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   <Mail className="w-4 h-4 inline mr-2" />
                   E-mail
                 </label>
@@ -122,7 +122,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Mensagem
                 </label>
                 <textarea
@@ -130,7 +130,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Como podemos ajudar?"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
@@ -141,13 +141,13 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
           )}
 
           {whatsapp && !success && (
-            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-600 mb-4">Ou entre em contato direto via WhatsApp</p>
+            <div className="mt-6 pt-6 border-t border-border text-center">
+              <p className="text-muted-foreground mb-4">Ou entre em contato direto via WhatsApp</p>
               <a
                 href={`https://wa.me/55${whatsapp.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
               >
                 <MessageCircle className="w-5 h-5" />
                 Chamar no WhatsApp
@@ -157,7 +157,7 @@ export function ContatoBloco({ bloco, corretorId, whatsapp }: ContatoBlocoProps)
         </div>
 
         {bloco.texto && (
-          <p className="text-gray-600 text-center mt-8">
+          <p className="text-muted-foreground text-center mt-8">
             {bloco.texto}
           </p>
         )}

@@ -82,12 +82,12 @@ const actionConfig: Record<
 export function LeadTimeline({ timeline, loading }: LeadTimelineProps) {
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-slate-500">
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-200" />
-              <div className="flex-1 h-20 bg-gray-200 rounded-lg" />
+              <div className="w-10 h-10 rounded-xl bg-slate-100" />
+              <div className="flex-1 h-20 bg-slate-100 rounded-xl" />
             </div>
           ))}
         </div>
@@ -97,8 +97,8 @@ export function LeadTimeline({ timeline, loading }: LeadTimelineProps) {
 
   if (timeline.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+      <div className="text-center py-8 text-slate-500">
+        <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
         <p className="text-sm">Nenhuma atividade registrada ainda</p>
       </div>
     )
@@ -118,29 +118,29 @@ export function LeadTimeline({ timeline, loading }: LeadTimelineProps) {
           <div key={entry.id} className="flex gap-3">
             {/* Icon */}
             <div
-              className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${config.color}`}
+              className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${config.color}`}
             >
               <Icon className="w-5 h-5" />
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="font-medium text-gray-900">{config.label}</p>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <p className="font-medium text-slate-800">{config.label}</p>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">
                     {formatDistanceToNow(createdDate, {
                       addSuffix: true,
                       locale: ptBR,
                     })}
                   </span>
                 </div>
-                <p className="text-sm text-gray-700">{entry.description}</p>
+                <p className="text-sm text-slate-600">{entry.description}</p>
 
                 {/* Metadata */}
                 {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="text-xs text-gray-600 space-y-1">
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="text-xs text-slate-600 space-y-1">
                       {Object.entries(entry.metadata).map(([key, value]) => (
                         <div key={key} className="flex gap-2">
                           <span className="font-medium">{key}:</span>
@@ -155,7 +155,7 @@ export function LeadTimeline({ timeline, loading }: LeadTimelineProps) {
 
             {/* Timeline Line */}
             {index < timeline.length - 1 && (
-              <div className="absolute left-5 top-10 w-0.5 h-full bg-gray-200 -z-10" />
+              <div className="absolute left-5 top-10 w-0.5 h-full bg-slate-200 -z-10" />
             )}
           </div>
         )

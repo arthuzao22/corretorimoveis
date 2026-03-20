@@ -44,22 +44,24 @@ export function SearchFilters({ currentFilters }: SearchFiltersProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-      <div className="flex items-center gap-2 mb-6">
-        <Filter className="w-5 h-5 text-blue-600" />
-        <h2 className="text-lg font-semibold text-gray-900">Filtros de Busca</h2>
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+      <div className="flex items-center gap-2.5 mb-6">
+        <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
+          <Filter className="w-4 h-4 text-slate-600" />
+        </div>
+        <h2 className="text-lg font-semibold text-slate-800">Filtros de Busca</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Tipo */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tipo de Imóvel
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Tipo de Imovel
           </label>
           <select
             value={filters.tipo}
             onChange={(e) => setFilters({ ...filters, tipo: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800"
           >
             <option value="TODOS">Todos</option>
             <option value="VENDA">Venda</option>
@@ -69,21 +71,21 @@ export function SearchFilters({ currentFilters }: SearchFiltersProps) {
 
         {/* Cidade */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Cidade
           </label>
           <input
             type="text"
             value={filters.cidade}
             onChange={(e) => setFilters({ ...filters, cidade: e.target.value })}
-            placeholder="Ex: São Paulo"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Ex: Sao Paulo"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
           />
         </div>
 
         {/* Estado */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Estado
           </label>
           <input
@@ -92,19 +94,19 @@ export function SearchFilters({ currentFilters }: SearchFiltersProps) {
             onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
             placeholder="Ex: SP"
             maxLength={2}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
           />
         </div>
 
         {/* Quartos */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Quartos (mínimo)
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Quartos (minimo)
           </label>
           <select
             value={filters.quartos}
             onChange={(e) => setFilters({ ...filters, quartos: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800"
           >
             <option value="">Qualquer</option>
             <option value="1">1+</option>
@@ -116,41 +118,41 @@ export function SearchFilters({ currentFilters }: SearchFiltersProps) {
 
         {/* Valor Min */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Valor Mínimo
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Valor Minimo
           </label>
           <input
             type="number"
             value={filters.valorMin}
             onChange={(e) => setFilters({ ...filters, valorMin: e.target.value })}
             placeholder="R$ 0"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
           />
         </div>
 
         {/* Valor Max */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Valor Máximo
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Valor Maximo
           </label>
           <input
             type="number"
             value={filters.valorMax}
             onChange={(e) => setFilters({ ...filters, valorMax: e.target.value })}
             placeholder="R$ 0"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
           />
         </div>
 
         {/* Banheiros */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Banheiros (mínimo)
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Banheiros (minimo)
           </label>
           <select
             value={filters.banheiros}
             onChange={(e) => setFilters({ ...filters, banheiros: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800"
           >
             <option value="">Qualquer</option>
             <option value="1">1+</option>
@@ -164,14 +166,14 @@ export function SearchFilters({ currentFilters }: SearchFiltersProps) {
         <div className="flex items-end gap-2">
           <button
             onClick={handleSearch}
-            className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
+            className="flex-1 bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 font-medium"
           >
             <Search className="w-4 h-4" />
             Buscar
           </button>
           <button
             onClick={handleClear}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors"
             title="Limpar filtros"
           >
             <X className="w-4 h-4" />

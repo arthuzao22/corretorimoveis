@@ -149,10 +149,10 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Landing Page: {corretor.user.name}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Gerencie os blocos da landing page do corretor
             </p>
           </div>
@@ -167,7 +167,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
             <Link
               href={`/lp/${corretor.slug}`}
               target="_blank"
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
             >
               <Eye className="w-4 h-4" />
               Preview
@@ -175,10 +175,10 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           </div>
         </div>
 
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
-          corretor.landingAtiva ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium ${
+          corretor.landingAtiva ? 'bg-emerald-500/20 text-emerald-400' : 'bg-muted text-muted-foreground'
         }`}>
-          <span className="font-medium">
+          <span>
             Status: {corretor.landingAtiva ? 'Ativa' : 'Pausada'}
           </span>
         </div>
@@ -189,7 +189,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           {/* Blocos existentes */}
           {corretor.landingBlocos.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900">Blocos da Landing</h2>
+              <h2 className="text-lg font-semibold text-foreground">Blocos da Landing</h2>
               {corretor.landingBlocos.map((bloco: any, index: number) => (
                 <BlocoItem
                   key={bloco.id}
@@ -206,10 +206,10 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
             </div>
           )}
 
-          {/* Form de edição */}
+          {/* Form de edicao */}
           {blocoEditando && (
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Editar Bloco</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Editar Bloco</h2>
               <BlocoForm
                 tipo={blocoEditando.tipo}
                 initialData={blocoEditando}
@@ -219,10 +219,10 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
             </div>
           )}
 
-          {/* Form de criação */}
+          {/* Form de criacao */}
           {showForm && tipoSelecionado && (
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Criar Novo Bloco</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Criar Novo Bloco</h2>
               <BlocoForm
                 tipo={tipoSelecionado}
                 onSubmit={handleCreateBloco}
@@ -236,7 +236,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
 
           {corretor.landingBlocos.length === 0 && !showForm && (
             <Card className="p-12 text-center">
-              <p className="text-gray-500 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Nenhum bloco criado ainda. Comece adicionando um bloco!
               </p>
             </Card>
@@ -246,7 +246,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
         {/* Sidebar - Adicionar blocos */}
         <div className="lg:col-span-1">
           <Card className="p-6 sticky top-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Adicionar Bloco
             </h2>
             <div className="space-y-2">
@@ -259,21 +259,21 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
                     setBlocoEditando(null)
                   }}
                   disabled={loading}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-border rounded-xl hover:bg-muted transition-colors disabled:opacity-50"
                 >
-                  <Plus className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-gray-900">{tipo.label}</span>
+                  <Plus className="w-5 h-5 text-primary" />
+                  <span className="font-medium text-foreground">{tipo.label}</span>
                 </button>
               ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 Link da Landing
               </h3>
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg text-sm break-all">
-                <LinkIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <span className="text-gray-600">
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-xl text-sm break-all">
+                <LinkIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground">
                   {typeof window !== 'undefined' 
                     ? `${window.location.origin}/lp/${corretor.slug}`
                     : `/lp/${corretor.slug}`}
