@@ -26,16 +26,16 @@ export function Navbar({ transparent = false }: NavbarProps) {
   ]
 
   return (
-    <header className={`${transparent ? 'bg-white/80 backdrop-blur-md' : 'bg-white'} shadow-sm sticky top-0 z-30`}>
+    <header className={`${transparent ? 'bg-white/80 backdrop-blur-md' : 'bg-white'} border-b border-slate-100 sticky top-0 z-30`}>
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <TransitionLink 
             href="/" 
-            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
+            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-slate-800 hover:text-slate-900 transition-colors"
           >
             <Building2 className="w-7 h-7 sm:w-8 sm:h-8" />
-            <span>ImóvelPro</span>
+            <span>ImovelPro</span>
           </TransitionLink>
 
           {/* Desktop Navigation */}
@@ -44,10 +44,10 @@ export function Navbar({ transparent = false }: NavbarProps) {
               <TransitionLink
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   isActive(link.href)
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <link.icon className="w-4 h-4" />
@@ -60,14 +60,14 @@ export function Navbar({ transparent = false }: NavbarProps) {
           <div className="hidden md:flex items-center gap-3">
             <TransitionLink
               href="/login"
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-all font-medium text-sm"
+              className="flex items-center gap-2 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-xl hover:bg-slate-100 transition-all font-medium text-sm"
             >
               <LogIn className="w-4 h-4" />
               Entrar
             </TransitionLink>
             <TransitionLink
               href="/register"
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium text-sm"
+              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-all font-medium text-sm"
             >
               <UserPlus className="w-4 h-4" />
               Cadastrar-se
@@ -77,7 +77,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             aria-label="Menu"
           >
             {mobileMenuOpen ? (
@@ -90,17 +90,17 @@ export function Navbar({ transparent = false }: NavbarProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100">
+          <div className="md:hidden py-4 border-t border-slate-100">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <TransitionLink
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     isActive(link.href)
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-slate-100 text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <link.icon className="w-5 h-5" />
@@ -108,11 +108,11 @@ export function Navbar({ transparent = false }: NavbarProps) {
                 </TransitionLink>
               ))}
               
-              <div className="border-t border-gray-100 mt-2 pt-2">
+              <div className="border-t border-slate-100 mt-2 pt-2">
                 <TransitionLink
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
                 >
                   <LogIn className="w-5 h-5" />
                   Entrar
@@ -120,7 +120,7 @@ export function Navbar({ transparent = false }: NavbarProps) {
                 <TransitionLink
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all mt-2"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-all mt-2"
                 >
                   <UserPlus className="w-5 h-5" />
                   Cadastrar-se

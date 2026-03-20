@@ -91,47 +91,47 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
 
   return (
     <Card className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">
             {initialData ? 'Editar' : 'Criar'} Bloco: {getTipoLabel()}
           </h3>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Título
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Titulo
           </label>
           <Input
             value={formData.titulo}
             onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-            placeholder="Digite o título do bloco"
+            placeholder="Digite o titulo do bloco"
           />
         </div>
 
         {tipo !== 'texto' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Subtítulo
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Subtitulo
             </label>
             <Input
               value={formData.subtitulo}
               onChange={(e) => setFormData({ ...formData, subtitulo: e.target.value })}
-              placeholder="Digite o subtítulo"
+              placeholder="Digite o subtitulo"
             />
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Texto / Descrição
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Texto / Descricao
           </label>
           <textarea
             value={formData.texto}
             onChange={(e) => setFormData({ ...formData, texto: e.target.value })}
             placeholder="Digite o texto do bloco"
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
           />
         </div>
 

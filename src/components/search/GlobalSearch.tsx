@@ -212,28 +212,28 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 pt-20 px-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 pt-20 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Search Input */}
-        <div className="flex items-center gap-3 p-4 border-b border-gray-200">
-          <Search className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center gap-3 p-4 border-b border-slate-200">
+          <Search className="w-5 h-5 text-slate-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar imóveis, leads, ou digite um comando..."
-            className="flex-1 text-lg outline-none"
+            placeholder="Buscar imoveis, leads, ou digite um comando..."
+            className="flex-1 text-lg outline-none text-slate-800 placeholder:text-slate-400"
             autoFocus
           />
-          <kbd className="hidden sm:inline-block px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 rounded">
+          <kbd className="hidden sm:inline-block px-2 py-1 text-xs font-semibold text-slate-500 bg-slate-100 rounded-lg">
             ESC
           </kbd>
         </div>
 
         {/* Recent Searches */}
         {!query && recentSearches.length > 0 && (
-          <div className="px-4 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+          <div className="px-4 py-3 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-xs text-slate-500 mb-2.5">
               <Clock className="w-3 h-3" />
               Buscas recentes
             </div>
@@ -242,7 +242,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                 <button
                   key={idx}
                   onClick={() => setQuery(search)}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                  className="px-2.5 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-slate-700"
                 >
                   {search}
                 </button>
@@ -254,11 +254,11 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="p-8 text-center text-slate-500">
+              <div className="w-8 h-8 border-2 border-slate-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
             </div>
           ) : results.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-slate-500">
               Nenhum resultado encontrado
             </div>
           ) : (
@@ -277,26 +277,26 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         onClose()
                       }
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      idx === selectedIndex ? 'bg-blue-50' : ''
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${
+                      idx === selectedIndex ? 'bg-indigo-50' : ''
                     }`}
                   >
-                    <div className={`p-2 rounded-lg ${
-                      result.type === 'imovel' ? 'bg-blue-100 text-blue-600' :
+                    <div className={`p-2 rounded-xl ${
+                      result.type === 'imovel' ? 'bg-indigo-100 text-indigo-600' :
                       result.type === 'lead' ? 'bg-purple-100 text-purple-600' :
-                      'bg-green-100 text-green-600'
+                      'bg-emerald-100 text-emerald-600'
                     }`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="font-medium text-gray-900">{result.title}</p>
+                      <p className="font-medium text-slate-800">{result.title}</p>
                       {result.subtitle && (
-                        <p className="text-sm text-gray-500">{result.subtitle}</p>
+                        <p className="text-sm text-slate-500">{result.subtitle}</p>
                       )}
                     </div>
                     {result.type === 'action' && (
-                      <kbd className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 rounded">
-                        ↵
+                      <kbd className="px-2 py-1 text-xs font-semibold text-slate-500 bg-slate-100 rounded-lg">
+                        Enter
                       </kbd>
                     )}
                   </button>
@@ -307,20 +307,20 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-500 flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 bg-white border border-gray-300 rounded">↑</kbd>
-              <kbd className="px-1 bg-white border border-gray-300 rounded">↓</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded-lg">Cima</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded-lg">Baixo</kbd>
               navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 bg-white border border-gray-300 rounded">↵</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded-lg">Enter</kbd>
               selecionar
             </span>
           </div>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 bg-white border border-gray-300 rounded">ESC</kbd>
+            <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded-lg">ESC</kbd>
             fechar
           </span>
         </div>

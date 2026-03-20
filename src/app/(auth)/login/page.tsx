@@ -63,11 +63,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+          <h1 className="text-2xl font-bold text-center mb-6 text-slate-800">Entrar</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -89,23 +89,23 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-red-600 text-sm text-center">
+              <div className="text-red-500 text-sm text-center font-medium p-3 bg-red-50 rounded-xl">
                 {error}
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-slate-900 hover:bg-slate-800"
               disabled={loading}
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Não tem uma conta? </span>
-            <Link href="/register" className="text-blue-600 hover:underline">
+          <div className="mt-5 text-center text-sm">
+            <span className="text-slate-600">Nao tem uma conta? </span>
+            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Cadastre-se
             </Link>
           </div>
