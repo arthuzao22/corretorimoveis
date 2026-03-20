@@ -93,13 +93,13 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             {initialData ? 'Editar' : 'Criar'} Bloco: {getTipoLabel()}
           </h3>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Titulo
           </label>
           <Input
@@ -111,7 +111,7 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
 
         {tipo !== 'texto' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Subtitulo
             </label>
             <Input
@@ -123,7 +123,7 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Texto / Descricao
           </label>
           <textarea
@@ -131,13 +131,13 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
             onChange={(e) => setFormData({ ...formData, texto: e.target.value })}
             placeholder="Digite o texto do bloco"
             rows={4}
-            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-colors text-slate-800 placeholder:text-slate-400"
+            className="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring transition-colors text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
         {(tipo === 'hero' || tipo === 'galeria' || tipo === 'carrossel' || tipo === 'historia') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Imagens (URLs)
             </label>
             <div className="space-y-2">
@@ -169,7 +169,7 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
                 </Button>
               </div>
               {imageError && (
-                <p className="text-sm text-red-600">{imageError}</p>
+                <p className="text-sm text-destructive">{imageError}</p>
               )}
             </div>
           </div>
@@ -177,7 +177,7 @@ export function BlocoForm({ tipo, onSubmit, onCancel, initialData }: BlocoFormPr
 
         {tipo === 'video' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               URL do Vídeo (YouTube)
             </label>
             <Input

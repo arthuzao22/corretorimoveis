@@ -46,11 +46,12 @@ interface PropertyListProps {
   emptyMessage?: string
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   ATIVO: { label: 'Ativo', color: 'bg-green-600' },
   INATIVO: { label: 'Inativo', color: 'bg-gray-600' },
   VENDIDO: { label: 'Vendido', color: 'bg-blue-600' },
   ALUGADO: { label: 'Alugado', color: 'bg-purple-600' },
+  COMPRADO: { label: 'Comprado', color: 'bg-amber-600' },
 }
 
 export function PropertyList({ imoveis, onDelete, loading, emptyMessage }: PropertyListProps) {

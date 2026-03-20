@@ -12,15 +12,15 @@ export function GaleriaBloco({ bloco }: GaleriaBlocoProps) {
   const imagens = bloco.imagens || []
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="max-w-6xl mx-auto px-4">
         {bloco.titulo && (
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-4xl font-bold text-foreground text-center mb-4">
             {bloco.titulo}
           </h2>
         )}
         {bloco.subtitulo && (
-          <p className="text-xl text-gray-600 text-center mb-12">
+          <p className="text-xl text-muted-foreground text-center mb-12">
             {bloco.subtitulo}
           </p>
         )}
@@ -31,7 +31,7 @@ export function GaleriaBloco({ bloco }: GaleriaBlocoProps) {
               <button
                 key={index}
                 onClick={() => setSelectedImage(img)}
-                className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-border"
               >
                 <img
                   src={img}
@@ -44,7 +44,7 @@ export function GaleriaBloco({ bloco }: GaleriaBlocoProps) {
         )}
 
         {bloco.texto && (
-          <p className="text-gray-600 text-center mt-8 max-w-3xl mx-auto">
+          <p className="text-muted-foreground text-center mt-8 max-w-3xl mx-auto">
             {bloco.texto}
           </p>
         )}
@@ -53,7 +53,7 @@ export function GaleriaBloco({ bloco }: GaleriaBlocoProps) {
       {/* Modal de zoom */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
           <button

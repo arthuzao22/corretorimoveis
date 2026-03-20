@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Calendar, Clock, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -24,11 +25,11 @@ interface UpcomingEventsWidgetProps {
 }
 
 const eventTypeColors = {
-  VISITA: 'bg-blue-100 text-blue-700',
-  ACOMPANHAMENTO: 'bg-amber-100 text-amber-700',
-  REUNIAO: 'bg-emerald-100 text-emerald-700',
-  URGENTE: 'bg-red-100 text-red-700',
-  GERAL: 'bg-slate-100 text-slate-700'
+  VISITA: 'bg-sky-500/20 text-sky-400',
+  ACOMPANHAMENTO: 'bg-amber-500/20 text-amber-400',
+  REUNIAO: 'bg-emerald-500/20 text-emerald-400',
+  URGENTE: 'bg-rose-500/20 text-rose-400',
+  GERAL: 'bg-muted text-muted-foreground'
 }
 
 const eventTypeLabels = {
@@ -40,11 +41,17 @@ const eventTypeLabels = {
 }
 
 export function UpcomingEventsWidget({ events }: UpcomingEventsWidgetProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   if (events.length === 0) {
     return (
       <Card>
-        <h2 className="text-lg font-semibold mb-4 text-slate-800">Proximos Eventos</h2>
-        <p className="text-slate-500 text-center py-8">Nenhum evento agendado.</p>
+        <h2 className="text-lg font-semibold mb-4 text-foreground">Proximos Eventos</h2>
+        <p className="text-muted-foreground text-center py-8">Nenhum evento agendado.</p>
       </Card>
     )
   }
@@ -52,8 +59,8 @@ export function UpcomingEventsWidget({ events }: UpcomingEventsWidgetProps) {
   return (
     <Card>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-slate-800">Proximos Eventos</h2>
-        <Link href="/corretor/calendario" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+        <h2 className="text-lg font-semibold text-foreground">Proximos Eventos</h2>
+        <Link href="/corretor/calendario" className="text-primary hover:text-primary/80 text-sm font-medium">
           Ver calendario
         </Link>
       </div>
@@ -65,37 +72,41 @@ export function UpcomingEventsWidget({ events }: UpcomingEventsWidgetProps) {
           return (
             <div
               key={event.id}
-              className="p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all"
+              className="p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all"
             >
               <div className="flex items-start justify-between mb-2">
-                <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${eventTypeColors[tipo] || 'bg-slate-100 text-slate-700'}`}>
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${eventTypeColors[tipo] || 'bg-muted text-muted-foreground'}`}>
                   {eventTypeLabels[tipo] || event.tipo}
                 </span>
-                <div className="text-sm text-slate-500 flex items-center gap-1">
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {format(eventDate, 'HH:mm', { locale: ptBR })}
+                  <span suppressHydrationWarning>
+                    {mounted ? format(eventDate, 'HH:mm', { locale: ptBR }) : '--:--'}
+                  </span>
                 </div>
               </div>
 
               <div className="mb-2">
-                <p className="font-medium text-slate-800">
+                <p className="font-medium text-foreground">
                   {event.lead?.name || 'Evento geral'}
                 </p>
-                <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                   <Calendar className="w-3 h-3" />
-                  {format(eventDate, "dd 'de' MMMM", { locale: ptBR })}
+                  <span suppressHydrationWarning>
+                    {mounted ? format(eventDate, "dd 'de' MMMM", { locale: ptBR }) : '-- de ---'}
+                  </span>
                 </p>
               </div>
 
               {event.imovel && (
-                <p className="text-sm text-slate-600 flex items-start gap-1">
+                <p className="text-sm text-muted-foreground flex items-start gap-1">
                   <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
                   <span className="truncate">{event.imovel.titulo}</span>
                 </p>
               )}
 
               {event.observacao && (
-                <p className="text-xs text-slate-500 mt-2 line-clamp-2">{event.observacao}</p>
+                <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2">{event.observacao}</p>
               )}
             </div>
           )

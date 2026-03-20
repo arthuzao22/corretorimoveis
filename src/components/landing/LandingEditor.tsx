@@ -149,10 +149,10 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Landing Page: {corretor.user.name}
             </h1>
-            <p className="text-slate-500">
+            <p className="text-muted-foreground">
               Gerencie os blocos da landing page do corretor
             </p>
           </div>
@@ -176,7 +176,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
         </div>
 
         <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium ${
-          corretor.landingAtiva ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+          corretor.landingAtiva ? 'bg-emerald-500/20 text-emerald-400' : 'bg-muted text-muted-foreground'
         }`}>
           <span>
             Status: {corretor.landingAtiva ? 'Ativa' : 'Pausada'}
@@ -189,7 +189,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           {/* Blocos existentes */}
           {corretor.landingBlocos.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-800">Blocos da Landing</h2>
+              <h2 className="text-lg font-semibold text-foreground">Blocos da Landing</h2>
               {corretor.landingBlocos.map((bloco: any, index: number) => (
                 <BlocoItem
                   key={bloco.id}
@@ -209,7 +209,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           {/* Form de edicao */}
           {blocoEditando && (
             <div>
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Editar Bloco</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Editar Bloco</h2>
               <BlocoForm
                 tipo={blocoEditando.tipo}
                 initialData={blocoEditando}
@@ -222,7 +222,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
           {/* Form de criacao */}
           {showForm && tipoSelecionado && (
             <div>
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Criar Novo Bloco</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Criar Novo Bloco</h2>
               <BlocoForm
                 tipo={tipoSelecionado}
                 onSubmit={handleCreateBloco}
@@ -236,7 +236,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
 
           {corretor.landingBlocos.length === 0 && !showForm && (
             <Card className="p-12 text-center">
-              <p className="text-slate-500 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Nenhum bloco criado ainda. Comece adicionando um bloco!
               </p>
             </Card>
@@ -246,7 +246,7 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
         {/* Sidebar - Adicionar blocos */}
         <div className="lg:col-span-1">
           <Card className="p-6 sticky top-8">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Adicionar Bloco
             </h2>
             <div className="space-y-2">
@@ -259,21 +259,21 @@ export function LandingEditor({ corretor: initialCorretor }: LandingEditorProps)
                     setBlocoEditando(null)
                   }}
                   disabled={loading}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left border border-border rounded-xl hover:bg-muted transition-colors disabled:opacity-50"
                 >
-                  <Plus className="w-5 h-5 text-indigo-600" />
-                  <span className="font-medium text-slate-800">{tipo.label}</span>
+                  <Plus className="w-5 h-5 text-primary" />
+                  <span className="font-medium text-foreground">{tipo.label}</span>
                 </button>
               ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-200">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 Link da Landing
               </h3>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl text-sm break-all">
-                <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                <span className="text-slate-600">
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-xl text-sm break-all">
+                <LinkIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground">
                   {typeof window !== 'undefined' 
                     ? `${window.location.origin}/lp/${corretor.slug}`
                     : `/lp/${corretor.slug}`}
