@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, FolderInput, Tag as TagIcon, Thermometer, Trash2, Loader2 } from 'lucide-react'
+import { X, FolderInput, Tag as TagIcon, Thermometer, Trash2, Loader2, CheckSquare } from 'lucide-react'
 import { getKanbanColumns, bulkMoveLeads } from '@/server/actions/kanban'
 import { bulkDeleteLeads, bulkUpdateTemperatura } from '@/server/actions/leads'
 
@@ -95,135 +95,146 @@ export function BulkActionsBar({ selectedCount, selectedLeadIds, onClear, onComp
     }
   }
 
+  const closeMenus = () => {
+    setShowMoveMenu(false)
+    setShowTempMenu(false)
+  }
+
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 px-4 max-w-full">
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow-2xl px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center gap-3 md:gap-4 animate-slide-up max-w-full">
-        {/* Selected Count */}
-        <div className="flex items-center gap-2 pr-0 md:pr-4 md:border-r border-white/20">
-          <span className="font-semibold">{selectedCount}</span>
-          <span className="text-sm">selecionado{selectedCount > 1 ? 's' : ''}</span>
-        </div>
+    <>
+      {/* Backdrop to close dropdowns */}
+      {(showMoveMenu || showTempMenu) && (
+        <div className="fixed inset-0 z-40" onClick={closeMenus} />
+      )}
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 relative flex-wrap justify-center md:justify-start">
-          {/* Move Button */}
-          <div className="relative">
-            <button
-              onClick={handleShowMove}
-              disabled={loading}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 text-sm"
-              title="Mover para coluna"
-            >
-              <FolderInput className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Mover</span>
-            </button>
+      {/* Fixed bottom action bar — Gmail / WhatsApp style */}
+      <div className="fixed bottom-0 inset-x-0 z-50 animate-bulk-slide-up">
+        {/* Subtle top shadow */}
+        <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
 
-            {/* Move Dropdown */}
-            {showMoveMenu && (
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl py-2 min-w-[160px] max-w-[200px] max-h-[300px] overflow-y-auto">
-                {columns.map((col) => (
-                  <button
-                    key={col.id}
-                    onClick={() => handleBulkMove(col.id)}
-                    disabled={loading}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors text-gray-900 text-sm disabled:opacity-50 truncate"
-                    style={{
-                      borderLeft: `4px solid ${col.color || '#6b7280'}`,
-                    }}
-                  >
-                    {col.name}
-                  </button>
-                ))}
+        <div className="bg-white border-t border-slate-200 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]">
+          <div className="max-w-5xl mx-auto px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            {/* Top: Count + Clear */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white">
+                  <span className="text-xs font-bold">{selectedCount}</span>
+                </div>
+                <span className="text-sm font-semibold text-slate-800">
+                  {selectedCount === 1 ? 'lead selecionado' : 'leads selecionados'}
+                </span>
               </div>
-            )}
-          </div>
+              <button
+                onClick={onClear}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <X className="w-3.5 h-3.5" />
+                Limpar
+              </button>
+            </div>
 
-          {/* Temperature Button */}
-          <div className="relative">
-            <button
-              onClick={handleShowTemp}
-              disabled={loading}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 text-sm"
-              title="Alterar temperatura"
-            >
-              <Thermometer className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Temp</span>
-            </button>
+            {/* Actions row */}
+            <div className="flex items-center gap-2">
+              {/* Move to column */}
+              <div className="relative flex-1">
+                <button
+                  onClick={handleShowMove}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition-colors disabled:opacity-50 border border-indigo-100"
+                >
+                  <FolderInput className="w-4 h-4" />
+                  <span className="text-[13px] font-semibold">Mover</span>
+                </button>
 
-            {/* Temperature Dropdown */}
-            {showTempMenu && (
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl py-2 min-w-[120px]">
-                <button
-                  onClick={() => handleBulkTemperatura('quente')}
-                  disabled={loading}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors text-gray-900 text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <span>🔥</span>
-                  <span>Quente</span>
-                </button>
-                <button
-                  onClick={() => handleBulkTemperatura('morno')}
-                  disabled={loading}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors text-gray-900 text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <span>🟡</span>
-                  <span>Morno</span>
-                </button>
-                <button
-                  onClick={() => handleBulkTemperatura('frio')}
-                  disabled={loading}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors text-gray-900 text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <span>❄️</span>
-                  <span>Frio</span>
-                </button>
+                {/* Move dropdown — opens upward */}
+                {showMoveMenu && (
+                  <div className="absolute bottom-full mb-2 left-0 right-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 max-h-[240px] overflow-y-auto z-50">
+                    <p className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Mover para</p>
+                    {columns.map((col) => (
+                      <button
+                        key={col.id}
+                        onClick={() => handleBulkMove(col.id)}
+                        disabled={loading}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors text-slate-700 text-sm disabled:opacity-50"
+                      >
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: col.color || '#6b7280' }}
+                        />
+                        <span className="font-medium truncate">{col.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Temperature */}
+              <div className="relative flex-1">
+                <button
+                  onClick={handleShowTemp}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition-colors disabled:opacity-50 border border-amber-100"
+                >
+                  <Thermometer className="w-4 h-4" />
+                  <span className="text-[13px] font-semibold">Temperatura</span>
+                </button>
+
+                {/* Temp dropdown */}
+                {showTempMenu && (
+                  <div className="absolute bottom-full mb-2 left-0 right-0 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50">
+                    <p className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Definir como</p>
+                    {[
+                      { key: 'quente' as const, emoji: '🔥', label: 'Quente' },
+                      { key: 'morno' as const, emoji: '☀️', label: 'Morno' },
+                      { key: 'frio' as const, emoji: '❄️', label: 'Frio' },
+                    ].map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => handleBulkTemperatura(t.key)}
+                        disabled={loading}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors text-slate-700 text-sm disabled:opacity-50"
+                      >
+                        <span className="text-base">{t.emoji}</span>
+                        <span className="font-medium">{t.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Delete */}
+              <button
+                onClick={handleBulkDelete}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors disabled:opacity-50 border border-red-100"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
-
-          {/* Delete Button */}
-          <button
-            onClick={handleBulkDelete}
-            disabled={loading}
-            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50 text-sm"
-            title="Excluir selecionados"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="text-sm font-medium hidden sm:inline">Excluir</span>
-          </button>
         </div>
-
-        {/* Loading Indicator */}
-        {loading && (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        )}
-
-        {/* Clear Selection */}
-        <button
-          onClick={onClear}
-          disabled={loading}
-          className="md:ml-2 p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-          title="Limpar seleção"
-        >
-          <X className="w-5 h-5" />
-        </button>
       </div>
 
       <style jsx global>{`
-        @keyframes slide-up {
+        @keyframes bulk-slide-up {
           from {
-            transform: translate(-50%, 100%);
+            transform: translateY(100%);
             opacity: 0;
           }
           to {
-            transform: translate(-50%, 0);
+            transform: translateY(0);
             opacity: 1;
           }
         }
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
+        .animate-bulk-slide-up {
+          animation: bulk-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
       `}</style>
-    </div>
+    </>
   )
 }

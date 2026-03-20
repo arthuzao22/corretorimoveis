@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { LeadTable } from '@/components/ui/LeadTable'
 import { LeadDrawer } from './LeadDrawer'
 import { BulkActionsBar } from './BulkActionsBar'
@@ -17,6 +18,7 @@ interface LeadsListProps {
 }
 
 export function LeadsList({ initialLeads, initialPagination, filters }: LeadsListProps) {
+  const router = useRouter()
   const [leads, setLeads] = useState(initialLeads)
   const [pagination, setPagination] = useState(initialPagination)
   const [loading, setLoading] = useState(false)
@@ -80,11 +82,8 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
     setSelectedLead(null)
   }
 
-  const handleLeadUpdate = async () => {
-    // Trigger a state refresh by refetching the page data
-    // Note: In a production app, consider using SWR or React Query for better state management
-    const params = new URLSearchParams(window.location.search)
-    window.location.href = `${window.location.pathname}?${params.toString()}&t=${Date.now()}`
+  const handleLeadUpdate = () => {
+    router.refresh()
   }
 
   const handleBulkActionComplete = () => {
@@ -108,10 +107,12 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
     )
   }
 
+  const hasBulkBar = selectedLeads.length > 0
+
   return (
     <div className="space-y-6">
-      {/* Bulk Actions Bar */}
-      {selectedLeads.length > 0 && (
+      {/* Bulk Actions Bar — fixed at bottom, rendered portal-style */}
+      {hasBulkBar && (
         <BulkActionsBar
           selectedCount={selectedLeads.length}
           selectedLeadIds={selectedLeads}
@@ -120,7 +121,7 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
         />
       )}
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className={`bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all ${hasBulkBar ? 'pb-28 md:pb-24' : ''}`}>
         <LeadTable 
           leads={leads} 
           onLeadClick={handleLeadClick}
@@ -131,11 +132,11 @@ export function LeadsList({ initialLeads, initialPagination, filters }: LeadsLis
 
       {/* Load More Button */}
       {pagination.hasNextPage && (
-        <div className="flex justify-center">
+        <div className="flex justify-center px-4 md:px-0">
           <button
             onClick={loadMore}
             disabled={loading}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+            className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-sm"
           >
             {loading ? (
               <>

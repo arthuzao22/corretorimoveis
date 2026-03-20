@@ -102,6 +102,7 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
       ultimaInteracao: true,
       proximoContato: true,
       valorInteresse: true,
+      kanbanColumnId: true,
       imovel: {
         select: {
           id: true,
@@ -179,45 +180,61 @@ async function LeadsContent({ searchParams }: { searchParams: Promise<SearchPara
     limit,
   }
 
-  // Calculate stats from Kanban columns
+  // Calculate stats: count ALL leads per column (not just the current page)
+  const columnCounts = await prisma.lead.groupBy({
+    by: ['kanbanColumnId'],
+    where: { corretorId: session.user.corretorId },
+    _count: { id: true },
+  })
+
+  const totalLeads = await prisma.lead.count({
+    where: { corretorId: session.user.corretorId },
+  })
+
+  const countMap = new Map(
+    columnCounts
+      .filter((c) => c.kanbanColumnId !== null)
+      .map((c) => [c.kanbanColumnId!, c._count.id])
+  )
+
   const columnStats = kanbanColumns.map(column => ({
     id: column.id,
     name: column.name,
     color: column.color,
-    count: leads.filter((l: any) => l.kanbanColumnId === column.id).length,
+    count: countMap.get(column.id) || 0,
   }))
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Meus Leads</h1>
-          <p className="text-slate-500 mt-1 text-sm">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 truncate">Meus Leads</h1>
+          <p className="text-slate-500 mt-0.5 text-xs sm:text-sm">
             {leads.length} {leads.length === 1 ? 'lead encontrado' : 'leads encontrados'} {pagination.hasNextPage ? '(mostrando os primeiros)' : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl border border-indigo-100">
-          <Users className="w-5 h-5" />
-          <span className="font-bold">{leads.length}</span>
-          <span className="text-indigo-500 text-sm">leads</span>
+        <div className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-indigo-100 flex-shrink-0">
+          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="font-bold text-sm sm:text-base">{totalLeads}</span>
+          <span className="text-indigo-500 text-xs sm:text-sm hidden sm:inline">leads</span>
         </div>
       </div>
 
       {/* Stats Cards - Kanban Columns */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-6 md:gap-3 md:overflow-visible scrollbar-none">
         {columnStats.map((stat) => (
           <div
             key={stat.id}
-            className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group"
+            className="flex-shrink-0 w-[130px] md:w-auto bg-white rounded-xl p-3 md:p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group"
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1.5 md:mb-2">
               <div 
-                className="w-2.5 h-2.5 rounded-full shadow-sm"
+                className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm flex-shrink-0"
                 style={{ backgroundColor: stat.color || '#6b7280' }}
               />
-              <p className="text-sm text-slate-600 truncate">{stat.name}</p>
+              <p className="text-xs md:text-sm text-slate-600 truncate">{stat.name}</p>
             </div>
-            <p className="text-2xl font-bold text-slate-800">
+            <p className="text-xl md:text-2xl font-bold text-slate-800">
               {stat.count}
             </p>
           </div>

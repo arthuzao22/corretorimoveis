@@ -1,5 +1,5 @@
 import React from 'react'
-import { Mail, Phone, MessageCircle, Users, Edit } from 'lucide-react'
+import { Mail, Phone, MessageCircle, Users, Edit, ChevronRight, Clock, CalendarDays } from 'lucide-react'
 import { PriorityBadge } from '@/components/leads/StatusBadge'
 import { KanbanColumnBadge } from '@/components/leads/KanbanColumnBadge'
 import { TagBadge } from '@/components/ui/TagBadge'
@@ -67,23 +67,44 @@ const getInitials = (name: string) => {
   return name.substring(0, 2).toUpperCase()
 }
 
-// Helper to get avatar color based on name
+// Helper to get avatar color based on name — soft professional tones
 const getAvatarColor = (name: string) => {
   const colors = [
-    'bg-purple-500',
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-yellow-500',
-    'bg-red-500',
-    'bg-indigo-500',
-    'bg-pink-500',
-    'bg-teal-500',
+    'bg-indigo-600',
+    'bg-violet-600',
+    'bg-blue-600',
+    'bg-cyan-600',
+    'bg-emerald-600',
+    'bg-amber-600',
+    'bg-rose-600',
+    'bg-slate-600',
   ]
   const index = name.charCodeAt(0) % colors.length
   return colors[index]
 }
 
-// Temperature indicator component
+// Priority color dot
+const getPriorityColor = (priority: LeadPriority) => {
+  const map: Record<LeadPriority, string> = {
+    BAIXA: 'bg-slate-300',
+    MEDIA: 'bg-blue-400',
+    ALTA: 'bg-amber-400',
+    URGENTE: 'bg-red-500',
+  }
+  return map[priority] || 'bg-slate-300'
+}
+
+const getPriorityLabel = (priority: LeadPriority) => {
+  const map: Record<LeadPriority, string> = {
+    BAIXA: 'Baixa',
+    MEDIA: 'Média',
+    ALTA: 'Alta',
+    URGENTE: 'Urgente',
+  }
+  return map[priority] || priority
+}
+
+// Temperature indicator component — compact for mobile
 const TemperaturaIndicator = ({ temperatura }: { temperatura?: string }) => {
   const temperaturas = {
     quente: { emoji: '🔥', label: 'Quente', color: 'bg-red-100 text-red-700' },
@@ -218,148 +239,201 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
 
   return (
     <>
-      {/* Mobile Layout */}
-      <div className="block md:hidden space-y-3">
-        {leads.map((lead) => {
-          const attention = needsAttention(lead)
-          const nextEvent = getNextEvent(lead)
-          
-          return (
-            <div 
-              key={lead.id} 
-              className={`bg-white rounded-lg border p-4 transition-all ${
-                attention ? 'border-orange-200 bg-orange-50/50' : 'border-gray-200 hover:border-gray-300'
-              } ${selectedLeads.includes(lead.id) ? 'ring-2 ring-purple-200 border-purple-300' : ''}`}
-            >
-              {/* Mobile Header - Checkbox + Avatar + Name */}
-              <div className="flex items-center gap-3 mb-3">
+      {/* ═══ Mobile Layout ═══ */}
+      <div className="block md:hidden">
+        {/* Select All Bar */}
+        {onSelectionChange && (
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-200/60">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allSelected || false}
+                ref={input => {
+                  if (input) input.indeterminate = someSelected || false
+                }}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                className="w-3 h-3 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+              />
+              <span className="text-[13px] font-medium text-slate-500">
+                {selectedLeads.length > 0 
+                  ? `${selectedLeads.length} selecionado${selectedLeads.length > 1 ? 's' : ''}`
+                  : 'Selecionar todos'
+                }
+              </span>
+            </label>
+          </div>
+        )}
+
+        {/* Lead Cards */}
+        <div className="divide-y divide-slate-100/80">
+          {leads.map((lead) => {
+            const attention = needsAttention(lead)
+            const nextEvent = getNextEvent(lead)
+            const isSelected = selectedLeads.includes(lead.id)
+            
+            return (
+              <div 
+                key={lead.id}
+                onClick={() => onLeadClick?.(lead)}
+                className={`flex items-start gap-3 px-4 py-3.5 cursor-pointer active:bg-slate-50/80 transition-all duration-150 ${
+                  isSelected 
+                    ? 'bg-indigo-50 border-l-[3px] border-l-indigo-500 pl-[13px]' 
+                    : 'bg-white border-l-[3px] border-l-transparent'
+                }`}
+              >
+                {/* Left: Checkbox */}
                 {onSelectionChange && (
-                  <input
-                    type="checkbox"
-                    checked={selectedLeads.includes(lead.id)}
-                    onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                )}
-                <div className={`w-8 h-8 rounded-full ${getAvatarColor(lead.name)} flex items-center justify-center text-white font-semibold text-xs flex-shrink-0`}>
-                  {getInitials(lead.name)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-gray-900 text-sm truncate">{lead.name}</p>
-                  <p className="text-xs text-gray-600 truncate">{lead.phone}</p>
-                </div>
-              </div>
-
-              {/* Mobile Content Grid */}
-              <div className="space-y-2">
-                {/* Row 1: Priority + Temperature */}
-                <div className="flex items-center justify-between gap-2">
-                  <PriorityBadge priority={lead.priority} size="sm" />
-                  <TemperaturaIndicator temperatura={lead.temperatura} />
-                </div>
-
-                {/* Row 2: Score + Status */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="text-xs text-gray-500">Score:</span>
-                    <div className="flex items-center gap-1 flex-1">
-                      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-[60px]">
-                        <div 
-                          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
-                          style={{ width: `${lead.score || 0}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-gray-700">{lead.score || 0}</span>
-                    </div>
+                  <div className="pt-1.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-3 h-3 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
+                    />
                   </div>
-                  {lead.kanbanColumn && (
-                    <KanbanColumnBadge column={lead.kanbanColumn} size="sm" />
-                  )}
+                )}
+
+                {/* Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className={`w-11 h-11 rounded-full ${getAvatarColor(lead.name)} flex items-center justify-center text-white font-semibold text-sm`}>
+                    {getInitials(lead.name)}
+                  </div>
+                  {/* Priority dot indicator */}
+                  <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${getPriorityColor(lead.priority)}`} />
                 </div>
 
-                {/* Row 3: Tags */}
-                {lead.tags && lead.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {lead.tags.slice(0, 3).map((lt) => (
-                      <TagBadge 
-                        key={lt.id}
-                        name={lt.tag.name}
-                        color={lt.tag.color}
-                        size="xs"
-                      />
-                    ))}
-                    {lead.tags.length > 3 && (
-                      <span className="text-xs text-gray-500">+{lead.tags.length - 3}</span>
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  {/* Row 1: Name + Temperatura */}
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-[15px] font-semibold text-slate-900 truncate leading-tight">
+                      {lead.name}
+                    </h3>
+                    {lead.temperatura && (
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                        lead.temperatura === 'quente' ? 'bg-red-50 text-red-600' :
+                        lead.temperatura === 'frio' ? 'bg-blue-50 text-blue-600' :
+                        'bg-amber-50 text-amber-600'
+                      }`}>
+                        {lead.temperatura === 'quente' ? '🔥 Quente' : lead.temperatura === 'frio' ? '❄️ Frio' : '☀️ Morno'}
+                      </span>
                     )}
                   </div>
-                )}
 
-                {/* Row 4: Next Event */}
-                {nextEvent && (
-                  <div className="text-xs bg-blue-50 rounded-lg p-2 border border-blue-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-blue-700 font-medium">{nextEvent.tipo}</span>
-                      <span className="text-blue-600">{formatDate(nextEvent.dataHora)}</span>
-                    </div>
-                  </div>
-                )}
+                  {/* Row 2: Phone */}
+                  <p className="text-[13px] text-slate-500 mt-0.5 leading-tight">{lead.phone}</p>
 
-                {/* Row 5: Attention Alert */}
-                {attention && (
-                  <div className="text-xs bg-amber-50 rounded-lg p-2 border border-amber-200">
-                    <span className="text-amber-700 font-medium flex items-center gap-1">
-                      Sem atividade recente ({ATTENTION_THRESHOLD_DAYS}+ dias)
+                  {/* Row 3: Kanban stage + Priority label + Score */}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {lead.kanbanColumn && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-md"
+                        style={{
+                          backgroundColor: `${lead.kanbanColumn.color || '#6366f1'}15`,
+                          color: lead.kanbanColumn.color || '#6366f1',
+                        }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: lead.kanbanColumn.color || '#6366f1' }}
+                        />
+                        {lead.kanbanColumn.name}
+                      </span>
+                    )}
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {getPriorityLabel(lead.priority)}
                     </span>
+                    {(lead.score ?? 0) > 0 && (
+                      <>
+                        <span className="text-slate-200">·</span>
+                        <span className={`text-[11px] font-bold ${
+                          (lead.score || 0) >= 70 ? 'text-emerald-600' : (lead.score || 0) >= 40 ? 'text-amber-600' : 'text-slate-400'
+                        }`}>
+                          {lead.score} pts
+                        </span>
+                      </>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Mobile Actions */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-2">
-                  {lead.phone && (
-                    <>
-                      <a
-                        href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="WhatsApp"
-                        className="p-1.5 hover:bg-green-50 rounded-lg transition-colors"
-                      >
-                        <MessageCircle className="w-4 h-4 text-green-600" />
-                      </a>
-                      <a
-                        href={`tel:${lead.phone}`}
-                        title="Ligar"
-                        className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Phone className="w-4 h-4 text-blue-600" />
-                      </a>
-                    </>
+                  {/* Row 4: Tags — only if present */}
+                  {lead.tags && lead.tags.length > 0 && (
+                    <div className="flex items-center gap-1 mt-1.5">
+                      {lead.tags.slice(0, 2).map((lt) => (
+                        <span
+                          key={lt.id}
+                          className="text-[10px] font-semibold px-1.5 py-[2px] rounded"
+                          style={{
+                            backgroundColor: `${lt.tag.color}15`,
+                            color: lt.tag.color,
+                          }}
+                        >
+                          {lt.tag.name}
+                        </span>
+                      ))}
+                      {lead.tags.length > 2 && (
+                        <span className="text-[10px] text-slate-400">+{lead.tags.length - 2}</span>
+                      )}
+                    </div>
                   )}
-                  {lead.email && (
-                    <a
-                      href={`mailto:${lead.email}`}
-                      title="Email"
-                      className="p-1.5 hover:bg-purple-50 rounded-lg transition-colors"
-                    >
-                      <Mail className="w-4 h-4 text-purple-600" />
-                    </a>
-                  )}
+
+                  {/* Row 5: Next event or Attention warning */}
+                  {nextEvent ? (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <CalendarDays className="w-3 h-3 text-indigo-400 flex-shrink-0" />
+                      <span className="text-[11px] text-indigo-600 font-medium">{nextEvent.tipo}</span>
+                      <span className="text-[11px] text-slate-400">· {formatDate(nextEvent.dataHora)}</span>
+                    </div>
+                  ) : attention ? (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <Clock className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                      <span className="text-[11px] text-amber-600 font-medium">Sem interação há {ATTENTION_THRESHOLD_DAYS}+ dias</span>
+                    </div>
+                  ) : null}
+
+                  {/* Row 6: Quick Actions */}
+                  <div className="flex items-center gap-1 mt-2.5">
+                    {lead.phone && (
+                      <>
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-[11px] font-medium text-emerald-700">WhatsApp</span>
+                        </a>
+                        <a
+                          href={`tel:${lead.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center justify-center w-8 h-8 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-slate-500" />
+                        </a>
+                      </>
+                    )}
+                    {lead.email && (
+                      <a
+                        href={`mailto:${lead.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center justify-center w-8 h-8 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-slate-500" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-                {onLeadClick && (
-                  <button
-                    onClick={() => onLeadClick(lead)}
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-medium transition-colors"
-                  >
-                    Ver detalhes
-                  </button>
-                )}
+
+                {/* Right: Chevron */}
+                <div className="pt-2 flex-shrink-0">
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
 
       {/* Desktop Layout - Existing Table */}
@@ -376,7 +450,7 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
                       if (input) input.indeterminate = someSelected || false
                     }}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                    className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
                   />
                 </th>
               )}
@@ -398,7 +472,7 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
               return (
                 <tr 
                   key={lead.id} 
-                  className={`hover:bg-gray-50 transition-colors ${attention ? 'bg-orange-50' : ''} ${selectedLeads.includes(lead.id) ? 'bg-purple-50' : ''}`}
+                  className={`hover:bg-gray-50 transition-all duration-150 ${attention ? 'bg-orange-50' : ''} ${selectedLeads.includes(lead.id) ? 'bg-indigo-50/70 ring-1 ring-inset ring-indigo-100' : ''}`}
                 >
                   {onSelectionChange && (
                     <td className="py-4 px-4 w-12">
@@ -406,7 +480,7 @@ export function LeadTable({ leads, onLeadClick, selectedLeads = [], onSelectionC
                         type="checkbox"
                         checked={selectedLeads.includes(lead.id)}
                         onChange={(e) => handleSelectOne(lead.id, e.target.checked)}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+                        className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </td>

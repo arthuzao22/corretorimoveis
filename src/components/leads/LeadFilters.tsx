@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Filter, X, Search } from 'lucide-react'
+import { Filter, X, Search, ChevronDown } from 'lucide-react'
 
 const ORIGEM_OPTIONS = [
   { value: '', label: 'Todas' },
@@ -33,6 +33,7 @@ interface LeadFiltersProps {
 export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [expanded, setExpanded] = useState(false)
   const [filters, setFilters] = useState({
     search: currentFilters?.search || '',
     kanbanColumnId: currentFilters?.kanbanColumnId || '',
@@ -68,39 +69,53 @@ export function LeadFilters({ currentFilters, kanbanColumns = [] }: LeadFiltersP
 
   const hasActiveFilters = Object.values(filters).some(v => v !== '')
 
+  const activeFilterCount = Object.entries(filters).filter(([k, v]) => v !== '' && k !== 'search').length
+
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-      <div className="flex items-center gap-2.5 mb-6">
-        <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center">
+    <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 border border-slate-100 shadow-sm">
+      <div className="flex items-center gap-2.5 mb-4 md:mb-6">
+        <div className="w-8 h-8 md:w-9 md:h-9 bg-slate-100 rounded-xl flex items-center justify-center">
           <Filter className="w-4 h-4 text-slate-600" />
         </div>
-        <span className="font-semibold text-slate-800">Filtros Avancados</span>
-        {hasActiveFilters && (
-          <button
-            onClick={handleClear}
-            className="ml-auto px-4 py-2 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 font-medium"
-          >
-            <X className="w-4 h-4" />
-            Limpar Filtros
-          </button>
+        <span className="font-semibold text-slate-800 text-sm md:text-base">Filtros</span>
+        {activeFilterCount > 0 && (
+          <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-[11px] font-bold">{activeFilterCount}</span>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          {hasActiveFilters && (
+            <button
+              onClick={handleClear}
+              className="px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-1 font-medium"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Limpar</span>
+            </button>
+          )}
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="md:hidden p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-5">
+      {/* Search Bar — always visible */}
+      <div className="mb-4 md:mb-5">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar por nome, email ou telefone..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 placeholder:text-slate-400 transition-colors"
+            className="w-full pl-10 md:pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 bg-white text-slate-800 placeholder:text-slate-400 transition-colors text-sm"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Filter grid — collapsible on mobile */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 ${expanded ? 'block' : 'hidden md:grid'}`}>
         {/* Kanban Column Filter */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">

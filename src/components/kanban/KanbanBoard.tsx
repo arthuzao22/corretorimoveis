@@ -97,6 +97,17 @@ export function KanbanBoard({ initialBoard }: KanbanBoardProps) {
   // Sync local state when initialBoard changes (after router.refresh())
   useEffect(() => {
     setBoard(initialBoard)
+
+    // Also sync selectedLead if the modal is open, so it reflects updated data
+    if (selectedLead && isModalOpen) {
+      for (const col of initialBoard.columns) {
+        const updated = col.leads.find(l => l.id === selectedLead.id)
+        if (updated) {
+          setSelectedLead(updated)
+          break
+        }
+      }
+    }
   }, [initialBoard])
 
   const onDragEnd = useCallback(async (result: DropResult) => {
